@@ -1,0 +1,16 @@
+/* Reset nền mặc định của Vite để giao diện ứng dụng tự kiểm soát toàn bộ chiều rộng. */
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #35264b;
+  background: #fbf4ff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-width: 320px; min-height: 100%; }
+body { min-height: 100vh; }
+#root { width: 100%; max-width: none; min-height: 100vh; margin: 0; border: 0; text-align: left; display: flex; flex-direction: column; }
+button, input { font: inherit; }
