@@ -207,7 +207,7 @@ export default function App() {
 
   // Mua đề trước khi vào thi
   const handleBuyAndStartExam = async (subject) => {
-    const EXAM_PRICE = 10000; // Giá 10.000 VNĐ / đề
+    const EXAM_PRICE = 1000; // Giá 1.000 VNĐ / đề
 
     if (walletBalance < EXAM_PRICE) {
       alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ, đề thi giá ${EXAM_PRICE.toLocaleString()}đ. Vui lòng chuyển khoản nạp thêm tiền theo thông tin ví bên trên!`);
@@ -596,7 +596,7 @@ export default function App() {
                     <span className="subject-icon">📖</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>Giá lượt thi: <strong>10.000 VNĐ</strong></p>
+                      <p>Giá lượt thi: <strong>1.000 VNĐ</strong></p>
                     </div>
                   </div>
                   <button
@@ -605,7 +605,7 @@ export default function App() {
                     disabled={isLoading}
                     onClick={() => handleBuyAndStartExam(subject)}
                   >
-                    🛒 Mua đề & Vào thi (10.000đ) ⚡
+                    🛒 Mua đề & Vào thi (1.000đ) ⚡
                   </button>
                 </div>
               ))}
