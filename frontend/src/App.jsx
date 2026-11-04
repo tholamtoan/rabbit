@@ -165,6 +165,7 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [otpCooldown, setOtpCooldown] = useState(0);
@@ -377,7 +378,10 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     const token = localStorage.getItem('hct_session_token');
-    if (!token) return undefined;
+    if (!token) {
+      setAuthReady(true);
+      return undefined;
+    }
     fetchJson(`${API_BASE}/auth/session`, { headers: { Authorization: `Bearer ${token}` } })
       .then((data) => {
         if (cancelled) return;
@@ -386,7 +390,10 @@ export default function App() {
         setStep('select-uni');
       })
       .catch(() => {
-        localStorage.removeItem('hct_session_token');
+        if (!cancelled) localStorage.removeItem('hct_session_token');
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
       });
     return () => { cancelled = true; };
   }, []);
@@ -646,7 +653,12 @@ export default function App() {
       )}
 
       <main className="app-main">
-        {step === 'auth' && (
+        {!authReady ? (
+          <section className="fade-in" style={{ minHeight: '55vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#7c3aed' }}>
+            <div style={{ fontSize: '42px' }}>🐰</div>
+            <p>Thỏ đang kiểm tra phiên đăng nhập...</p>
+          </section>
+        ) : step === 'auth' && (
           <section className="fade-in" style={{ maxWidth: '420px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
             <h2 style={{ color: '#7c3aed', marginBottom: '8px' }}>
               {authMode === 'login' && '🔑 Đăng nhập'}
