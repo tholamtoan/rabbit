@@ -74,6 +74,11 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS wallet_transactions_username_created_idx ON wallet_transactions(username, created_at DESC);
+    -- Allow zero-value wallet entries so free exams (price = 0) can be purchased.
+    ALTER TABLE wallet_transactions
+      DROP CONSTRAINT IF EXISTS wallet_transactions_amount_check;
+    ALTER TABLE wallet_transactions
+      ADD CONSTRAINT wallet_transactions_amount_check CHECK (amount >= 0);
     CREATE TABLE IF NOT EXISTS exam_attempts (
       id UUID PRIMARY KEY, username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
       answer_key JSONB NOT NULL, explanations JSONB NOT NULL DEFAULT '{}'::jsonb,
