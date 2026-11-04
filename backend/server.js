@@ -7,7 +7,6 @@ const pricing = require('./config/pricing');
 const catalog = require('./config/catalog');
 const { pool, initializeDatabase } = require('./config/database');
 const { sendOtpEmail } = require('./services/emailService');
-const otpStorage = require('./services/otpStore');
 const shuffleArray = require('./utils/shuffleArray');
 const createAuthRoutes = require('./routes/authRoutes');
 const createExamRoutes = require('./routes/examRoutes');
@@ -53,7 +52,7 @@ app.get('/api/config/pricing', (req, res) => {
   res.json({ examPrice: pricing.EXAM_PRICE });
 });
 
-app.use(createAuthRoutes({ pool, sendOtpEmail, otpStorage }));
+app.use(createAuthRoutes({ pool, sendOtpEmail }));
 const requireAuth = createAuthMiddleware(pool);
 app.use(createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, requireAuth }));
 

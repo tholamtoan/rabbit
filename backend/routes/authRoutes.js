@@ -11,7 +11,7 @@ async function hashPassword(password) {
 
 async function verifyPassword(password, stored) {
   if (typeof stored !== 'string') return false;
-  if (!stored.startsWith('scrypt$')) return stored === password; // legacy plaintext; upgraded after successful login
+  if (!stored.startsWith('scrypt$')) return stored === password;
   const [, salt, hash] = stored.split('$');
   if (!salt || !hash) return false;
   const derived = await scrypt(password, salt, 64);
@@ -19,178 +19,177 @@ async function verifyPassword(password, stored) {
   return expected.length === derived.length && crypto.timingSafeEqual(expected, derived);
 }
 
-module.exports = function createAuthRoutes({ pool, sendOtpEmail, otpStorage }) {
+function hashOtp(code) {
+  return crypto.createHash('sha256').update(code).digest('hex');
+}
+function otpMatches(code, storedHash) {
+  const a = Buffer.from(hashOtp(code), 'hex');
+  const b = Buffer.from(storedHash || '', 'hex');
+  return a.length === b.length && a.length > 0 && crypto.timingSafeEqual(a, b);
+}
+function cleanEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+function cleanUsername(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
   const router = express.Router();
+
   router.post('/api/auth/send-otp', async (req, res) => {
     try {
-      const { username, emailOrPhone, password, confirmPassword, isRegister } = req.body;
-  
-      if (!emailOrPhone) {
-        return res.status(400).json({ message: 'Vui lòng nhập Email!' });
-      }
-  
-      const cleanContact = emailOrPhone.trim().toLowerCase();
-  
-      if (!cleanContact.includes('@') || !cleanContact.includes('.')) {
+      const { username, emailOrPhone, password, confirmPassword, isRegister } = req.body || {};
+      const purpose = isRegister ? 'register' : 'reset_password';
+      const email = cleanEmail(emailOrPhone);
+      if (!email) return res.status(400).json({ message: 'Vui lòng nhập email!' });
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return res.status(400).json({ message: 'Email không hợp lệ! Vui lòng nhập đúng định dạng email.' });
       }
-  
-      if (isRegister) {
-        if (!username || !password || !confirmPassword) {
+
+      let tempData = {};
+      if (purpose === 'register') {
+        const normalizedUsername = cleanUsername(username);
+        if (!normalizedUsername || !password || !confirmPassword) {
           return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin đăng ký!' });
         }
-        if (typeof password !== 'string' || password.length < 8) {
-        return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 8 ký tự!' });
-      }
-      if (password !== confirmPassword) {
-          return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp!' });
+        if (normalizedUsername.length < 3 || normalizedUsername.length > 30 || !/^[a-z0-9_.-]+$/.test(normalizedUsername)) {
+          return res.status(400).json({ message: 'Tên tài khoản phải dài 3–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
         }
-        const cleanUser = username.trim().toLowerCase();
-        const duplicate = await pool.query(
-          'SELECT username FROM users WHERE username = $1 OR email = $2 LIMIT 1',
-          [cleanUser, cleanContact]
-        );
-        if (duplicate.rowCount) {
-          return res.status(400).json({ message: 'Tên tài khoản hoặc email này đã được đăng ký!' });
+        if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+          return res.status(400).json({ message: 'Mật khẩu phải có từ 8 đến 128 ký tự!' });
         }
+        if (password !== confirmPassword) return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp!' });
+
+        // Case-insensitive duplicate check gives a clear message before sending OTP.
+        const duplicateUser = await pool.query('SELECT 1 FROM users WHERE LOWER(username) = $1 LIMIT 1', [normalizedUsername]);
+        if (duplicateUser.rowCount) return res.status(409).json({ message: 'Tên tài khoản đã tồn tại. Vui lòng chọn tên tài khoản khác!' });
+        const duplicateEmail = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
+        if (duplicateEmail.rowCount) return res.status(409).json({ message: 'Email này đã được đăng ký. Vui lòng sử dụng email khác!' });
+        tempData = { username: normalizedUsername, passwordHash: await hashPassword(password) };
       } else {
-        const existing = await pool.query('SELECT username FROM users WHERE email = $1 LIMIT 1', [cleanContact]);
-        if (!existing.rowCount) {
-          return res.status(404).json({ message: 'Email này chưa được đăng ký!' });
-        }
+        const existing = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
+        if (!existing.rowCount) return res.status(404).json({ message: 'Email này chưa được đăng ký!' });
       }
-  
+
+      const ip = String(req.ip || req.socket.remoteAddress || 'unknown').slice(0, 100);
+      const limits = await pool.query(
+        `SELECT
+           COUNT(*) FILTER (WHERE email = $1 AND created_at > NOW() - INTERVAL '15 minutes')::int AS email_count,
+           COUNT(*) FILTER (WHERE ip = $2 AND created_at > NOW() - INTERVAL '15 minutes')::int AS ip_count,
+           MAX(created_at) FILTER (WHERE email = $1) AS last_email_send
+         FROM otp_send_events`, [email, ip]
+      );
+      const stats = limits.rows[0];
+      if (Number(stats.email_count) >= 5) return res.status(429).json({ message: 'Email đã yêu cầu quá nhiều mã OTP. Vui lòng thử lại sau 15 phút.' });
+      if (Number(stats.ip_count) >= 20) return res.status(429).json({ message: 'Bạn đã gửi quá nhiều yêu cầu OTP. Vui lòng thử lại sau 15 phút.' });
+      if (stats.last_email_send && Date.now() - new Date(stats.last_email_send).getTime() < 60_000) {
+        const remaining = Math.ceil((60_000 - (Date.now() - new Date(stats.last_email_send).getTime())) / 1000);
+        return res.status(429).json({ message: `Vui lòng chờ ${remaining} giây trước khi gửi lại mã OTP.` });
+      }
+
       const otpCode = crypto.randomInt(100000, 1000000).toString();
-      const expiresAt = Date.now() + 3 * 60 * 1000;
-  
-      // Do not store an OTP until Gmail confirms that the message was accepted.
-      await sendOtpEmail(cleanContact, otpCode);
-  
-      otpStorage[cleanContact] = {
-        otp: otpCode,
-        expiresAt,
-        tempData: { username: username?.trim().toLowerCase(), emailOrPhone: cleanContact, password }
-      };
-  
-      return res.json({ 
-        success: true, 
-        message: `Mã OTP đã được gửi đến email ${cleanContact}! Hãy kiểm tra Hộp thư đến hoặc Thư rác (Spam).` 
-      });
-  
+      await sendOtpEmail(email, otpCode);
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query(
+          `INSERT INTO otp_challenges (email, purpose, otp_hash, temp_data, attempts, expires_at, resend_after, created_at)
+           VALUES ($1, $2, $3, $4::jsonb, 0, NOW() + INTERVAL '3 minutes', NOW() + INTERVAL '60 seconds', NOW())
+           ON CONFLICT (email, purpose) DO UPDATE SET otp_hash = EXCLUDED.otp_hash, temp_data = EXCLUDED.temp_data,
+             attempts = 0, expires_at = EXCLUDED.expires_at, resend_after = EXCLUDED.resend_after, created_at = NOW()`,
+          [email, purpose, hashOtp(otpCode), JSON.stringify(tempData)]
+        );
+        await client.query('INSERT INTO otp_send_events (email, ip, purpose) VALUES ($1, $2, $3)', [email, ip, purpose]);
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw error;
+      } finally { client.release(); }
+
+      return res.json({ success: true, cooldownSeconds: 60, message: `Mã OTP đã được gửi đến email ${email}! Hãy kiểm tra Hộp thư đến hoặc Thư rác (Spam).` });
     } catch (error) {
-      console.error('Lỗi Gmail API khi gửi OTP:', {
-        code: error.code,
-        status: error.status,
-        message: error.message
-      });
+      console.error('Lỗi gửi OTP:', { code: error.code, message: error.message });
       const isConfigError = error.code === 'GMAIL_CONFIG_MISSING';
-      return res.status(502).json({
-        message: isConfigError
-          ? 'Máy chủ chưa được cấu hình gửi email. Vui lòng liên hệ quản trị viên.'
-          : 'Chưa gửi được mã OTP do kết nối dịch vụ email gặp sự cố. Vui lòng thử lại sau ít phút.'
-      });
+      return res.status(502).json({ message: isConfigError ? 'Máy chủ chưa được cấu hình gửi email. Vui lòng liên hệ quản trị viên.' : 'Chưa gửi được mã OTP. Vui lòng thử lại sau ít phút.' });
     }
   });
-  
-  // ==========================================
-  // 2. API XÁC THỰC OTP & HOÀN TẤT ĐĂNG KÝ
-  // ==========================================
+
   router.post('/api/auth/verify-register', async (req, res) => {
-    const { emailOrPhone, otp } = req.body;
-    const cleanContact = (emailOrPhone || '').trim().toLowerCase();
-    const cleanOtp = (otp || '').trim();
-  
-    const record = otpStorage[cleanContact];
-    if (!record) {
-      return res.status(400).json({ message: 'Không tìm thấy thông tin yêu cầu OTP cho email này!' });
-    }
-  
-    if (Date.now() > record.expiresAt) {
-      delete otpStorage[cleanContact];
-      return res.status(400).json({ message: 'Mã OTP đã hết hạn (quá 3 phút).' });
-    }
-  
-    record.attempts = (record.attempts || 0) + 1;
-    if (record.attempts > 5) { delete otpStorage[cleanContact]; return res.status(429).json({ message: 'Bạn đã nhập sai OTP quá 5 lần. Hãy gửi mã mới!' }); }
-    if (record.otp !== cleanOtp) {
-      return res.status(400).json({ message: 'Mã OTP không chính xác!' });
-    }
-  
-    const { username, password } = record.tempData;
-  
+    const email = cleanEmail(req.body?.emailOrPhone);
+    const otp = typeof req.body?.otp === 'string' ? req.body.otp.trim() : '';
+    if (!email || !/^\d{6}$/.test(otp)) return res.status(400).json({ message: 'Email hoặc mã OTP không hợp lệ!' });
+    const client = await pool.connect();
     try {
-      const result = await pool.query(
-        `INSERT INTO users (username, email, password, phone, balance)
-         VALUES ($1, $2, $3, '', 0)
-         RETURNING username, balance`,
-        [username, cleanContact, await hashPassword(password)]
+      await client.query('BEGIN');
+      const challengeResult = await client.query(
+        `SELECT otp_hash, temp_data, attempts FROM otp_challenges
+         WHERE email = $1 AND purpose = 'register' AND expires_at > NOW() FOR UPDATE`, [email]
+      );
+      const challenge = challengeResult.rows[0];
+      if (!challenge) { await client.query('ROLLBACK'); return res.status(400).json({ message: 'Mã OTP đăng ký không tồn tại hoặc đã hết hạn. Hãy gửi mã mới!' }); }
+      if (challenge.attempts >= 5) {
+        await client.query("DELETE FROM otp_challenges WHERE email = $1 AND purpose = 'register'", [email]);
+        await client.query('COMMIT');
+        return res.status(429).json({ message: 'Bạn đã nhập sai OTP quá 5 lần. Hãy gửi mã mới!' });
+      }
+      if (!otpMatches(otp, challenge.otp_hash)) {
+        await client.query("UPDATE otp_challenges SET attempts = attempts + 1 WHERE email = $1 AND purpose = 'register'", [email]);
+        await client.query('COMMIT');
+        return res.status(400).json({ message: 'Mã OTP không chính xác!' });
+      }
+      const username = cleanUsername(challenge.temp_data?.username);
+      const passwordHash = challenge.temp_data?.passwordHash;
+      if (!username || !passwordHash) { await client.query('ROLLBACK'); return res.status(400).json({ message: 'Thông tin đăng ký đã hết hạn. Hãy đăng ký lại!' }); }
+      const duplicateUser = await client.query('SELECT 1 FROM users WHERE LOWER(username) = $1 LIMIT 1', [username]);
+      if (duplicateUser.rowCount) { await client.query('ROLLBACK'); return res.status(409).json({ message: 'Tên tài khoản đã tồn tại. Vui lòng chọn tên khác!' }); }
+      const duplicateEmail = await client.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
+      if (duplicateEmail.rowCount) { await client.query('ROLLBACK'); return res.status(409).json({ message: 'Email này đã được đăng ký. Vui lòng sử dụng email khác!' }); }
+
+      const created = await client.query(
+        `INSERT INTO users (username, email, password, phone, balance) VALUES ($1, $2, $3, '', 0) RETURNING username, balance`,
+        [username, email, passwordHash]
       );
       const sessionToken = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
-      await pool.query(
-        `INSERT INTO user_sessions (token_hash, username, expires_at)
-         VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
-        [tokenHash, result.rows[0].username]
-      );
-      delete otpStorage[cleanContact];
-      return res.json({ success: true, token: sessionToken, userId: result.rows[0].username, balance: Number(result.rows[0].balance), message: 'Đăng ký tài khoản thành công!' });
+      await client.query(`INSERT INTO user_sessions (token_hash, username, expires_at) VALUES ($1, $2, NOW() + INTERVAL '30 days')`, [tokenHash, created.rows[0].username]);
+      await client.query("DELETE FROM otp_challenges WHERE email = $1 AND purpose = 'register'", [email]);
+      await client.query('COMMIT');
+      return res.json({ success: true, token: sessionToken, userId: created.rows[0].username, balance: Number(created.rows[0].balance), message: 'Đăng ký tài khoản thành công!' });
     } catch (error) {
-      if (error.code === '23505') {
-        return res.status(400).json({ message: 'Tên tài khoản hoặc email này đã được đăng ký!' });
-      }
-      console.error('Lỗi lưu tài khoản:', error.message);
+      await client.query('ROLLBACK').catch(() => {});
+      if (error.code === '23505') return res.status(409).json({ message: 'Tên tài khoản hoặc email đã được đăng ký. Vui lòng kiểm tra và nhập thông tin khác!' });
+      console.error('Lỗi hoàn tất đăng ký:', error.message);
       return res.status(500).json({ message: 'Không thể tạo tài khoản lúc này. Vui lòng thử lại!' });
-    }
+    } finally { client.release(); }
   });
-  
-  // ==========================================
-  // 3. API ĐĂNG NHẬP
-  // ==========================================
+
   router.post('/api/auth/login', async (req, res) => {
-    const { loginKey, password } = req.body;
-    if (!loginKey || !password) {
-      return res.status(400).json({ message: 'Vui lòng nhập thông tin đăng nhập và mật khẩu!' });
-    }
+    const { loginKey, password } = req.body || {};
+    if (typeof loginKey !== 'string' || typeof password !== 'string' || !loginKey.trim() || !password) return res.status(400).json({ message: 'Vui lòng nhập thông tin đăng nhập và mật khẩu!' });
     try {
       const cleanKey = loginKey.trim().toLowerCase();
-      const result = await pool.query(
-        'SELECT username, email, password, balance FROM users WHERE username = $1 OR email = $1 LIMIT 1',
-        [cleanKey]
-      );
-      const foundUser = result.rows[0];
-      if (!foundUser || !(await verifyPassword(password, foundUser.password))) {
-        return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
-      }
-      if (!foundUser.password.startsWith('scrypt$')) {
-        await pool.query('UPDATE users SET password = $1 WHERE username = $2', [await hashPassword(password), foundUser.username]);
-      }
-      const sessionToken = crypto.randomBytes(32).toString('hex');
-      const tokenHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
-      await pool.query(
-        `INSERT INTO user_sessions (token_hash, username, expires_at)
-         VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
-        [tokenHash, foundUser.username]
-      );
-      return res.json({ success: true, token: sessionToken, userId: foundUser.username, balance: Number(foundUser.balance) });
+      const result = await pool.query('SELECT username, email, password, balance FROM users WHERE LOWER(username) = $1 OR LOWER(email) = $1 LIMIT 1', [cleanKey]);
+      const user = result.rows[0];
+      if (!user || !(await verifyPassword(password, user.password))) return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
+      if (!user.password.startsWith('scrypt$')) await pool.query('UPDATE users SET password = $1 WHERE username = $2', [await hashPassword(password), user.username]);
+      const token = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      await pool.query('INSERT INTO user_sessions (token_hash, username, expires_at) VALUES ($1, $2, NOW() + INTERVAL \'30 days\')', [tokenHash, user.username]);
+      return res.json({ success: true, token, userId: user.username, balance: Number(user.balance) });
     } catch (error) {
       console.error('Lỗi đăng nhập:', error.message);
       return res.status(500).json({ message: 'Máy chủ đang bận. Vui lòng thử lại!' });
     }
   });
-  
-  // Restore a persistent login session after refresh/reopening the browser.
+
   router.get('/api/auth/session', async (req, res) => {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
     if (!token) return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ!' });
     try {
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-      const result = await pool.query(
-        `SELECT u.username, u.balance FROM user_sessions s
-         JOIN users u ON u.username = s.username
-         WHERE s.token_hash = $1 AND s.expires_at > NOW() LIMIT 1`,
-        [tokenHash]
-      );
+      const result = await pool.query(`SELECT u.username, u.balance FROM user_sessions s JOIN users u ON u.username = s.username WHERE s.token_hash = $1 AND s.expires_at > NOW() LIMIT 1`, [tokenHash]);
       if (!result.rows[0]) return res.status(401).json({ message: 'Phiên đăng nhập đã hết hạn!' });
       return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance) });
     } catch (error) {
@@ -198,62 +197,52 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail, otpStorage }) {
       return res.status(500).json({ message: 'Không thể khôi phục phiên đăng nhập!' });
     }
   });
-  
+
   router.post('/api/auth/logout', async (req, res) => {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
     if (token) {
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
       await pool.query('DELETE FROM user_sessions WHERE token_hash = $1', [tokenHash]);
     }
     return res.json({ success: true });
   });
-  
-  // ==========================================
-  // 4. API ĐẶT LẠI MẬT KHẨU
-  // ==========================================
-  router.post('/api/auth/reset-password', async (req, res) => {
-    const { emailOrPhone, otp, newPassword, confirmNewPassword } = req.body;
-  
-    if (!emailOrPhone || !otp || !newPassword || !confirmNewPassword) {
-      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin!' });
-    }
-  
-    if (typeof newPassword !== 'string' || newPassword.length < 8) {
-      return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 8 ký tự!' });
-    }
 
-    if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({ message: 'Mật khẩu mới không khớp!' });
-    }
-  
-    const cleanContact = emailOrPhone.trim().toLowerCase();
-    const record = otpStorage[cleanContact];
-  
-    if (!record || Date.now() > record.expiresAt) {
-      delete otpStorage[cleanContact];
-      return res.status(400).json({ message: 'Mã OTP không chính xác hoặc đã hết hạn!' });
-    }
-    record.attempts = (record.attempts || 0) + 1;
-    if (record.attempts > 5) { delete otpStorage[cleanContact]; return res.status(429).json({ message: 'Bạn đã nhập sai OTP quá 5 lần. Hãy gửi mã mới!' }); }
-    if (record.otp !== otp) return res.status(400).json({ message: 'Mã OTP không chính xác hoặc đã hết hạn!' });
-  
+  router.post('/api/auth/reset-password', async (req, res) => {
+    const { emailOrPhone, otp, newPassword, confirmNewPassword } = req.body || {};
+    const email = cleanEmail(emailOrPhone);
+    const cleanOtp = typeof otp === 'string' ? otp.trim() : '';
+    if (!email || !/^\d{6}$/.test(cleanOtp) || typeof newPassword !== 'string' || typeof confirmNewPassword !== 'string') return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin hợp lệ!' });
+    if (newPassword.length < 8 || newPassword.length > 128) return res.status(400).json({ message: 'Mật khẩu mới phải có từ 8 đến 128 ký tự!' });
+    if (newPassword !== confirmNewPassword) return res.status(400).json({ message: 'Mật khẩu mới không khớp!' });
+    const client = await pool.connect();
     try {
-      const updated = await pool.query(
-        'UPDATE users SET password = $1 WHERE email = $2 RETURNING username',
-        [await hashPassword(newPassword), cleanContact]
-      );
-      if (!updated.rowCount) {
-        return res.status(404).json({ message: 'Không tìm thấy tài khoản liên kết!' });
+      await client.query('BEGIN');
+      const found = await client.query("SELECT otp_hash, attempts FROM otp_challenges WHERE email = $1 AND purpose = 'reset_password' AND expires_at > NOW() FOR UPDATE", [email]);
+      const challenge = found.rows[0];
+      if (!challenge) { await client.query('ROLLBACK'); return res.status(400).json({ message: 'Mã OTP không chính xác hoặc đã hết hạn!' }); }
+      if (challenge.attempts >= 5) {
+        await client.query("DELETE FROM otp_challenges WHERE email = $1 AND purpose = 'reset_password'", [email]);
+        await client.query('COMMIT');
+        return res.status(429).json({ message: 'Bạn đã nhập sai OTP quá 5 lần. Hãy gửi mã mới!' });
       }
-      // Revoke every active session after password reset.
-      await pool.query('DELETE FROM user_sessions WHERE username = $1', [updated.rows[0].username]);
-      delete otpStorage[cleanContact];
+      if (!otpMatches(cleanOtp, challenge.otp_hash)) {
+        await client.query("UPDATE otp_challenges SET attempts = attempts + 1 WHERE email = $1 AND purpose = 'reset_password'", [email]);
+        await client.query('COMMIT');
+        return res.status(400).json({ message: 'Mã OTP không chính xác hoặc đã hết hạn!' });
+      }
+      const updated = await client.query('UPDATE users SET password = $1 WHERE LOWER(email) = $2 RETURNING username', [await hashPassword(newPassword), email]);
+      if (!updated.rowCount) { await client.query('ROLLBACK'); return res.status(404).json({ message: 'Không tìm thấy tài khoản liên kết!' }); }
+      await client.query('DELETE FROM user_sessions WHERE username = $1', [updated.rows[0].username]);
+      await client.query("DELETE FROM otp_challenges WHERE email = $1 AND purpose = 'reset_password'", [email]);
+      await client.query('COMMIT');
       return res.json({ success: true, message: 'Đổi mật khẩu thành công!' });
     } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
       console.error('Lỗi đổi mật khẩu:', error.message);
       return res.status(500).json({ message: 'Không thể đổi mật khẩu lúc này!' });
-    }
+    } finally { client.release(); }
   });
+
   return router;
 };

@@ -43,6 +43,28 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS exam_attempts_user_created_idx ON exam_attempts(username, created_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uidx ON users (LOWER(username));
+    CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_uidx ON users (LOWER(email));
+    CREATE TABLE IF NOT EXISTS otp_challenges (
+      email TEXT NOT NULL,
+      purpose TEXT NOT NULL CHECK (purpose IN ('register','reset_password')),
+      otp_hash TEXT NOT NULL,
+      temp_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      expires_at TIMESTAMPTZ NOT NULL,
+      resend_after TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (email, purpose)
+    );
+    CREATE TABLE IF NOT EXISTS otp_send_events (
+      id BIGSERIAL PRIMARY KEY,
+      email TEXT NOT NULL,
+      ip TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS otp_send_events_email_created_idx ON otp_send_events(email, created_at DESC);
+    CREATE INDEX IF NOT EXISTS otp_send_events_ip_created_idx ON otp_send_events(ip, created_at DESC);
   `);
   console.log('PostgreSQL connected; users, sessions, wallet and exam tables are ready.');
 }
