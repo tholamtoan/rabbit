@@ -167,6 +167,7 @@ export default function App() {
   const [adminTransactions, setAdminTransactions] = useState([]);
   const [adminAudit, setAdminAudit] = useState([]);
   const [adminCatalog, setAdminCatalog] = useState([]);
+  const [adminExamSettings, setAdminExamSettings] = useState([]);
   const [adminRoles, setAdminRoles] = useState([]);
   const [adminRoleUsername, setAdminRoleUsername] = useState('');
   const [adminRoleType, setAdminRoleType] = useState('support');
@@ -694,6 +695,7 @@ export default function App() {
       if (tab === 'transactions') setAdminTransactions((await adminRequest('transactions')).transactions || []);
       if (tab === 'audit') setAdminAudit((await adminRequest('audit')).logs || []);
       if (tab === 'catalog') setAdminCatalog((await adminRequest('catalog')).subjects || []);
+      if (tab === 'examSettings') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
       if (tab === 'roles') setAdminRoles((await adminRequest('roles')).roles || []);
       if (tab === 'pricing') {
         const data = await adminRequest('pricing');
@@ -745,6 +747,33 @@ export default function App() {
       void loadAdminTab('catalog');
       setSuccessMessage(`Đã ${subject.enabled ? 'ẩn' : 'mở'} môn ${subject.name}.`);
     } catch (err) { setError(err.message); }
+  };
+
+  const updateAdminExamSetting = (subjectId, field, value) => {
+    setAdminExamSettings(current => current.map(item => item.id === subjectId ? { ...item, [field]: value } : item));
+  };
+
+  const saveAdminExamSetting = async (subject) => {
+    const questionCount = Number(subject.questionCount);
+    const durationMinutes = Number(subject.durationMinutes);
+    if (!Number.isInteger(questionCount) || questionCount < 1 || questionCount > subject.bankSize) {
+      setError(`Môn ${subject.name}: số câu phải từ 1 đến ${subject.bankSize}.`);
+      return;
+    }
+    if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 360) {
+      setError(`Môn ${subject.name}: thời gian phải từ 1 đến 360 phút.`);
+      return;
+    }
+    try {
+      await adminRequest(`exam-settings/${encodeURIComponent(subject.id)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ questionCount, durationMinutes })
+      });
+      setSuccessMessage(`Đã lưu cấu hình ${subject.name}: ${questionCount} câu / ${durationMinutes} phút.`);
+      void loadAdminTab('examSettings');
+    } catch (err) {
+      setError(err.message || 'Không lưu được cấu hình đề thi.');
+    }
   };
 
   const adminGrantRole = async (e) => {
@@ -809,7 +838,7 @@ export default function App() {
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'18px 0'}}>
             {[
-              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
+              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
             ].map(([id,label])=><button key={id} type="button" onClick={()=>changeAdminTab(id==='wallet'?'transactions':id)} style={{border:adminTab===(id==='wallet'?'transactions':id)?'2px solid #9333ea':'1px solid #ddd6fe',background:adminTab===(id==='wallet'?'transactions':id)?'#f3e8ff':'#fff',color:'#6b21a8',borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:'pointer'}}>{label}</button>)}
           </div>
           {adminLoading && <p style={{color:'#7e22ce'}}>Đang tải dữ liệu...</p>}
@@ -832,6 +861,20 @@ export default function App() {
           </div>}
           {adminTab==='transactions' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['ID','Tài khoản','Loại','Số tiền','Nội dung','Thời gian'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminTransactions.map(t=><tr key={t.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.id}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.username}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.type}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{Number(t.amount).toLocaleString('vi-VN')} đ</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.description}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(t.created_at).toLocaleString('vi-VN')}</td></tr>)}</tbody></table></div>}
           {adminTab==='pricing' && <form onSubmit={handleSaveExamPrice} style={{maxWidth:520,display:'grid',gap:12,padding:16,background:'#faf5ff',borderRadius:12}}><p>Giá hiện tại: <strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></p><label>Giá mới (VNĐ)<input type="number" min="0" max="100000000" step="1" value={adminPriceInput} onChange={e=>setAdminPriceInput(e.target.value)} required style={{display:'block',width:'100%',padding:12,marginTop:6,border:'1px solid #ddd6fe',borderRadius:8}}/></label><button className="btn-primary" type="submit" disabled={adminPriceSaving}>{adminPriceSaving?'Đang lưu...':'💾 Lưu giá mới'}</button></form>}
+          {adminTab==='examSettings' && <div>
+            <div style={{padding:14,marginBottom:14,background:'#faf5ff',border:'1px solid #e9d5ff',borderRadius:12,color:'#6b21a8'}}>
+              <strong>⏱️ Cấu hình riêng cho từng môn học</strong>
+              <div style={{fontSize:13,marginTop:5,color:'#7c6b91'}}>Số câu không được vượt quá số câu hỏi hiện có trong kho. Thời gian từ 1 đến 360 phút. Cấu hình chỉ áp dụng cho lượt thi tạo mới.</div>
+            </div>
+            <div style={{display:'grid',gap:12}}>
+              {adminExamSettings.map(subject=><div key={subject.id} style={{display:'grid',gridTemplateColumns:'minmax(180px,2fr) minmax(110px,1fr) minmax(110px,1fr) auto',gap:10,alignItems:'end',padding:14,border:'1px solid #e9d5ff',borderRadius:12,background:'#fff'}}>
+                <div><strong style={{color:'#5b21b6'}}>{subject.name}</strong><div style={{fontSize:12,color:'#8b7aa5'}}>{subject.universityName} · Kho có {subject.bankSize} câu</div></div>
+                <label style={{fontSize:13,color:'#6b21a8'}}>Số câu<input type="number" min="1" max={subject.bankSize} value={subject.questionCount} onChange={e=>updateAdminExamSetting(subject.id,'questionCount',e.target.value)} style={{display:'block',width:'100%',padding:9,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}/></label>
+                <label style={{fontSize:13,color:'#6b21a8'}}>Thời gian (phút)<input type="number" min="1" max="360" value={subject.durationMinutes} onChange={e=>updateAdminExamSetting(subject.id,'durationMinutes',e.target.value)} style={{display:'block',width:'100%',padding:9,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}/></label>
+                <button className="btn-primary" type="button" onClick={()=>saveAdminExamSetting(subject)}>💾 Lưu</button>
+              </div>)}
+            </div>
+          </div>}
           {adminTab==='catalog' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Trường','Môn học','Số câu hỏi','Hiển thị'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminCatalog.map(c=><tr key={c.id}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.universityName}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.name}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.questionCount}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}><button className="btn-secondary" type="button" onClick={()=>adminToggleSubject(c)}>{c.enabled?'Đang mở · Ẩn môn':'Đang ẩn · Mở môn'}</button></td></tr>)}</tbody></table></div>}
           {adminTab==='audit' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Thời gian','Người thao tác','Hành động','Đối tượng','Chi tiết'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminAudit.map(a=><tr key={a.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(a.created_at).toLocaleString('vi-VN')}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.actor}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.action}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.target}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{JSON.stringify(a.details)}</td></tr>)}</tbody></table></div>}
           {adminTab==='roles' && <div>

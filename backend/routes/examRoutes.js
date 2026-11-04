@@ -8,6 +8,58 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     next();
   };
 
+  // Per-subject exam configuration, stored in Neon.
+  router.get('/api/admin/exam-settings', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const saved = await pool.query('SELECT subject_id, question_count, duration_minutes FROM exam_subject_settings');
+      const settings = new Map(saved.rows.map(row => [row.subject_id, row]));
+      const subjects = [];
+      for (const [universityId, university] of Object.entries(catalog)) {
+        for (const subject of (university.subjects || [])) {
+          const bankSize = (questionBank[subject.id] || []).length;
+          const row = settings.get(subject.id);
+          subjects.push({
+            id: subject.id, name: subject.name, universityId, universityName: university.name,
+            bankSize,
+            questionCount: Math.min(Number(row?.question_count || Math.min(20, bankSize)), bankSize),
+            durationMinutes: Number(row?.duration_minutes || 15)
+          });
+        }
+      }
+      return res.json({ subjects });
+    } catch (error) {
+      console.error('Admin đọc cấu hình đề:', error.message);
+      return res.status(500).json({ message: 'Không tải được cấu hình đề thi.' });
+    }
+  });
+
+  router.put('/api/admin/exam-settings/:subjectId', requireAuth, requireAdmin, async (req, res) => {
+    const subjectId = String(req.params.subjectId || '');
+    const questionCount = Number(req.body?.questionCount);
+    const durationMinutes = Number(req.body?.durationMinutes);
+    const bankSize = (questionBank[subjectId] || []).length;
+    if (!bankSize) return res.status(404).json({ message: 'Không tìm thấy môn học hoặc kho câu hỏi trống.' });
+    if (!Number.isSafeInteger(questionCount) || questionCount < 1 || questionCount > bankSize) {
+      return res.status(400).json({ message: `Số câu phải từ 1 đến ${bankSize}.` });
+    }
+    if (!Number.isSafeInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 360) {
+      return res.status(400).json({ message: 'Thời gian phải từ 1 đến 360 phút.' });
+    }
+    try {
+      await pool.query(
+        `INSERT INTO exam_subject_settings(subject_id,question_count,duration_minutes,updated_by,updated_at)
+         VALUES($1,$2,$3,$4,NOW())
+         ON CONFLICT(subject_id) DO UPDATE SET question_count=EXCLUDED.question_count,
+           duration_minutes=EXCLUDED.duration_minutes,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,
+        [subjectId, questionCount, durationMinutes, req.user.username]
+      );
+      return res.json({ success: true, subjectId, questionCount, durationMinutes });
+    } catch (error) {
+      console.error('Admin lưu cấu hình đề:', error.message);
+      return res.status(500).json({ message: 'Không lưu được cấu hình đề thi.' });
+    }
+  });
+
   router.get('/api/admin/pricing', requireAuth, requireAdmin, async (req, res) => {
     try {
       const result = await pool.query("SELECT value, updated_at FROM app_settings WHERE key = 'exam_price'");
@@ -57,7 +109,23 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
   router.get('/api/exam/random/:subjectId', requireAuth, async (req, res) => {
     const bank = questionBank[req.params.subjectId];
     if (!bank || bank.length === 0) return res.status(404).json({ message: 'Kho câu hỏi trống!' });
-    const selectedQuestions = shuffleArray(bank).slice(0, 20);
+    let examConfig = { questionCount: Math.min(20, bank.length), durationMinutes: 15 };
+    try {
+      const savedConfig = await pool.query(
+        'SELECT question_count, duration_minutes FROM exam_subject_settings WHERE subject_id = $1',
+        [req.params.subjectId]
+      );
+      if (savedConfig.rows[0]) {
+        examConfig = {
+          questionCount: Math.min(Number(savedConfig.rows[0].question_count), bank.length),
+          durationMinutes: Number(savedConfig.rows[0].duration_minutes)
+        };
+      }
+    } catch (error) {
+      console.error('Không đọc được cấu hình đề môn học:', error.message);
+      return res.status(500).json({ message: 'Không tải được cấu hình đề thi.' });
+    }
+    const selectedQuestions = shuffleArray(bank).slice(0, examConfig.questionCount);
     const answerKey = {};
     const explanationKey = {};
     const clientQuestions = selectedQuestions.map((q, index) => {
@@ -81,7 +149,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
          VALUES ($1, $2, $3::jsonb, $4::jsonb, $5, NOW() + INTERVAL '2 hours')`,
         [attemptId, req.user.username, JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length]
       );
-      return res.json({ attemptId, title: 'Đề thi ngẫu nhiên', durationMinutes: 15, questions: clientQuestions });
+      return res.json({ attemptId, title: 'Đề thi ngẫu nhiên', durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
     } catch (error) {
       console.error('Không lưu được đề thi:', error.message);
       return res.status(500).json({ message: 'Không thể tạo đề thi lúc này!' });

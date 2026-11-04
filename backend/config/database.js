@@ -60,6 +60,14 @@ async function initializeDatabase() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS exam_subject_settings (
+      subject_id TEXT PRIMARY KEY,
+      question_count INTEGER NOT NULL CHECK (question_count >= 1),
+      duration_minutes INTEGER NOT NULL CHECK (duration_minutes >= 1),
+      updated_by TEXT,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS user_sessions (
       token_hash TEXT PRIMARY KEY,
       username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
