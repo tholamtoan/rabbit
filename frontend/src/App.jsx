@@ -141,6 +141,22 @@ async function fetchJson(url, options) {
   return data;
 }
 
+// Xác nhận quyền Admin bằng endpoint được backend bảo vệ, không chỉ tin cờ
+// isAdmin từ phản hồi đăng nhập/khôi phục phiên.
+async function verifyAdminPermission(token, fallback = false) {
+  if (!token) return false;
+  try {
+    await fetchJson(`${API_BASE}/admin/pricing`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return true;
+  } catch (error) {
+    if (error.status === 403 || error.status === 401) return false;
+    // Giữ tương thích nếu backend đang deploy dở hoặc endpoint chưa cập nhật.
+    return Boolean(fallback);
+  }
+}
+
 export default function App() {
   const [step, setStep] = useState('auth'); 
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify-otp', 'forgot', 'reset-otp'
@@ -257,9 +273,10 @@ export default function App() {
       });
 
       if (data.token) localStorage.setItem('hct_session_token', data.token);
+      const adminStatus = await verifyAdminPermission(data.token, data.isAdmin);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
-      setIsAdmin(Boolean(data.isAdmin));
+      setIsAdmin(adminStatus);
       setStep('select-uni');
       setPasswordInput('');
       setLoginKeyInput('');
@@ -335,9 +352,10 @@ export default function App() {
       });
 
       if (data.token) localStorage.setItem('hct_session_token', data.token);
+      const adminStatus = await verifyAdminPermission(data.token, data.isAdmin);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
-      setIsAdmin(Boolean(data.isAdmin));
+      setIsAdmin(adminStatus);
       setStep('select-uni');
       setOtpInput('');
     } catch (err) {
@@ -443,9 +461,11 @@ export default function App() {
     fetchJson(`${API_BASE}/auth/session`, { headers: { Authorization: `Bearer ${token}` } })
       .then((data) => {
         if (cancelled) return;
+        const adminStatus = await verifyAdminPermission(token, data.isAdmin);
+        if (cancelled) return;
         setUserId(data.userId);
         setWalletBalance(Number(data.balance) || 0);
-        setIsAdmin(Boolean(data.isAdmin));
+        setIsAdmin(adminStatus);
         setStep('select-uni');
       })
       .catch(() => {
