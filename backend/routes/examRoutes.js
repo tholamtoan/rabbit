@@ -2,6 +2,42 @@ const express = require('express');
 
 module.exports = function createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, requireAuth }) {
   const router = express.Router();
+  const isAdminUser = (username) => (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean).includes(String(username || '').toLowerCase());
+  const requireAdmin = (req, res, next) => {
+    if (!isAdminUser(req.user?.username)) return res.status(403).json({ message: 'Bạn không có quyền quản trị!' });
+    next();
+  };
+
+  router.get('/api/admin/pricing', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const result = await pool.query("SELECT value, updated_at FROM app_settings WHERE key = 'exam_price'");
+      return res.json({ examPrice: Number(result.rows[0]?.value ?? pricing.EXAM_PRICE), updatedAt: result.rows[0]?.updated_at || null });
+    } catch (error) {
+      console.error('Admin đọc giá:', error.message);
+      return res.status(500).json({ message: 'Không tải được giá hiện tại!' });
+    }
+  });
+
+  router.put('/api/admin/pricing', requireAuth, requireAdmin, async (req, res) => {
+    const amount = Number(req.body?.examPrice);
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 100000000) {
+      return res.status(400).json({ message: 'Giá phải là số nguyên từ 0 đến 100.000.000 VNĐ!' });
+    }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const current = await client.query("SELECT value FROM app_settings WHERE key = 'exam_price' FOR UPDATE");
+      const oldValue = Number(current.rows[0]?.value ?? pricing.EXAM_PRICE);
+      await client.query("INSERT INTO app_settings (key, value, updated_by, updated_at) VALUES ('exam_price', to_jsonb($1::numeric), $2, NOW()) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by, updated_at = NOW()", [amount, req.user.username]);
+      await client.query("INSERT INTO pricing_audit_log (setting_key, old_value, new_value, changed_by) VALUES ('exam_price', to_jsonb($1::numeric), to_jsonb($2::numeric), $3)", [oldValue, amount, req.user.username]);
+      await client.query('COMMIT');
+      return res.json({ success: true, examPrice: amount, message: `Đã cập nhật giá đề thi thành ${amount.toLocaleString('vi-VN')} VNĐ.` });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('Admin cập nhật giá:', error.message);
+      return res.status(500).json({ message: 'Không thể cập nhật giá lúc này!' });
+    } finally { client.release(); }
+  });
   router.get('/api/universities', (req, res) => {
     res.json(Object.keys(catalog).map(key => ({ id: key, name: catalog[key].name })));
   });
@@ -97,13 +133,15 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
 
   router.post('/api/exam/buy', requireAuth, async (req, res) => {
     const { subjectId } = req.body;
-    const amount = Number(pricing.EXAM_PRICE);
-    if (!subjectId || !questionBank[subjectId] || !Number.isSafeInteger(amount) || amount <= 0) {
+    if (!subjectId || !questionBank[subjectId]) {
       return res.status(400).json({ success: false, message: 'Thông tin giao dịch không hợp lệ!' });
     }
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const priceResult = await client.query("SELECT value FROM app_settings WHERE key = 'exam_price' FOR SHARE");
+      const amount = Number(priceResult.rows[0]?.value ?? pricing.EXAM_PRICE);
+      if (!Number.isSafeInteger(amount) || amount < 0) throw new Error('Giá đề thi trong cấu hình không hợp lệ');
       const result = await client.query('SELECT username, balance FROM users WHERE username = $1 FOR UPDATE', [req.user.username]);
       const user = result.rows[0];
       if (!user || Number(user.balance) < amount) {
@@ -126,8 +164,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
 
   // Admin credit is disabled unless ADMIN_USERNAMES is explicitly configured on Render.
   router.post('/api/admin/wallet/credit', requireAuth, async (req, res) => {
-    const admins = (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-    if (!admins.includes(req.user.username.toLowerCase())) return res.status(403).json({ message: 'Bạn không có quyền quản trị!' });
+    if (!isAdminUser(req.user.username)) return res.status(403).json({ message: 'Bạn không có quyền quản trị!' });
     const username = String(req.body.username || '').trim().toLowerCase();
     const amount = Number(req.body.amount);
     const description = String(req.body.description || 'Admin cộng tiền test').slice(0, 200);

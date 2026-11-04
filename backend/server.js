@@ -47,9 +47,16 @@ app.use('/api/auth', (req, res, next) => {
   next();
 });
 
-// Giá công khai chỉ dùng để hiển thị; backend tự áp dụng giá khi mua đề.
-app.get('/api/config/pricing', (req, res) => {
-  res.json({ examPrice: pricing.EXAM_PRICE });
+// Giá được lưu trong Neon; file pricing.js chỉ là giá mặc định khi khởi tạo lần đầu.
+app.get('/api/config/pricing', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT value FROM app_settings WHERE key = 'exam_price'");
+    const examPrice = Number(result.rows[0]?.value ?? pricing.EXAM_PRICE);
+    return res.json({ examPrice });
+  } catch (error) {
+    console.error('Không tải được giá:', error.message);
+    return res.status(500).json({ message: 'Không tải được cấu hình giá!' });
+  }
 });
 
 app.use(createAuthRoutes({ pool, sendOtpEmail }));

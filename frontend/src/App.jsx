@@ -157,6 +157,10 @@ export default function App() {
   const [userId, setUserId] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
   const [examPrice, setExamPrice] = useState(1000);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminPricing, setShowAdminPricing] = useState(false);
+  const [adminPriceInput, setAdminPriceInput] = useState('1000');
+  const [adminPriceSaving, setAdminPriceSaving] = useState(false);
 
   const [universities, setUniversities] = useState([]);
   const [selectedUni, setSelectedUni] = useState(null);
@@ -198,13 +202,22 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchJson(`${API_BASE}/config/pricing`)
+    const refreshPrice = () => fetchJson(`${API_BASE}/config/pricing`)
       .then((data) => {
         const value = Number(data?.examPrice);
-        if (!cancelled && Number.isFinite(value) && value >= 0) setExamPrice(value);
+        if (!cancelled && Number.isSafeInteger(value) && value >= 0) setExamPrice(value);
       })
       .catch((err) => console.error('Không tải được cấu hình giá:', err));
-    return () => { cancelled = true; };
+    refreshPrice();
+    // Các tab đang mở cũng nhận giá mới tối đa sau 30 giây.
+    const timer = window.setInterval(refreshPrice, 30_000);
+    const onFocus = () => refreshPrice();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
   }, []);
 
   useEffect(() => {
@@ -246,6 +259,7 @@ export default function App() {
       if (data.token) localStorage.setItem('hct_session_token', data.token);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
+      setIsAdmin(Boolean(data.isAdmin));
       setStep('select-uni');
       setPasswordInput('');
       setLoginKeyInput('');
@@ -272,14 +286,6 @@ export default function App() {
       return;
     }
 
-    if (usernameInput.trim().length < 6 || usernameInput.trim().length > 30 || !/^[a-zA-Z0-9_.-]+$/.test(usernameInput.trim())) {
-      setError('Tên tài khoản phải có từ 6 đến 30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.');
-      return;
-    }
-    if (passwordInput.length < 6 || passwordInput.length > 128 || !/[a-z]/.test(passwordInput) || !/[A-Z]/.test(passwordInput) || !/[0-9]/.test(passwordInput) || !/[^A-Za-z0-9]/.test(passwordInput)) {
-      setError('Mật khẩu phải có từ 6 đến 128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!');
-      return;
-    }
     if (passwordInput !== confirmPasswordInput) {
       setError('Mật khẩu nhập lại không khớp!');
       return;
@@ -331,6 +337,7 @@ export default function App() {
       if (data.token) localStorage.setItem('hct_session_token', data.token);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
+      setIsAdmin(Boolean(data.isAdmin));
       setStep('select-uni');
       setOtpInput('');
     } catch (err) {
@@ -438,6 +445,7 @@ export default function App() {
         if (cancelled) return;
         setUserId(data.userId);
         setWalletBalance(Number(data.balance) || 0);
+        setIsAdmin(Boolean(data.isAdmin));
         setStep('select-uni');
       })
       .catch(() => {
@@ -650,8 +658,38 @@ export default function App() {
     localStorage.removeItem('hct_session_token');
     setUserId('');
     setWalletBalance(0);
+    setIsAdmin(false);
+    setShowAdminPricing(false);
     setStep('auth');
     setAuthMode('login');
+  };
+
+  const handleSaveExamPrice = async (e) => {
+    e.preventDefault();
+    const amount = Number(adminPriceInput);
+    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 100000000) {
+      setError('Giá đề phải là số nguyên từ 0 đến 100.000.000 VNĐ.');
+      return;
+    }
+    setAdminPriceSaving(true);
+    setError('');
+    setSuccessMessage('');
+    try {
+      const token = localStorage.getItem('hct_session_token');
+      const data = await fetchJson(`${API_BASE}/admin/pricing`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` },
+        body: JSON.stringify({ examPrice: amount })
+      });
+      setExamPrice(Number(data.examPrice));
+      setAdminPriceInput(String(data.examPrice));
+      setSuccessMessage(data.message || 'Đã cập nhật giá đề thi.');
+      setShowAdminPricing(false);
+    } catch (err) {
+      setError(err.message || 'Không cập nhật được giá đề thi.');
+    } finally {
+      setAdminPriceSaving(false);
+    }
   };
 
   return (
@@ -661,12 +699,29 @@ export default function App() {
           <RabbitLogo />
           {step !== 'auth' && (
             <div style={{ display: 'flex', gap: '10px' }}>
+              {isAdmin && <button className="home-btn" onClick={() => { setAdminPriceInput(String(examPrice)); setShowAdminPricing(v => !v); }} type="button">⚙️ Quản lý giá</button>}
               <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
               <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đăng xuất ({userId})</button>
             </div>
           )}
         </div>
       </header>
+
+      {showAdminPricing && isAdmin && (
+        <section style={{ maxWidth: '520px', margin: '20px auto', padding: '22px', background: '#fff', border: '1px solid #ddd6fe', borderRadius: '14px', boxShadow: '0 8px 24px rgba(0,0,0,.08)' }}>
+          <h2 style={{ marginTop: 0, color: '#6b21a8' }}>⚙️ Quản lý giá đề thi</h2>
+          <p style={{ color: '#64748b', marginTop: 0 }}>Giá hiện tại: <strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></p>
+          <form onSubmit={handleSaveExamPrice} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <label htmlFor="admin-exam-price" style={{ fontWeight: 600 }}>Giá mới (VNĐ)</label>
+            <input id="admin-exam-price" type="number" min="0" max="100000000" step="1" value={adminPriceInput} onChange={e => setAdminPriceInput(e.target.value)} required style={{ padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '16px' }} />
+            <small style={{ color: '#64748b' }}>Nhập số nguyên từ 0 đến 100.000.000 đồng. Giá 0đ sẽ miễn phí đề thi. Giá được lưu trong Neon và áp dụng cho các lượt mua mới.</small>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="btn-primary" type="submit" disabled={adminPriceSaving}>{adminPriceSaving ? 'Đang lưu...' : '💾 Lưu giá mới'}</button>
+              <button className="btn-secondary" type="button" onClick={() => setShowAdminPricing(false)}>Đóng</button>
+            </div>
+          </form>
+        </section>
+      )}
 
       {error && (
         <div className="notification error" role="alert">
@@ -742,19 +797,19 @@ export default function App() {
             {/* 2. Đăng ký: OTP nằm ngay dưới xác nhận mật khẩu */}
             {authMode === 'register' && (
               <form onSubmit={handleVerifyRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
-                <input type="text" placeholder="Nhập tên tài khoản" value={usernameInput}
+                <input type="text" minLength={6} maxLength={30} placeholder="Nhập tên tài khoản" value={usernameInput}
                   onChange={(e) => { setUsernameInput(e.target.value); setUsernameAvailability({ status: 'idle', message: '' }); }}
                   onBlur={() => checkRegistrationField('username', usernameInput)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: usernameAvailability.status === 'taken' ? '1px solid #dc2626' : '1px solid #d1d5db', fontSize: '15px' }} />
-                <small style={{ color: '#64748b', marginTop: '-10px' }}>Tên tài khoản từ 6–30 ký tự; dùng chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.</small>
+                <small style={{ color: '#64748b', textAlign: 'left', marginTop: '-10px' }}>Tên tài khoản từ 6–30 ký tự; dùng chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.</small>
                 {usernameAvailability.message && <small role="status" style={{ color: usernameAvailability.status === 'available' ? '#15803d' : usernameAvailability.status === 'checking' ? '#64748b' : '#dc2626', marginTop: '-10px' }}>{usernameAvailability.message}</small>}
                 <input type="email" placeholder="Nhập email" value={emailOrPhoneInput}
                   onChange={(e) => { setEmailOrPhoneInput(e.target.value); setEmailAvailability({ status: 'idle', message: '' }); }}
                   onBlur={() => checkRegistrationField('email', emailOrPhoneInput)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: emailAvailability.status === 'taken' ? '1px solid #dc2626' : '1px solid #d1d5db', fontSize: '15px' }} />
                 {emailAvailability.message && <small role="status" style={{ color: emailAvailability.status === 'available' ? '#15803d' : emailAvailability.status === 'checking' ? '#64748b' : '#dc2626', marginTop: '-10px' }}>{emailAvailability.message}</small>}
-                <input type="password" placeholder="Nhập mật khẩu" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} autoComplete="new-password" style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
-                <small style={{ color: '#64748b', marginTop: '-10px' }}>Mật khẩu từ 6 ký tự, bắt buộc có chữ thường, chữ hoa, chữ số và ký tự đặc biệt.</small>
+                <input type="password" minLength={6} maxLength={128} placeholder="Nhập mật khẩu" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <small style={{ color: '#64748b', textAlign: 'left', marginTop: '-10px' }}>Mật khẩu từ 6–128 ký tự, bắt buộc có chữ thường, chữ hoa, chữ số và ký tự đặc biệt.</small>
                 <input type="password" placeholder="Nhập lại mật khẩu" value={confirmPasswordInput} onChange={(e) => setConfirmPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
                 <div className="otp-input-row">
                   <input type="text" inputMode="numeric" maxLength={6} placeholder="Nhập mã OTP 6 chữ số" value={otpInput} onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))} />
@@ -772,7 +827,7 @@ export default function App() {
                   <input type="text" inputMode="numeric" maxLength={6} placeholder="Nhập mã OTP 6 chữ số" value={otpInput} onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))} />
                   <button type="button" className="otp-send-button" disabled={isLoading || otpCooldown > 0} onClick={handleRequestForgotOtp}>{otpCooldown > 0 ? `Gửi lại (${otpCooldown}s)` : '📨 Gửi OTP'}</button>
                 </div>
-                <input type="password" placeholder="Nhập mật khẩu mới" value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="password" minLength={6} maxLength={128} placeholder="Nhập mật khẩu mới" value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
                 <input type="password" placeholder="Nhập lại mật khẩu mới" value={confirmNewPasswordInput} onChange={(e) => setConfirmNewPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
                 <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🔒 Xác nhận & Đổi mật khẩu</button>
               </form>

@@ -45,6 +45,21 @@ async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS exam_attempts_user_created_idx ON exam_attempts(username, created_at DESC);
     CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uidx ON users (LOWER(username));
     CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_uidx ON users (LOWER(email));
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_by TEXT,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS pricing_audit_log (
+      id BIGSERIAL PRIMARY KEY,
+      setting_key TEXT NOT NULL,
+      old_value JSONB NOT NULL,
+      new_value JSONB NOT NULL,
+      changed_by TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS pricing_audit_log_created_idx ON pricing_audit_log(created_at DESC);
     CREATE TABLE IF NOT EXISTS otp_challenges (
       email TEXT NOT NULL,
       purpose TEXT NOT NULL CHECK (purpose IN ('register','reset_password')),
@@ -66,7 +81,11 @@ async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS otp_send_events_email_created_idx ON otp_send_events(email, created_at DESC);
     CREATE INDEX IF NOT EXISTS otp_send_events_ip_created_idx ON otp_send_events(ip, created_at DESC);
   `);
-  console.log('PostgreSQL connected; users, sessions, wallet and exam tables are ready.');
+  await pool.query(
+    `INSERT INTO app_settings (key, value) VALUES ('exam_price', to_jsonb($1::numeric)) ON CONFLICT (key) DO NOTHING`,
+    [Number(require('./pricing').EXAM_PRICE)]
+  );
+  console.log('PostgreSQL connected; users, sessions, wallet, exam and settings tables are ready.');
 }
 
 module.exports = { pool, initializeDatabase };

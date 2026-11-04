@@ -55,7 +55,7 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       if (field === 'email') {
         const email = cleanEmail(req.body?.value);
         if (!email) return res.status(400).json({ message: 'Vui lòng nhập email!' });
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
           return res.status(400).json({ message: 'Email không đúng định dạng!' });
         }
         const found = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
@@ -88,8 +88,8 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
         if (normalizedUsername.length < 6 || normalizedUsername.length > 30 || !/^[a-z0-9_.-]+$/.test(normalizedUsername)) {
           return res.status(400).json({ message: 'Tên tài khoản phải dài 6–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
         }
-        if (typeof password !== 'string' || password.length < 6 || password.length > 128 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
-          return res.status(400).json({ message: 'Mật khẩu phải có từ 6 đến 128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!' });
+        if (typeof password !== 'string' || password.length < 6 || password.length > 128 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+          return res.status(400).json({ message: 'Mật khẩu phải có 6–128 ký tự và gồm chữ thường, chữ hoa, chữ số, ký tự đặc biệt!' });
         }
         if (password !== confirmPassword) return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp!' });
 
@@ -187,7 +187,8 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       await client.query(`INSERT INTO user_sessions (token_hash, username, expires_at) VALUES ($1, $2, NOW() + INTERVAL '30 days')`, [tokenHash, created.rows[0].username]);
       await client.query("DELETE FROM otp_challenges WHERE email = $1 AND purpose = 'register'", [email]);
       await client.query('COMMIT');
-      return res.json({ success: true, token: sessionToken, userId: created.rows[0].username, balance: Number(created.rows[0].balance), message: 'Đăng ký tài khoản thành công!' });
+      const admins = (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+      return res.json({ success: true, token: sessionToken, userId: created.rows[0].username, balance: Number(created.rows[0].balance), isAdmin: admins.includes(created.rows[0].username.toLowerCase()), message: 'Đăng ký tài khoản thành công!' });
     } catch (error) {
       await client.query('ROLLBACK').catch(() => {});
       if (error.code === '23505') return res.status(409).json({ message: 'Tên tài khoản hoặc email đã được đăng ký. Vui lòng kiểm tra và nhập thông tin khác!' });
@@ -208,7 +209,8 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       const token = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
       await pool.query('INSERT INTO user_sessions (token_hash, username, expires_at) VALUES ($1, $2, NOW() + INTERVAL \'30 days\')', [tokenHash, user.username]);
-      return res.json({ success: true, token, userId: user.username, balance: Number(user.balance) });
+      const admins = (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+      return res.json({ success: true, token, userId: user.username, balance: Number(user.balance), isAdmin: admins.includes(user.username.toLowerCase()) });
     } catch (error) {
       console.error('Lỗi đăng nhập:', error.message);
       return res.status(500).json({ message: 'Máy chủ đang bận. Vui lòng thử lại!' });
@@ -223,7 +225,8 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
       const result = await pool.query(`SELECT u.username, u.balance FROM user_sessions s JOIN users u ON u.username = s.username WHERE s.token_hash = $1 AND s.expires_at > NOW() LIMIT 1`, [tokenHash]);
       if (!result.rows[0]) return res.status(401).json({ message: 'Phiên đăng nhập đã hết hạn!' });
-      return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance) });
+      const admins = (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+      return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance), isAdmin: admins.includes(result.rows[0].username.toLowerCase()) });
     } catch (error) {
       console.error('Lỗi khôi phục phiên:', error.message);
       return res.status(500).json({ message: 'Không thể khôi phục phiên đăng nhập!' });
@@ -245,7 +248,7 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
     const email = cleanEmail(emailOrPhone);
     const cleanOtp = typeof otp === 'string' ? otp.trim() : '';
     if (!email || !/^\d{6}$/.test(cleanOtp) || typeof newPassword !== 'string' || typeof confirmNewPassword !== 'string') return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin hợp lệ!' });
-    if (newPassword.length < 6 || newPassword.length > 128 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) return res.status(400).json({ message: 'Mật khẩu mới phải có từ 6 đến 128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!' });
+    if (newPassword.length < 6 || newPassword.length > 128 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/\d/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) return res.status(400).json({ message: 'Mật khẩu mới phải có 6–128 ký tự và gồm chữ thường, chữ hoa, chữ số, ký tự đặc biệt!' });
     if (newPassword !== confirmNewPassword) return res.status(400).json({ message: 'Mật khẩu mới không khớp!' });
     const client = await pool.connect();
     try {
