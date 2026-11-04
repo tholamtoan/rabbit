@@ -167,6 +167,13 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const timer = setInterval(() => setOtpCooldown((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [otpCooldown > 0]);
   
   const [tabViolationCount, setTabViolationCount] = useState(0);
   const [violationNotice, setViolationNotice] = useState('');
@@ -241,7 +248,8 @@ export default function App() {
       });
 
       setSuccessMessage(data.message);
-      setAuthMode('verify-otp');
+      setOtpInput('');
+      setOtpCooldown(60);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -299,7 +307,8 @@ export default function App() {
       });
 
       setSuccessMessage(data.message);
-      setAuthMode('reset-otp');
+      setOtpInput('');
+      setOtpCooldown(60);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -635,95 +644,32 @@ export default function App() {
               </form>
             )}
 
-            {/* 2. Đăng ký */}
+            {/* 2. Đăng ký: OTP nằm ngay dưới xác nhận mật khẩu */}
             {authMode === 'register' && (
-              <form onSubmit={handleRequestRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
-                <input 
-                  type="text" 
-                  placeholder="Nhập tên tài khoản" 
-                  value={usernameInput}
-                  onChange={(e) => setUsernameInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <input 
-                  type="text" 
-                  placeholder="Nhập tên email" 
-                  value={emailOrPhoneInput}
-                  onChange={(e) => setEmailOrPhoneInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <input 
-                  type="password" 
-                  placeholder="Nhập mật khẩu" 
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <input 
-                  type="password" 
-                  placeholder="Nhập lại mật khẩu" 
-                  value={confirmPasswordInput}
-                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi mã OTP</button>
-              </form>
-            )}
-
-            {/* 3. Xác thực OTP đăng ký */}
-            {authMode === 'verify-otp' && (
               <form onSubmit={handleVerifyRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
-                <p style={{ fontSize: '13px', color: '#4b5563' }}>Mã OTP đã được gửi đến: <strong>{emailOrPhoneInput}</strong></p>
-                <input 
-                  type="text" 
-                  placeholder="Nhập mã OTP 6 chữ số" 
-                  value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '18px', textAlign: 'center', letterSpacing: '4px' }}
-                />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>✨ Xác Nhận & Hoàn Tất</button>
+                <input type="text" placeholder="Nhập tên tài khoản" value={usernameInput} onChange={(e) => setUsernameInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="email" placeholder="Nhập email" value={emailOrPhoneInput} onChange={(e) => setEmailOrPhoneInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="password" placeholder="Nhập mật khẩu" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="password" placeholder="Nhập lại mật khẩu" value={confirmPasswordInput} onChange={(e) => setConfirmPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <div className="otp-input-row">
+                  <input type="text" inputMode="numeric" maxLength={6} placeholder="Nhập mã OTP 6 chữ số" value={otpInput} onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))} />
+                  <button type="button" className="otp-send-button" disabled={isLoading || otpCooldown > 0} onClick={handleRequestRegisterOtp}>{otpCooldown > 0 ? `Gửi lại (${otpCooldown}s)` : '📨 Gửi OTP'}</button>
+                </div>
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>✨ Xác nhận & Đăng ký</button>
               </form>
             )}
 
-            {/* 4. Quên mật khẩu */}
+            {/* 3. Quên mật khẩu: gửi OTP, nhập OTP và mật khẩu mới cùng màn hình */}
             {authMode === 'forgot' && (
-              <form onSubmit={handleRequestForgotOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
-                <input 
-                  type="text" 
-                  placeholder="Nhập email đã đăng ký" 
-                  value={emailOrPhoneInput}
-                  onChange={(e) => setEmailOrPhoneInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi mã OTP khôi phục</button>
-              </form>
-            )}
-
-            {/* 5. Nhập OTP & đặt mật khẩu mới */}
-            {authMode === 'reset-otp' && (
               <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
-                <input 
-                  type="text" 
-                  placeholder="Nhập mã OTP gồm 6 chữ số" 
-                  value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '18px', textAlign: 'center', letterSpacing: '4px' }}
-                />
-                <input 
-                  type="password" 
-                  placeholder="Nhập mật khẩu mới" 
-                  value={newPasswordInput}
-                  onChange={(e) => setNewPasswordInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <input 
-                  type="password" 
-                  placeholder="Nhập lại mật khẩu mới" 
-                  value={confirmNewPasswordInput}
-                  onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
-                />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🔒 Đổi mật khẩu mới</button>
+                <input type="email" placeholder="Nhập email đã đăng ký" value={emailOrPhoneInput} onChange={(e) => setEmailOrPhoneInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <div className="otp-input-row">
+                  <input type="text" inputMode="numeric" maxLength={6} placeholder="Nhập mã OTP 6 chữ số" value={otpInput} onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))} />
+                  <button type="button" className="otp-send-button" disabled={isLoading || otpCooldown > 0} onClick={handleRequestForgotOtp}>{otpCooldown > 0 ? `Gửi lại (${otpCooldown}s)` : '📨 Gửi OTP'}</button>
+                </div>
+                <input type="password" placeholder="Nhập mật khẩu mới" value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="password" placeholder="Nhập lại mật khẩu mới" value={confirmNewPasswordInput} onChange={(e) => setConfirmNewPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🔒 Xác nhận & Đổi mật khẩu</button>
               </form>
             )}
 

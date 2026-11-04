@@ -334,3 +334,40 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
 .option-text-content .math-content {
   text-align: left !important;
 }
+
+/* OTP input with adjacent resend button */
+.otp-input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: stretch;
+}
+.otp-input-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 2px;
+}
+.otp-send-button {
+  flex: 0 0 auto;
+  min-width: 112px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #a64bd2;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.otp-send-button:disabled {
+  background: #c4a2d5;
+  cursor: not-allowed;
+}
+@media (max-width: 420px) {
+  .otp-input-row { gap: 6px; }
+  .otp-send-button { min-width: 96px; padding: 9px 8px; font-size: 12px; }
+}

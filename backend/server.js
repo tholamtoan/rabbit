@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('node:crypto');
+const { Pool } = require('pg');
 const questionBank = require('./questionBank');
 require('dotenv').config();
 
@@ -99,15 +100,33 @@ async function sendOtpEmail(to, otpCode) {
   return data;
 }
 
-const userWallets = {
-  "thong": { 
-    username: "thong",
-    password: "123", 
-    email: "thong@gmail.com",
-    phone: "0912345678",
-    balance: 0 
-  } 
-};
+// PostgreSQL on Neon: user accounts and wallet balances persist across deploys.
+if (!process.env.DATABASE_URL) {
+  console.error('Thiếu DATABASE_URL. Hãy cấu hình biến này trên Render.');
+  process.exit(1);
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 5,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 15_000
+});
+
+async function initializeDatabase() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      username TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      phone TEXT NOT NULL DEFAULT '',
+      balance NUMERIC(14, 2) NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  console.log('PostgreSQL connected; users table is ready.');
+}
 
 const otpStorage = {};
 
@@ -155,8 +174,17 @@ app.post('/api/auth/send-otp', async (req, res) => {
         return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp!' });
       }
       const cleanUser = username.trim().toLowerCase();
-      if (userWallets[cleanUser]) {
-        return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại!' });
+      const duplicate = await pool.query(
+        'SELECT username FROM users WHERE username = $1 OR email = $2 LIMIT 1',
+        [cleanUser, cleanContact]
+      );
+      if (duplicate.rowCount) {
+        return res.status(400).json({ message: 'Tên tài khoản hoặc email này đã được đăng ký!' });
+      }
+    } else {
+      const existing = await pool.query('SELECT username FROM users WHERE email = $1 LIMIT 1', [cleanContact]);
+      if (!existing.rowCount) {
+        return res.status(404).json({ message: 'Email này chưa được đăng ký!' });
       }
     }
 
@@ -195,7 +223,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
 // ==========================================
 // 2. API XÁC THỰC OTP & HOÀN TẤT ĐĂNG KÝ
 // ==========================================
-app.post('/api/auth/verify-register', (req, res) => {
+app.post('/api/auth/verify-register', async (req, res) => {
   const { emailOrPhone, otp } = req.body;
   const cleanContact = (emailOrPhone || '').trim().toLowerCase();
   const cleanOtp = (otp || '').trim();
@@ -216,54 +244,53 @@ app.post('/api/auth/verify-register', (req, res) => {
 
   const { username, password } = record.tempData;
 
-  if (userWallets[username]) {
-    return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại!' });
+  try {
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password, phone, balance)
+       VALUES ($1, $2, $3, '', 0)
+       RETURNING username, balance`,
+      [username, cleanContact, password]
+    );
+    delete otpStorage[cleanContact];
+    return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance), message: 'Đăng ký tài khoản thành công!' });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(400).json({ message: 'Tên tài khoản hoặc email này đã được đăng ký!' });
+    }
+    console.error('Lỗi lưu tài khoản:', error.message);
+    return res.status(500).json({ message: 'Không thể tạo tài khoản lúc này. Vui lòng thử lại!' });
   }
-
-  userWallets[username] = {
-    username,
-    password,
-    email: cleanContact,
-    phone: '',
-    balance: 0
-  };
-
-  delete otpStorage[cleanContact];
-
-  res.json({ success: true, userId: username, balance: 0, message: 'Đăng ký tài khoản thành công!' });
 });
 
 // ==========================================
 // 3. API ĐĂNG NHẬP
 // ==========================================
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { loginKey, password } = req.body;
   if (!loginKey || !password) {
     return res.status(400).json({ message: 'Vui lòng nhập thông tin đăng nhập và mật khẩu!' });
   }
-
-  const cleanKey = loginKey.trim().toLowerCase();
-  let foundUser = null;
-
-  for (const userKey in userWallets) {
-    const u = userWallets[userKey];
-    if (u.username === cleanKey || u.email === cleanKey) {
-      foundUser = u;
-      break;
+  try {
+    const cleanKey = loginKey.trim().toLowerCase();
+    const result = await pool.query(
+      'SELECT username, email, password, balance FROM users WHERE username = $1 OR email = $1 LIMIT 1',
+      [cleanKey]
+    );
+    const foundUser = result.rows[0];
+    if (!foundUser || foundUser.password !== password) {
+      return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
     }
+    return res.json({ success: true, userId: foundUser.username, balance: Number(foundUser.balance) });
+  } catch (error) {
+    console.error('Lỗi đăng nhập:', error.message);
+    return res.status(500).json({ message: 'Máy chủ đang bận. Vui lòng thử lại!' });
   }
-
-  if (!foundUser || foundUser.password !== password) {
-    return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
-  }
-
-  res.json({ success: true, userId: foundUser.username, balance: foundUser.balance });
 });
 
 // ==========================================
 // 4. API ĐẶT LẠI MẬT KHẨU
 // ==========================================
-app.post('/api/auth/reset-password', (req, res) => {
+app.post('/api/auth/reset-password', async (req, res) => {
   const { emailOrPhone, otp, newPassword, confirmNewPassword } = req.body;
 
   if (!emailOrPhone || !otp || !newPassword || !confirmNewPassword) {
@@ -281,23 +308,20 @@ app.post('/api/auth/reset-password', (req, res) => {
     return res.status(400).json({ message: 'Mã OTP không chính xác hoặc đã hết hạn!' });
   }
 
-  let foundUser = null;
-  for (const userKey in userWallets) {
-    const u = userWallets[userKey];
-    if (u.email === cleanContact) {
-      foundUser = u;
-      break;
+  try {
+    const updated = await pool.query(
+      'UPDATE users SET password = $1 WHERE email = $2 RETURNING username',
+      [newPassword, cleanContact]
+    );
+    if (!updated.rowCount) {
+      return res.status(404).json({ message: 'Không tìm thấy tài khoản liên kết!' });
     }
+    delete otpStorage[cleanContact];
+    return res.json({ success: true, message: 'Đổi mật khẩu thành công!' });
+  } catch (error) {
+    console.error('Lỗi đổi mật khẩu:', error.message);
+    return res.status(500).json({ message: 'Không thể đổi mật khẩu lúc này!' });
   }
-
-  if (!foundUser) {
-    return res.status(404).json({ message: 'Không tìm thấy tài khoản liên kết!' });
-  }
-
-  foundUser.password = newPassword;
-  delete otpStorage[cleanContact];
-
-  res.json({ success: true, message: 'Đổi mật khẩu thành công!' });
 });
 
 // ==========================================
@@ -361,21 +385,57 @@ app.post('/api/exam/submit-random', (req, res) => {
   res.json({ totalQuestions: total, score, percentage: Math.round((score / total) * 100), details });
 });
 100
-app.get('/api/wallet/:userId', (req, res) => {
-  const { userId } = req.params;
-  const user = userWallets[userId.toLowerCase()];
-  res.json({ userId: userId.toLowerCase(), balance: user ? user.balance : 0 });
+app.get('/api/wallet/:userId', async (req, res) => {
+  const userId = req.params.userId.toLowerCase();
+  try {
+    const result = await pool.query('SELECT username, balance FROM users WHERE username = $1', [userId]);
+    const user = result.rows[0];
+    return res.json({ userId, balance: user ? Number(user.balance) : 0 });
+  } catch (error) {
+    console.error('Lỗi lấy số dư:', error.message);
+    return res.status(500).json({ message: 'Không thể tải số dư lúc này!' });
+  }
 });
 
-app.post('/api/exam/buy', (req, res) => {
-    const { userId, subjectId, price } = req.body;
-    const user = userWallets[userId.toLowerCase()];
-    if (!user || user.balance < price) return res.status(400).json({ success: false, message: "Số dư không đủ!" });
-    user.balance -= price;
-    res.json({ success: true, message: "Mua đề thi thành công!", newBalance: user.balance });
+app.post('/api/exam/buy', async (req, res) => {
+  const { userId, subjectId, price } = req.body;
+  const amount = Number(price);
+  if (!userId || !Number.isFinite(amount) || amount < 0) {
+    return res.status(400).json({ success: false, message: 'Thông tin giao dịch không hợp lệ!' });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await client.query(
+      'SELECT username, balance FROM users WHERE username = $1 FOR UPDATE',
+      [userId.toLowerCase()]
+    );
+    const user = result.rows[0];
+    if (!user || Number(user.balance) < amount) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ success: false, message: 'Số dư không đủ!' });
+    }
+    const updated = await client.query(
+      'UPDATE users SET balance = balance - $1 WHERE username = $2 RETURNING balance',
+      [amount, user.username]
+    );
+    await client.query('COMMIT');
+    return res.json({ success: true, message: 'Mua đề thi thành công!', newBalance: Number(updated.rows[0].balance) });
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Lỗi mua đề thi:', error.message);
+    return res.status(500).json({ success: false, message: 'Không thể thực hiện giao dịch lúc này!' });
+  } finally {
+    client.release();
+  }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server đang chạy tại http://localhost:${PORT}`);
-});
+initializeDatabase()
+  .then(() => {
+    app.listen(PORT, () => console.log(`Server đang chạy tại http://localhost:${PORT}`));
+  })
+  .catch((error) => {
+    console.error('Không thể khởi tạo PostgreSQL:', error.message);
+    process.exit(1);
+  });
