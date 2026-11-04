@@ -119,7 +119,7 @@ function RabbitLogo() {
       </div>
       <div className="logo-texts">
         <h1>Học cùng Thỏ</h1>
-        <span>Ôn thi đại học thông minh</span>
+        <span>Hệ thống tự luyện tập & kiểm tra kiến thức</span>
       </div>
     </div>
   );
@@ -249,7 +249,7 @@ export default function App() {
     }
   };
 
-  // 3. Xác thực OTP Đăng ký
+  // 3. Xác thực OTP đăng ký
   const handleVerifyRegisterOtp = async (e) => {
     e.preventDefault();
     setError('');
@@ -286,7 +286,7 @@ export default function App() {
     setSuccessMessage('');
 
     if (!emailOrPhoneInput.trim()) {
-      setError('Vui lòng nhập Email liên kết!');
+      setError('Vui lòng nhập email liên kết!');
       return;
     }
 
@@ -307,7 +307,7 @@ export default function App() {
     }
   };
 
-  // 5. Xác thực OTP & Đổi mật khẩu mới
+  // 5. Xác thực OTP & đổi mật khẩu mới
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setError('');
@@ -490,7 +490,7 @@ export default function App() {
 
       if (nextCount >= MAX_TAB_VIOLATIONS) {
         submitLock.current = true;
-        setViolationNotice(`Bài thi bị hủy do vi phạm quy chế ${MAX_TAB_VIOLATIONS} lần.`);
+        setViolationNotice(`Bài thi bị hủy do vi phạm quy chế thi ${MAX_TAB_VIOLATIONS} lần.`);
         setStep('select-subject');
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
         return;
@@ -607,11 +607,11 @@ export default function App() {
         {step === 'auth' && (
           <section className="fade-in" style={{ maxWidth: '420px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
             <h2 style={{ color: '#7c3aed', marginBottom: '8px' }}>
-              {authMode === 'login' && '🔑 Đăng Nhập'}
-              {authMode === 'register' && '📝 Đăng Ký Tài Khoản'}
-              {authMode === 'verify-otp' && '✉️ Xác Thực Mã OTP'}
-              {authMode === 'forgot' && '🔄 Khôi Phục Mật Khẩu'}
-              {authMode === 'reset-otp' && '🔒 Đặt Lại Mật Khẩu'}
+              {authMode === 'login' && '🔑 Đăng nhập'}
+              {authMode === 'register' && '📝 Đăng Ký tài Khoản'}
+              {authMode === 'verify-otp' && '✉️ Mã xác thực OTP'}
+              {authMode === 'forgot' && '🔄 Khôi phục mật khẩu'}
+              {authMode === 'reset-otp' && '🔒 Đặt lại mật khẩu'}
             </h2>
 
             {/* 1. Đăng nhập */}
@@ -619,7 +619,7 @@ export default function App() {
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <input 
                   type="text" 
-                  placeholder="Tên tài khoản hoặc Email đăng ký" 
+                  placeholder="Tên tài khoản hoặc email đăng ký" 
                   value={loginKeyInput}
                   onChange={(e) => setLoginKeyInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
@@ -631,7 +631,7 @@ export default function App() {
                   onChange={(e) => setPasswordInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🚀 Đăng Nhập</button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🚀 Đăng nhập</button>
               </form>
             )}
 
@@ -647,14 +647,14 @@ export default function App() {
                 />
                 <input 
                   type="text" 
-                  placeholder="Nhập tên Email" 
+                  placeholder="Nhập tên email" 
                   value={emailOrPhoneInput}
                   onChange={(e) => setEmailOrPhoneInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
                 <input 
                   type="password" 
-                  placeholder="Mật khẩu" 
+                  placeholder="Nhập mật khẩu" 
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
@@ -666,11 +666,11 @@ export default function App() {
                   onChange={(e) => setConfirmPasswordInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi Mã OTP</button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi mã OTP</button>
               </form>
             )}
 
-            {/* 3. Xác thực OTP Đăng ký */}
+            {/* 3. Xác thực OTP đăng ký */}
             {authMode === 'verify-otp' && (
               <form onSubmit={handleVerifyRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <p style={{ fontSize: '13px', color: '#4b5563' }}>Mã OTP đã được gửi đến: <strong>{emailOrPhoneInput}</strong></p>
@@ -690,21 +690,21 @@ export default function App() {
               <form onSubmit={handleRequestForgotOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <input 
                   type="text" 
-                  placeholder="Nhập Email đã đăng ký" 
+                  placeholder="Nhập email đã đăng ký" 
                   value={emailOrPhoneInput}
                   onChange={(e) => setEmailOrPhoneInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi Mã OTP Khôi Phục</button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi mã OTP khôi phục</button>
               </form>
             )}
 
-            {/* 5. Nhập OTP & Đặt mật khẩu mới */}
+            {/* 5. Nhập OTP & đặt mật khẩu mới */}
             {authMode === 'reset-otp' && (
               <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <input 
                   type="text" 
-                  placeholder="Nhập mã OTP 6 chữ số" 
+                  placeholder="Nhập mã OTP gồm 6 chữ số" 
                   value={otpInput}
                   onChange={(e) => setOtpInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '18px', textAlign: 'center', letterSpacing: '4px' }}
@@ -723,7 +723,7 @@ export default function App() {
                   onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🔒 Đổi Mật Khẩu Mới</button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🔒 Đổi mật khẩu mới</button>
               </form>
             )}
 
@@ -849,7 +849,7 @@ export default function App() {
                 <button className="btn-submit" type="button" onClick={() => void handleSubmit()}>🚀 Nộp bài thi</button>
               ) : (
                 <div className="result-summary-card">
-                  <div className="result-header-badge">🎉 Kết Quả Bài Thi</div>
+                  <div className="result-header-badge">🎉 Kết quả bài thi</div>
                   <div className="score-big">{result?.score ?? 0} <span className="score-total">/ {result?.totalQuestions}</span></div>
                   <button className="btn-primary" type="button" onClick={() => currentSubject && handleBuyAndStartExam(currentSubject)}>🔄 Làm đề thi khác</button>
                 </div>
