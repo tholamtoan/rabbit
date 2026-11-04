@@ -140,14 +140,18 @@ async function fetchJson(url, options) {
 }
 
 export default function App() {
-  const [step, setStep] = useState('auth'); // 'auth', 'select-uni', 'select-subject', 'doing-exam'
-  const [authMode, setAuthMode] = useState('login'); // 'login' hoặc 'register'
+  const [step, setStep] = useState('auth'); 
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify-otp', 'forgot', 'reset-otp'
 
-  // Form đăng nhập / đăng ký
+  const [loginKeyInput, setLoginKeyInput] = useState('');
   const [usernameInput, setUsernameInput] = useState('');
+  const [emailOrPhoneInput, setEmailOrPhoneInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
+  const [otpInput, setOtpInput] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [confirmNewPasswordInput, setConfirmNewPasswordInput] = useState('');
 
-  // Thông tin người dùng đăng nhập thành công
   const [userId, setUserId] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
 
@@ -162,6 +166,8 @@ export default function App() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  
   const [tabViolationCount, setTabViolationCount] = useState(0);
   const [violationNotice, setViolationNotice] = useState('');
   const [incompleteSubmitNotice, setIncompleteSubmitNotice] = useState('');
@@ -173,33 +179,30 @@ export default function App() {
   const lastViolationAtRef = useRef(0);
   const MAX_TAB_VIOLATIONS = 3;
 
-  // Xử lý submit form Đăng nhập / Đăng ký
-  const handleAuthSubmit = async (e) => {
+  // 1. Đăng nhập
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
-    if (!usernameInput.trim() || !passwordInput.trim()) {
-      setError('Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!');
+    if (!loginKeyInput.trim() || !passwordInput.trim()) {
+      setError('Vui lòng nhập tài khoản và mật khẩu!');
       return;
     }
 
     setIsLoading(true);
-    const endpoint = authMode === 'login' ? '/auth/login' : '/auth/register';
-
     try {
-      const data = await fetchJson(`${API_BASE}${endpoint}`, {
+      const data = await fetchJson(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: usernameInput,
-          password: passwordInput
-        })
+        body: JSON.stringify({ loginKey: loginKeyInput, password: passwordInput })
       });
 
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
       setStep('select-uni');
       setPasswordInput('');
+      setLoginKeyInput('');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -207,7 +210,144 @@ export default function App() {
     }
   };
 
-  // Lấy số dư ví từ server
+  // 2. Gửi OTP Đăng ký
+  const handleRequestRegisterOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (!usernameInput.trim() || !emailOrPhoneInput.trim() || !passwordInput.trim() || !confirmPasswordInput.trim()) {
+      setError('Vui lòng điền đầy đủ tất cả các trường!');
+      return;
+    }
+
+    if (passwordInput !== confirmPasswordInput) {
+      setError('Mật khẩu nhập lại không khớp!');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await fetchJson(`${API_BASE}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: usernameInput,
+          emailOrPhone: emailOrPhoneInput,
+          password: passwordInput,
+          confirmPassword: confirmPasswordInput,
+          isRegister: true
+        })
+      });
+
+      setSuccessMessage(data.message);
+      setAuthMode('verify-otp');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 3. Xác thực OTP Đăng ký
+  const handleVerifyRegisterOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (!otpInput.trim()) {
+      setError('Vui lòng nhập mã OTP!');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await fetchJson(`${API_BASE}/auth/verify-register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrPhone: emailOrPhoneInput, otp: otpInput })
+      });
+
+      setUserId(data.userId);
+      setWalletBalance(data.balance || 0);
+      setStep('select-uni');
+      setOtpInput('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 4. Gửi OTP Quên mật khẩu
+  const handleRequestForgotOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (!emailOrPhoneInput.trim()) {
+      setError('Vui lòng nhập Email hoặc SĐT liên kết!');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await fetchJson(`${API_BASE}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrPhone: emailOrPhoneInput, isRegister: false })
+      });
+
+      setSuccessMessage(data.message);
+      setAuthMode('reset-otp');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 5. Xác thực OTP & Đổi mật khẩu mới
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (!otpInput.trim() || !newPasswordInput.trim() || !confirmNewPasswordInput.trim()) {
+      setError('Vui lòng điền đầy đủ thông tin đặt lại mật khẩu!');
+      return;
+    }
+
+    if (newPasswordInput !== confirmNewPasswordInput) {
+      setError('Mật khẩu mới nhập lại không khớp!');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await fetchJson(`${API_BASE}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          emailOrPhone: emailOrPhoneInput,
+          otp: otpInput,
+          newPassword: newPasswordInput,
+          confirmNewPassword: confirmNewPasswordInput
+        })
+      });
+
+      setSuccessMessage(data.message);
+      setAuthMode('login');
+      setOtpInput('');
+      setNewPasswordInput('');
+      setConfirmNewPasswordInput('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchWalletBalance = useCallback(async () => {
     if (!userId) return;
     try {
@@ -219,9 +359,7 @@ export default function App() {
   }, [userId]);
 
   useEffect(() => {
-    if (userId) {
-      fetchWalletBalance();
-    }
+    if (userId) fetchWalletBalance();
   }, [userId, fetchWalletBalance]);
 
   useEffect(() => {
@@ -250,13 +388,11 @@ export default function App() {
 
   const handleBuyAndStartExam = async (subject) => {
     const EXAM_PRICE = 10000;
-
     if (walletBalance < EXAM_PRICE) {
-      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ, đề thi giá ${EXAM_PRICE.toLocaleString()}đ. Vui lòng chuyển khoản nạp thêm tiền theo mã QR cá nhân bên trên!`);
+      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ.`);
       return;
     }
-
-    if (!window.confirm(`Xác nhận dùng 10.000đ để mở khóa bài thi môn "${subject.name}"?`)) return;
+    if (!window.confirm(`Xác nhận dùng 10.000đ mở khóa bài thi môn "${subject.name}"?`)) return;
 
     setIsLoading(true);
     try {
@@ -265,7 +401,6 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, subjectId: subject.id, price: EXAM_PRICE })
       });
-
       if (buyRes.success) {
         setWalletBalance(buyRes.newBalance);
         await handleStartRandomExam(subject);
@@ -288,30 +423,12 @@ export default function App() {
     lastViolationAtRef.current = 0;
     submitLock.current = false;
 
-    if (!document.fullscreenElement) {
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {
-          setViolationNotice('Trình duyệt chưa cho phép chế độ toàn màn hình. Hãy bật toàn màn hình để làm bài thi tập trung.');
-        });
-      } else {
-        setViolationNotice('Trình duyệt này không hỗ trợ chế độ toàn màn hình.');
-      }
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
     }
 
     try {
       const data = await fetchJson(`${API_BASE}/exam/random/${subject.id}`);
-      if (data?.message && !Array.isArray(data.questions)) {
-        setError(data.message);
-        if (document.fullscreenElement && document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        }
-        return;
-      }
-
-      if (!Array.isArray(data.questions)) {
-        throw new Error('Dữ liệu đề thi không có danh sách câu hỏi.');
-      }
-
       setExamData(data);
       examRef.current = data;
       setTimeLeft(Math.max(0, Number(data.durationMinutes) || 0) * 60);
@@ -319,13 +436,9 @@ export default function App() {
       answersRef.current = {};
       setResult(null);
       setIsSubmitted(false);
-      submitLock.current = false;
       setStep('doing-exam');
     } catch (err) {
       setError(`Không tạo được đề thi: ${err.message}`);
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      }
     } finally {
       setIsLoading(false);
     }
@@ -336,23 +449,11 @@ export default function App() {
     if (submitLock.current || !currentExam) return;
 
     const answersToSubmit = answersOverride ?? answersRef.current;
-    const firstUnansweredIndex = currentExam.questions.findIndex(
-      (question) => !answersToSubmit[question.id]
-    );
+    const firstUnansweredIndex = currentExam.questions.findIndex(q => !answersToSubmit[q.id]);
 
     if (firstUnansweredIndex !== -1 && !allowIncomplete) {
-      const unansweredCount = currentExam.questions.filter(
-        (question) => !answersToSubmit[question.id]
-      ).length;
-
-      setIncompleteSubmitNotice(
-        `Bạn chưa hoàn thành bài thi! Còn ${unansweredCount} câu chưa trả lời. Hệ thống đã đưa bạn đến câu chưa hoàn thành đầu tiên.`
-      );
-
-      const firstUnansweredCard = document.getElementById(
-        `question-card-${firstUnansweredIndex}`
-      );
-      firstUnansweredCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn câu chưa trả lời.`);
+      document.getElementById(`question-card-${firstUnansweredIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -364,19 +465,12 @@ export default function App() {
       const data = await fetchJson(`${API_BASE}/exam/submit-random`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userAnswers: answersToSubmit,
-          secretKey: currentExam._secretKey,
-          secretExplanation: currentExam._secretExplanation,
-        }),
+        body: JSON.stringify({ userAnswers: answersToSubmit, secretKey: currentExam._secretKey, secretExplanation: currentExam._secretExplanation })
       });
-
       setResult(data);
       setIncompleteSubmitNotice('');
       setIsSubmitted(true);
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      }
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       submitLock.current = false;
@@ -388,130 +482,77 @@ export default function App() {
 
   useEffect(() => {
     if (step !== 'doing-exam' || isSubmitted) return undefined;
-
     const registerViolation = (reason) => {
       if (submitLock.current || tabViolationCountRef.current >= MAX_TAB_VIOLATIONS) return;
-      const now = Date.now();
-      if (now - lastViolationAtRef.current < 800) return;
-      lastViolationAtRef.current = now;
-
       const nextCount = tabViolationCountRef.current + 1;
       tabViolationCountRef.current = nextCount;
       setTabViolationCount(nextCount);
 
       if (nextCount >= MAX_TAB_VIOLATIONS) {
         submitLock.current = true;
-        setViolationNotice(`Bài thi đã bị hủy vì bạn vi phạm quy định chuyển tab/toàn màn hình ${MAX_TAB_VIOLATIONS} lần. Bạn có thể bắt đầu một đề mới.`);
-        setIncompleteSubmitNotice('');
+        setViolationNotice(`Bài thi bị hủy do vi phạm quy chế ${MAX_TAB_VIOLATIONS} lần.`);
         setStep('select-subject');
-        setExamData(null);
-        examRef.current = null;
-        setTimeLeft(0);
-        setUserAnswers({});
-        answersRef.current = {};
-        setResult(null);
-        setIsSubmitted(false);
-        if (document.fullscreenElement && document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        }
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
         return;
       }
-
-      setViolationNotice(`Cảnh báo ${nextCount}/${MAX_TAB_VIOLATIONS}: Hệ thống phát hiện bạn ${reason}. Nếu vi phạm đủ ${MAX_TAB_VIOLATIONS} lần, bài thi sẽ tự động bị hủy.`);
+      setViolationNotice(`Cảnh báo vi phạm (${nextCount}/${MAX_TAB_VIOLATIONS}): Bạn vừa ${reason}.`);
     };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        registerViolation('chuyển sang tab khác hoặc rời khỏi trang thi');
-      }
-    };
-    const handleWindowBlur = () => registerViolation('rời khỏi cửa sổ thi');
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) registerViolation('thoát chế độ toàn màn hình');
-    };
+    const handleVis = () => { if (document.visibilityState === 'hidden') registerViolation('rời khỏi tab thi'); };
+    const handleBlur = () => registerViolation('rời khỏi cửa sổ thi');
+    const handleFull = () => { if (!document.fullscreenElement) registerViolation('thoát toàn màn hình'); };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-
+    document.addEventListener('visibilitychange', handleVis);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('fullscreenchange', handleFull);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('visibilitychange', handleVis);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('fullscreenchange', handleFull);
     };
   }, [step, isSubmitted]);
 
   useEffect(() => {
     if (step !== 'doing-exam' || timeLeft <= 0 || isSubmitted || !examData) return undefined;
-
     const timer = window.setInterval(() => {
-      setTimeLeft((previous) => {
-        if (previous <= 1) {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
           window.clearInterval(timer);
           void handleSubmit(undefined, { allowIncomplete: true });
           return 0;
         }
-        return previous - 1;
+        return prev - 1;
       });
     }, 1000);
-
     return () => window.clearInterval(timer);
   }, [step, timeLeft, isSubmitted, examData, handleSubmit]);
 
-  const handleSelectOption = (questionId, optionKey) => {
+  const handleSelectOption = (qId, optKey) => {
     if (isSubmitted) return;
-    setUserAnswers((previous) => {
-      const next = { ...previous, [questionId]: optionKey };
+    setUserAnswers(prev => {
+      const next = { ...prev, [qId]: optKey };
       answersRef.current = next;
       return next;
     });
   };
 
-  const formatTime = (seconds) => {
-    const safeSeconds = Math.max(0, Number(seconds) || 0);
-    const minutes = Math.floor(safeSeconds / 60);
-    const remainingSeconds = safeSeconds % 60;
-    return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
-  };
+  const formatTime = (secs) => `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
 
   const handleReset = () => {
-    submitLock.current = true;
-    if (document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(() => {});
-    }
-    setViolationNotice('');
-    setTabViolationCount(0);
-    tabViolationCountRef.current = 0;
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
     setStep('select-uni');
     setSelectedUni(null);
     setSubjects([]);
-    setCurrentSubject(null);
     setExamData(null);
-    examRef.current = null;
-    answersRef.current = {};
     setUserAnswers({});
-    setTimeLeft(0);
     setResult(null);
     setIsSubmitted(false);
-    setIsLoading(false);
-    setError('');
-    submitLock.current = true;
   };
 
   const handleLogout = () => {
     setUserId('');
-    setUsernameInput('');
-    setPasswordInput('');
     setStep('auth');
-  };
-
-  const handleDismissViolationNotice = () => {
-    setViolationNotice('');
-    if (step === 'doing-exam' && !document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {
-        setViolationNotice('Chưa thể bật lại toàn màn hình. Hãy sử dụng trình duyệt hỗ trợ Fullscreen API để tiếp tục làm bài.');
-      });
-    }
+    setAuthMode('login');
   };
 
   return (
@@ -535,33 +576,20 @@ export default function App() {
         </div>
       )}
 
-      {violationNotice && (
-        <div className="exam-warning-backdrop" role="alertdialog" aria-modal="true" aria-live="assertive">
-          <div className="exam-warning-modal">
-            <div className="exam-warning-icon">⚠️</div>
-            <h2>{tabViolationCount >= MAX_TAB_VIOLATIONS ? 'Bài thi đã bị hủy' : 'Cảnh báo vi phạm quy chế thi'}</h2>
-            <p>{violationNotice}</p>
-            {step === 'doing-exam' && (
-              <p className="exam-warning-count">Số lần vi phạm: <strong>{tabViolationCount}/{MAX_TAB_VIOLATIONS}</strong></p>
-            )}
-            <button className="btn-primary exam-warning-confirm" type="button" onClick={handleDismissViolationNotice}>Đã hiểu</button>
-          </div>
+      {successMessage && (
+        <div style={{ background: '#dcfce7', color: '#15803d', padding: '12px 16px', borderRadius: '8px', margin: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>✅ {successMessage}</span>
+          <button type="button" onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>×</button>
         </div>
       )}
 
-      {incompleteSubmitNotice && step === 'doing-exam' && (
-        <div className="exam-warning-backdrop" role="alertdialog" aria-modal="true" aria-live="assertive">
+      {violationNotice && (
+        <div className="exam-warning-backdrop" role="alertdialog">
           <div className="exam-warning-modal">
-            <div className="exam-warning-icon">📝</div>
-            <h2>Chưa hoàn thành bài thi</h2>
-            <p>{incompleteSubmitNotice}</p>
-            <button
-              className="btn-primary exam-warning-confirm"
-              type="button"
-              onClick={() => setIncompleteSubmitNotice('')}
-            >
-              Tiếp tục làm bài
-            </button>
+            <div className="exam-warning-icon">⚠️</div>
+            <h2>Cảnh báo quy chế thi</h2>
+            <p>{violationNotice}</p>
+            <button className="btn-primary exam-warning-confirm" type="button" onClick={() => setViolationNotice('')}>Đã hiểu</button>
           </div>
         </div>
       )}
@@ -576,43 +604,138 @@ export default function App() {
       )}
 
       <main className="app-main">
-        {/* MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ TÀI KHOẢN */}
         {step === 'auth' && (
           <section className="fade-in" style={{ maxWidth: '420px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
             <h2 style={{ color: '#7c3aed', marginBottom: '8px' }}>
-              {authMode === 'login' ? '🔑 Đăng Nhập' : '📝 Đăng Ký Tài Khoản'}
+              {authMode === 'login' && '🔑 Đăng Nhập'}
+              {authMode === 'register' && '📝 Đăng Ký Tài Khoản'}
+              {authMode === 'verify-otp' && '✉️ Xác Thực Mã OTP'}
+              {authMode === 'forgot' && '🔄 Khôi Phục Mật Khẩu'}
+              {authMode === 'reset-otp' && '🔒 Đặt Lại Mật Khẩu'}
             </h2>
-            <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>
-              {authMode === 'login' 
-                ? 'Nhập tài khoản & mật khẩu để truy cập ví tiền cá nhân' 
-                : 'Tạo tài khoản mới để bắt đầu nạp tiền & luyện đề'}
-            </p>
 
-            <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <input 
-                type="text" 
-                placeholder="Tên tài khoản (Ví dụ: thong123)" 
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none' }}
-              />
-              <input 
-                type="password" 
-                placeholder="Mật khẩu" 
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none' }}
-              />
-              <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px', marginTop: '6px' }}>
-                {authMode === 'login' ? '🚀 Đăng Nhập Ngay' : '✨ Tạo Tài Khoản'}
-              </button>
-            </form>
+            {/* 1. Đăng nhập */}
+            {authMode === 'login' && (
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Tên tài khoản, Email hoặc Số điện thoại" 
+                  value={loginKeyInput}
+                  onChange={(e) => setLoginKeyInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Mật khẩu" 
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🚀 Đăng Nhập</button>
+              </form>
+            )}
 
-            <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f3f4f6', fontSize: '14px', color: '#4b5563' }}>
-              {authMode === 'login' ? (
-                <p>Chưa có tài khoản? <span onClick={() => { setAuthMode('register'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng ký tại đây</span></p>
-              ) : (
-                <p>Đã có tài khoản? <span onClick={() => { setAuthMode('login'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng nhập ngay</span></p>
+            {/* 2. Đăng ký */}
+            {authMode === 'register' && (
+              <form onSubmit={handleRequestRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Tên tài khoản mới" 
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Email hoặc Số điện thoại nhận OTP" 
+                  value={emailOrPhoneInput}
+                  onChange={(e) => setEmailOrPhoneInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Mật khẩu" 
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Nhập lại mật khẩu xác nhận" 
+                  value={confirmPasswordInput}
+                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi Mã OTP Đăng Ký</button>
+              </form>
+            )}
+
+            {/* 3. Xác thực OTP Đăng ký */}
+            {authMode === 'verify-otp' && (
+              <form onSubmit={handleVerifyRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
+                <p style={{ fontSize: '13px', color: '#4b5563' }}>Mã OTP đã được gửi đến: <strong>{emailOrPhoneInput}</strong></p>
+                <input 
+                  type="text" 
+                  placeholder="Nhập mã OTP 6 chữ số" 
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '18px', textAlign: 'center', letterSpacing: '4px' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>✨ Xác Nhận & Hoàn Tất</button>
+              </form>
+            )}
+
+            {/* 4. Quên mật khẩu (Gửi OTP) */}
+            {authMode === 'forgot' && (
+              <form onSubmit={handleRequestForgotOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Nhập Email hoặc SĐT đã đăng ký" 
+                  value={emailOrPhoneInput}
+                  onChange={(e) => setEmailOrPhoneInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi Mã OTP Khôi Phục</button>
+              </form>
+            )}
+
+            {/* 5. Nhập OTP & Đặt mật khẩu mới */}
+            {authMode === 'reset-otp' && (
+              <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Nhập mã OTP 6 chữ số" 
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '18px', textAlign: 'center', letterSpacing: '4px' }}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Mật khẩu mới" 
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Nhập lại mật khẩu mới" 
+                  value={confirmNewPasswordInput}
+                  onChange={(e) => setConfirmNewPasswordInput(e.target.value)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
+                />
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>🔒 Đổi Mật Khẩu Mới</button>
+              </form>
+            )}
+
+            <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f3f4f6', fontSize: '14px', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {authMode === 'login' && (
+                <>
+                  <p>Chưa có tài khoản? <span onClick={() => { setAuthMode('register'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng ký ngay</span></p>
+                  <p><span onClick={() => { setAuthMode('forgot'); setError(''); }} style={{ color: '#dc2626', cursor: 'pointer', textDecoration: 'underline' }}>Quên mật khẩu?</span></p>
+                </>
+              )}
+              {authMode !== 'login' && (
+                <p>Đã có tài khoản? <span onClick={() => { setAuthMode('login'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Quay lại đăng nhập</span></p>
               )}
             </div>
           </section>
@@ -622,17 +745,11 @@ export default function App() {
           <section className="fade-in">
             <div className="hero-banner">
               <h2>Xin chào {userId}! Chinh phục kỳ thi cùng Thỏ 🚀</h2>
-              <p>Chọn trường đại học mục tiêu của bạn để bắt đầu luyện đề thi thử bám sát cấu trúc:</p>
+              <p>Chọn trường đại học mục tiêu của bạn để bắt đầu luyện đề:</p>
             </div>
             <div className="university-grid">
               {universities.map((uni) => (
-                <button
-                  className="university-card"
-                  key={uni.id}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => handleSelectUni(uni)}
-                >
+                <button className="university-card" key={uni.id} type="button" onClick={() => handleSelectUni(uni)}>
                   <span className="uni-icon">🏫</span>
                   <span className="uni-name">{uni.name}</span>
                   <span className="uni-arrow">→</span>
@@ -649,39 +766,27 @@ export default function App() {
               <h2>{selectedUni?.name}</h2>
             </div>
 
-            {/* KHU VỰC VÍ TIỀN & MÃ QR NẠP TIỀN CÁ NHÂN */}
             <div style={{ background: '#f5f3ff', border: '2px solid #c084fc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử tài khoản: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 'bold', color: '#7e22ce' }}>
-                    Số dư hiện tại: {walletBalance.toLocaleString()} VNĐ
-                  </p>
+                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 'bold', color: '#7e22ce' }}>Số dư: {walletBalance.toLocaleString()} VNĐ</p>
                 </div>
-                <button className="btn-secondary" onClick={fetchWalletBalance} type="button" style={{ padding: '8px 12px' }}>
-                  🔄 Cập nhật số dư
-                </button>
+                <button className="btn-secondary" onClick={fetchWalletBalance} type="button">🔄 Cập nhật</button>
               </div>
 
               <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
-                <p style={{ margin: '0 0 6px', fontWeight: 'bold', color: '#374151' }}>📲 Quét mã QR nạp tiền tự động qua BIDV (Cho phép tự nhập số tiền):</p>
+                <p style={{ margin: '0 0 6px', fontWeight: 'bold' }}>📲 Quét QR nạp tiền qua BIDV:</p>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <img 
-                    src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&des=NAP%20${userId}`} 
-                    alt="Mã QR Nạp Tiền SePay" 
-                    style={{ width: '130px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                  />
-                  <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#4b5563' }}>
-                    <p style={{ margin: 0 }}>• Ngân hàng: <strong>BIDV (SePay Bank Hub)</strong></p>
-                    <p style={{ margin: 0 }}>• Số TK / Số VA: <strong style={{ color: '#2563eb' }}>96247THOLAMTOAN</strong></p>
-                    <p style={{ margin: 0 }}>• Cú pháp chuyển khoản: <strong style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>NAP {userId}</strong></p>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#059669' }}>✅ App ngân hàng tự điền tên tài khoản của bạn, nhập số tiền tùy ý và hệ thống tự cộng số dư sau vài giây!</p>
+                  <img src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&des=NAP%20${userId}`} alt="QR" style={{ width: '130px', borderRadius: '8px' }}/>
+                  <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
+                    <p style={{ margin: 0 }}>• Số TK / VA: <strong>96247THOLAMTOAN</strong></p>
+                    <p style={{ margin: 0 }}>• Cú pháp: <strong style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 6px' }}>NAP {userId}</strong></p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <p className="section-desc">Chọn môn học bạn muốn mua đề & bắt đầu thi bên dưới:</p>
             <div className="subject-grid">
               {subjects.map((subject) => (
                 <div className="subject-card" key={subject.id}>
@@ -689,17 +794,10 @@ export default function App() {
                     <span className="subject-icon">📖</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>Giá lượt thi: <strong>10.000 VNĐ</strong></p>
+                      <p>Giá: <strong>10.000 VNĐ</strong></p>
                     </div>
                   </div>
-                  <button
-                    className="btn-primary"
-                    type="button"
-                    disabled={isLoading}
-                    onClick={() => handleBuyAndStartExam(subject)}
-                  >
-                    🛒 Mua đề & Vào thi (10.000đ) ⚡
-                  </button>
+                  <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề & Vào thi ⚡</button>
                 </div>
               ))}
             </div>
@@ -710,71 +808,37 @@ export default function App() {
           <div className="exam-layout fade-in">
             <div className="exam-sticky-bar">
               <div className="exam-title-group">
-                <h2>{examData.title || 'Đề thi trắc nghiệm'}</h2>
-                <span className="badge-count">
-                  Đã làm: <strong>{Object.keys(userAnswers).length}</strong> / {examData.questions.length} câu
-                </span>
+                <h2>{examData.title}</h2>
+                <span className="badge-count">Đã làm: <strong>{Object.keys(userAnswers).length}</strong> / {examData.questions.length}</span>
               </div>
-              <div className={`timer-badge ${timeLeft < 60 ? 'danger' : ''}`}>
-                ⏱️ {formatTime(timeLeft)}
-              </div>
+              <div className={`timer-badge ${timeLeft < 60 ? 'danger' : ''}`}>⏱️ {formatTime(timeLeft)}</div>
             </div>
 
             <div className="questions-container">
               {examData.questions.map((q, idx) => {
-                const detail = isSubmitted
-                  ? result?.details?.find((item) => String(item.questionId) === String(q.id))
-                  : null;
-
+                const detail = isSubmitted ? result?.details?.find(item => String(item.questionId) === String(q.id)) : null;
                 return (
                   <article id={`question-card-${idx}`} style={{ scrollMarginTop: '110px' }} className={`question-card ${detail ? (detail.isCorrect ? 'correct-card' : 'wrong-card') : ''}`} key={q.id ?? idx}>
-                    <div className="question-header">
-                      <span className="q-index">Câu {idx + 1}</span>
-                    </div>
-                    <div className="question-text">
-                      <MathContent value={q.content ?? q.text ?? q.question ?? ''} inline={true} />
-                    </div>
+                    <div className="question-header"><span className="q-index">Câu {idx + 1}</span></div>
+                    <div className="question-text"><MathContent value={q.content} inline={true} /></div>
                     <div className="options-grid">
                       {Object.entries(q.options || {}).map(([key, val]) => {
                         const isSelected = userAnswers[q.id] === key;
-                        const isCorrectOption = detail?.correctAnswer === key;
-                        let optionStyleClass = 'option-item';
-                        if (isSelected) optionStyleClass += ' selected';
+                        let cls = 'option-item';
+                        if (isSelected) cls += ' selected';
                         if (isSubmitted) {
-                          if (isCorrectOption) optionStyleClass += ' correct';
-                          if (isSelected && !detail?.isCorrect) optionStyleClass += ' incorrect';
+                          if (detail?.correctAnswer === key) cls += ' correct';
+                          if (isSelected && !detail?.isCorrect) cls += ' incorrect';
                         }
-
                         return (
-                          <label className={optionStyleClass} key={key}>
-                            <input
-                              type="radio"
-                              name={`question-${q.id ?? idx}`}
-                              checked={isSelected}
-                              disabled={isSubmitted}
-                              onChange={() => handleSelectOption(q.id, key)}
-                            />
+                          <label className={cls} key={key}>
+                            <input type="radio" name={`q-${q.id}`} checked={isSelected} disabled={isSubmitted} onChange={() => handleSelectOption(q.id, key)} />
                             <span className="option-badge">{key}.</span>
-                            <span className="option-text-content">
-                              <MathContent value={val ?? ''} inline={true} />
-                            </span>
+                            <span className="option-text-content"><MathContent value={val} inline={true} /></span>
                           </label>
                         );
                       })}
                     </div>
-
-                    {isSubmitted && detail && (
-                      <div className="explanation-box">
-                        <div className="explanation-header">
-                          <span>{detail.isCorrect ? '✅ Chính xác' : '❌ Chưa chính xác'}</span>
-                          <span>Đáp án đúng: <strong>{detail.correctAnswer}</strong></span>
-                        </div>
-                        <div className="explanation-body">
-                          <p><strong>🐰 Thỏ giải thích:</strong></p>
-                          <MathContent value={detail.explanation || 'Chưa có lời giải chi tiết cho câu này.'} />
-                        </div>
-                      </div>
-                    )}
                   </article>
                 );
               })}
@@ -782,29 +846,12 @@ export default function App() {
 
             <div className="exam-footer-action">
               {!isSubmitted ? (
-                <button
-                  className="btn-submit"
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => void handleSubmit()}
-                >
-                  🚀 Nộp bài thi ngay
-                </button>
+                <button className="btn-submit" type="button" onClick={() => void handleSubmit()}>🚀 Nộp bài thi ngay</button>
               ) : (
                 <div className="result-summary-card">
                   <div className="result-header-badge">🎉 Kết Quả Bài Thi</div>
-                  <div className="score-big">
-                    {result?.score ?? 0} <span className="score-total">/ {result?.totalQuestions ?? examData.questions.length}</span>
-                  </div>
-                  <p className="score-percentage">Đạt tỷ lệ chính xác: <strong>{result?.percentage ?? 0}%</strong></p>
-                  <button
-                    className="btn-primary"
-                    type="button"
-                    disabled={isLoading || !currentSubject}
-                    onClick={() => currentSubject && handleBuyAndStartExam(currentSubject)}
-                  >
-                    🔄 Mua & Làm đề thi khác
-                  </button>
+                  <div className="score-big">{result?.score ?? 0} <span className="score-total">/ {result?.totalQuestions}</span></div>
+                  <button className="btn-primary" type="button" onClick={() => currentSubject && handleBuyAndStartExam(currentSubject)}>🔄 Làm đề thi khác</button>
                 </div>
               )}
             </div>
@@ -812,9 +859,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="app-footer">
-        <p>Học cùng Thỏ · Kiên trì mỗi ngày, tiến bộ từng chút 🐰</p>
-      </footer>
+      <footer className="app-footer"><p>Học cùng Thỏ · Kiên trì mỗi ngày 🐰</p></footer>
     </div>
   );
 }

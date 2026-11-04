@@ -7,11 +7,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Bảng dữ liệu giả lập tài khoản và số dư ví học sinh
-// Cấu trúc: { "username": { password: "...", balance: 0 } }
+// Bảng dữ liệu lưu trữ tài khoản học sinh
 const userWallets = {
-  "thong": { password: "123", balance: 0 } // Tài khoản mẫu mặc định
+  "thong": { 
+    username: "thong",
+    password: "123", 
+    email: "thong@gmail.com",
+    phone: "0912345678",
+    balance: 0 
+  } 
 };
+
+// Kho lưu trữ OTP tạm thời: { "email_hoặc_sđt": { otp: "123456", tempData: {...} } }
+const otpStorage = {};
 
 // Hàm thuật toán xáo trộn ngẫu nhiên mảng (Fisher-Yates Shuffle)
 function shuffleArray(array) {
@@ -35,42 +43,148 @@ const database = {
 };
 
 // ==========================================
-// 1. API ĐĂNG KÝ / ĐĂNG NHẬP TÀI KHOẢN
+// 1. API GỬI MÃ OTP (DÙNG CHO ĐĂNG KÝ VÀ QUÊN MẬT KHẨU)
 // ==========================================
-app.post('/api/auth/register', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Vui lòng nhập đầy đủ Tên tài khoản và Mật khẩu!' });
+app.post('/api/auth/send-otp', (req, res) => {
+  const { username, emailOrPhone, password, confirmPassword, isRegister } = req.body;
+
+  if (!emailOrPhone) {
+    return res.status(400).json({ message: 'Vui lòng nhập Email hoặc Số điện thoại!' });
   }
 
-  const cleanUser = username.trim().toLowerCase();
+  const cleanContact = emailOrPhone.trim().toLowerCase();
 
-  if (userWallets[cleanUser]) {
-    return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại, vui lòng chọn tên khác!' });
+  if (isRegister) {
+    if (!username || !password || !confirmPassword) {
+      return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin đăng ký!' });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp! Vui lòng kiểm tra lại.' });
+    }
+    const cleanUser = username.trim().toLowerCase();
+    if (userWallets[cleanUser]) {
+      return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại, vui lòng chọn tên khác!' });
+    }
   }
 
-  userWallets[cleanUser] = {
-    password: password,
+  // Sinh mã OTP ngẫu nhiên 6 chữ số
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Lưu trữ OTP tạm thời
+  otpStorage[cleanContact] = {
+    otp: otpCode,
+    tempData: { username: username?.trim().toLowerCase(), emailOrPhone: cleanContact, password }
+  };
+
+  console.log(`[Mã OTP gửi đến ${cleanContact}]: ${otpCode}`);
+
+  res.json({ 
+    success: true, 
+    message: `Mã OTP đã được gửi đến ${cleanContact}! (Mã test của bạn là: ${otpCode})`,
+    debugOtp: otpCode
+  });
+});
+
+// ==========================================
+// 2. API XÁC THỰC OTP & HOÀN TẤT ĐĂNG KÝ
+// ==========================================
+app.post('/api/auth/verify-register', (req, res) => {
+  const { emailOrPhone, otp } = req.body;
+  const cleanContact = (emailOrPhone || '').trim().toLowerCase();
+
+  const record = otpStorage[cleanContact];
+  if (!record || record.otp !== otp) {
+    return res.status(400).json({ message: 'Mã OTP không chính xác hoặc đã hết hạn!' });
+  }
+
+  const { username, password } = record.tempData;
+
+  if (userWallets[username]) {
+    return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại!' });
+  }
+
+  userWallets[username] = {
+    username,
+    password,
+    email: cleanContact.includes('@') ? cleanContact : '',
+    phone: !cleanContact.includes('@') ? cleanContact : '',
     balance: 0
   };
 
-  res.json({ success: true, userId: cleanUser, balance: 0, message: 'Đăng ký tài khoản thành công!' });
-});
+  delete otpStorage[cleanContact];
 
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body;
-  const cleanUser = (username || '').trim().toLowerCase();
-
-  const user = userWallets[cleanUser];
-  if (!user || user.password !== password) {
-    return res.status(401).json({ message: 'Tên tài khoản hoặc mật khẩu không chính xác!' });
-  }
-
-  res.json({ success: true, userId: cleanUser, balance: user.balance });
+  res.json({ success: true, userId: username, balance: 0, message: 'Đăng ký tài khoản thành công!' });
 });
 
 // ==========================================
-// 2. API TRƯỜNG & MÔN HỌC
+// 3. API ĐĂNG NHẬP (HỖ TRỢ TÊN TK, EMAIL HOẶC SĐT)
+// ==========================================
+app.post('/api/auth/login', (req, res) => {
+  const { loginKey, password } = req.body;
+  if (!loginKey || !password) {
+    return res.status(400).json({ message: 'Vui lòng nhập thông tin đăng nhập và mật khẩu!' });
+  }
+
+  const cleanKey = loginKey.trim().toLowerCase();
+  let foundUser = null;
+
+  for (const userKey in userWallets) {
+    const u = userWallets[userKey];
+    if (u.username === cleanKey || u.email === cleanKey || u.phone === cleanKey) {
+      foundUser = u;
+      break;
+    }
+  }
+
+  if (!foundUser || foundUser.password !== password) {
+    return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
+  }
+
+  res.json({ success: true, userId: foundUser.username, balance: foundUser.balance });
+});
+
+// ==========================================
+// 4. API XÁC THỰC OTP & ĐẶT LẠI MẬT KHẨU MỚI
+// ==========================================
+app.post('/api/auth/reset-password', (req, res) => {
+  const { emailOrPhone, otp, newPassword, confirmNewPassword } = req.body;
+
+  if (!emailOrPhone || !otp || !newPassword || !confirmNewPassword) {
+    return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin khôi phục!' });
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return res.status(400).json({ message: 'Mật khẩu mới nhập lại không khớp!' });
+  }
+
+  const cleanContact = emailOrPhone.trim().toLowerCase();
+  const record = otpStorage[cleanContact];
+
+  if (!record || record.otp !== otp) {
+    return res.status(400).json({ message: 'Mã OTP khôi phục không chính xác hoặc đã hết hạn!' });
+  }
+
+  let foundUser = null;
+  for (const userKey in userWallets) {
+    const u = userWallets[userKey];
+    if (u.email === cleanContact || u.phone === cleanContact) {
+      foundUser = u;
+      break;
+    }
+  }
+
+  if (!foundUser) {
+    return res.status(404).json({ message: 'Không tìm thấy tài khoản liên kết với thông tin này!' });
+  }
+
+  foundUser.password = newPassword;
+  delete otpStorage[cleanContact];
+
+  res.json({ success: true, message: 'Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.' });
+});
+
+// ==========================================
+// 5. API TRƯỜNG & MÔN HỌC
 // ==========================================
 app.get('/api/universities', (req, res) => {
   const uniList = Object.keys(database).map(key => ({
@@ -90,7 +204,7 @@ app.get('/api/universities/:uniId/subjects', (req, res) => {
 });
 
 // ==========================================
-// 3. API TẠO ĐỀ THI NGẪU NHIÊN
+// 6. API TẠO ĐỀ THI NGẪU NHIÊN
 // ==========================================
 app.get('/api/exam/random/:subjectId', (req, res) => {
   const { subjectId } = req.params;
@@ -145,7 +259,7 @@ app.get('/api/exam/random/:subjectId', (req, res) => {
 });
 
 // ==========================================
-// 4. API NỘP BÀI CHẤM ĐIỂM
+// 7. API NỘP BÀI CHẤM ĐIỂM
 // ==========================================
 app.post('/api/exam/submit-random', (req, res) => {
   const { userAnswers, secretKey, secretExplanation } = req.body;
@@ -179,7 +293,7 @@ app.post('/api/exam/submit-random', (req, res) => {
 });
 
 // ==========================================
-// 5. API NHẬN WEBHOOK TỪ SEPAY (CỘNG TIỀN VÀO VÍ)
+// 8. API NHẬN WEBHOOK TỪ SEPAY
 // ==========================================
 app.post('/api/sepay-webhook', async (req, res) => {
     try {
@@ -187,81 +301,60 @@ app.post('/api/sepay-webhook', async (req, res) => {
         const transferAmount = Number(data.transferAmount) || 0;   
         const content = data.content ? data.content.trim() : "";                 
         
-        console.log(`[SePay Webhook] Nhận giao dịch: ${transferAmount}đ - Nội dung: ${content}`);
-        
         if (content && content.toUpperCase().includes("NAP")) {
             const matches = content.match(/NAP\s*([a-zA-Z0-9]+)/i);
             
             if (matches && matches[1]) {
                 const userId = matches[1].toLowerCase();
                 
-                if (!userWallets[userId]) {
-                    userWallets[userId] = { password: "123", balance: 0 };
-                } else if (typeof userWallets[userId] === 'number') {
-                    userWallets[userId] = { password: "123", balance: userWallets[userId] };
+                if (userWallets[userId]) {
+                    userWallets[userId].balance += transferAmount;
+                } else {
+                    userWallets[userId] = { username: userId, password: "123", balance: transferAmount };
                 }
-                
-                userWallets[userId].balance += transferAmount;
-                console.log(`=> Đã cộng thành công ${transferAmount}đ vào ví tài khoản: ${userId}. Số dư mới: ${userWallets[userId].balance}đ`);
             }
             
             return res.status(200).json({ success: true, message: "Đã xử lý cộng tiền vào ví thành công!" });
         }
         
         return res.status(200).json({ success: true, message: "Bỏ qua giao dịch không khớp cú pháp." });
-        
     } catch (error) {
-        console.error("Lỗi xử lý webhook:", error);
         return res.status(500).json({ success: false, error: error.message });
     }
 });
 
 // ==========================================
-// 6. API KIỂM TRA SỐ DƯ VÍ
+// 9. API KIỂM TRA SỐ DƯ VÍ
 // ==========================================
 app.get('/api/wallet/:userId', (req, res) => {
   const { userId } = req.params;
   const cleanUser = userId.toLowerCase();
-  
-  let balance = 0;
-  if (userWallets[cleanUser]) {
-    balance = typeof userWallets[cleanUser] === 'object' ? userWallets[cleanUser].balance : userWallets[cleanUser];
-  }
-  
-  res.json({ userId: cleanUser, balance });
+  const user = userWallets[cleanUser];
+  res.json({ userId: cleanUser, balance: user ? user.balance : 0 });
 });
 
 // ==========================================
-// 7. API TRỪ TIỀN VÀ MUA ĐỀ THI
+// 10. API TRỪ TIỀN VÀ MUA ĐỀ THI
 // ==========================================
 app.post('/api/exam/buy', (req, res) => {
     const { userId, subjectId, price } = req.body;
     const cleanUser = userId.toLowerCase();
-
-    let currentBalance = 0;
-    if (userWallets[cleanUser]) {
-      currentBalance = typeof userWallets[cleanUser] === 'object' ? userWallets[cleanUser].balance : userWallets[cleanUser];
-    }
+    const user = userWallets[cleanUser];
+    const currentBalance = user ? user.balance : 0;
 
     if (currentBalance < price) {
         return res.status(400).json({ 
             success: false, 
-            message: `Số dư không đủ! Bạn hiện có ${currentBalance.toLocaleString()}đ, đề thi giá ${price.toLocaleString()}đ. Vui lòng nạp thêm tiền!` 
+            message: `Số dư không đủ! Bạn hiện có ${currentBalance.toLocaleString()}đ, đề thi giá ${price.toLocaleString()}đ.` 
         });
     }
 
-    if (typeof userWallets[cleanUser] === 'object') {
-      userWallets[cleanUser].balance -= price;
-    } else {
-      userWallets[cleanUser] = { password: "123", balance: currentBalance - price };
-    }
-
-    console.log(`[Mua Đề] Tài khoản ${cleanUser} đã mua môn ${subjectId} với giá ${price}đ. Số dư còn lại: ${userWallets[cleanUser].balance}đ`);
+    user.balance -= price;
 
     res.json({ 
         success: true, 
         message: "Mua đề thi thành công!", 
-        newBalance: userWallets[cleanUser].balance 
+        newBalance: user.balance 
     });
 });
 
