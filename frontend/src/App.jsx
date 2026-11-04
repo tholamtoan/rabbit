@@ -140,7 +140,14 @@ async function fetchJson(url, options) {
 }
 
 export default function App() {
-  const [step, setStep] = useState('select-uni');
+  // Thay đổi step ban đầu thành 'login' để học sinh nhập mã tài khoản trước
+  const [step, setStep] = useState('login');
+  
+  // Quản lý thông tin tài khoản học sinh
+  const [inputUserId, setInputUserId] = useState('');
+  const [userId, setUserId] = useState('');
+  const [walletBalance, setWalletBalance] = useState(0);
+
   const [universities, setUniversities] = useState([]);
   const [selectedUni, setSelectedUni] = useState(null);
   const [subjects, setSubjects] = useState([]);
@@ -156,10 +163,6 @@ export default function App() {
   const [violationNotice, setViolationNotice] = useState('');
   const [incompleteSubmitNotice, setIncompleteSubmitNotice] = useState('');
 
-  // ===== BỔ SUNG STATE VÍ TIỀN HỌC SINH =====
-  const [userId] = useState("12345"); // ID mặc định học sinh
-  const [walletBalance, setWalletBalance] = useState(0);
-
   const answersRef = useRef({});
   const examRef = useRef(null);
   const submitLock = useRef(false);
@@ -167,8 +170,22 @@ export default function App() {
   const lastViolationAtRef = useRef(0);
   const MAX_TAB_VIOLATIONS = 3;
 
-  // Lấy số dư ví từ server
+  // Xử lý Đăng nhập / Vào hệ thống với Mã học sinh
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const cleanId = inputUserId.trim();
+    if (!cleanId) {
+      setError('Vui lòng nhập mã học sinh hoặc tên tài khoản của bạn!');
+      return;
+    }
+    setUserId(cleanId);
+    setError('');
+    setStep('select-uni');
+  };
+
+  // Lấy số dư ví của đúng học sinh hiện tại từ server
   const fetchWalletBalance = useCallback(async () => {
+    if (!userId) return;
     try {
       const data = await fetchJson(`${API_BASE}/wallet/${userId}`);
       setWalletBalance(data.balance || 0);
@@ -178,8 +195,10 @@ export default function App() {
   }, [userId]);
 
   useEffect(() => {
-    fetchWalletBalance();
-  }, [fetchWalletBalance]);
+    if (userId) {
+      fetchWalletBalance();
+    }
+  }, [userId, fetchWalletBalance]);
 
   useEffect(() => {
     let cancelled = false;
@@ -197,7 +216,7 @@ export default function App() {
       const data = await fetchJson(`${API_BASE}/universities/${uni.id}/subjects`);
       setSubjects(Array.isArray(data) ? data : []);
       setStep('select-subject');
-      fetchWalletBalance(); // Cập nhật lại ví khi chọn trường
+      fetchWalletBalance();
     } catch (err) {
       setError(`Không tải được danh sách môn: ${err.message}`);
     } finally {
@@ -205,12 +224,11 @@ export default function App() {
     }
   };
 
-  // Mua đề trước khi vào thi
   const handleBuyAndStartExam = async (subject) => {
-    const EXAM_PRICE = 1000; // Giá 1.000 VNĐ / đề
+    const EXAM_PRICE = 10000; // 10.000 VNĐ / đề
 
     if (walletBalance < EXAM_PRICE) {
-      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ, đề thi giá ${EXAM_PRICE.toLocaleString()}đ. Vui lòng chuyển khoản nạp thêm tiền theo thông tin ví bên trên!`);
+      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ, đề thi giá ${EXAM_PRICE.toLocaleString()}đ. Vui lòng chuyển khoản quét mã nạp thêm tiền theo cú pháp cá nhân của bạn bên trên!`);
       return;
     }
 
@@ -226,7 +244,6 @@ export default function App() {
 
       if (buyRes.success) {
         setWalletBalance(buyRes.newBalance);
-        // Trừ tiền thành công -> Vào làm đề ngay
         await handleStartRandomExam(subject);
       }
     } catch (err) {
@@ -457,6 +474,13 @@ export default function App() {
     submitLock.current = true;
   };
 
+  // Đăng xuất / Đổi tài khoản
+  const handleLogout = () => {
+    setUserId('');
+    setInputUserId('');
+    setStep('login');
+  };
+
   const handleDismissViolationNotice = () => {
     setViolationNotice('');
     if (step === 'doing-exam' && !document.fullscreenElement && document.documentElement.requestFullscreen) {
@@ -471,8 +495,14 @@ export default function App() {
       <header className="app-header">
         <div className="header-content">
           <RabbitLogo />
-          {step !== 'select-uni' && (
-            <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
+          {step !== 'login' && step !== 'select-uni' && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
+              <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đổi tài khoản</button>
+            </div>
+          )}
+          {step === 'select-uni' && (
+            <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đổi tài khoản ({userId})</button>
           )}
         </div>
       </header>
@@ -525,10 +555,30 @@ export default function App() {
       )}
 
       <main className="app-main">
+        {/* MÀN HÌNH ĐĂNG NHẬP / NHẬP MÃ HỌC SINH */}
+        {step === 'login' && (
+          <section className="fade-in" style={{ maxWidth: '450px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
+            <h2 style={{ color: '#7c3aed', marginBottom: '10px' }}>Đăng nhập vào Hệ thống</h2>
+            <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>Nhập mã số học sinh hoặc tên tài khoản của bạn để quản lý số dư ví cá nhân:</p>
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <input 
+                type="text" 
+                placeholder="Ví dụ: thong123, hs01,..." 
+                value={inputUserId}
+                onChange={(e) => setInputUserId(e.target.value)}
+                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '16px', outline: 'none' }}
+              />
+              <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>
+                🚀 Vào luyện thi ngay
+              </button>
+            </form>
+          </section>
+        )}
+
         {step === 'select-uni' && (
           <section className="fade-in">
             <div className="hero-banner">
-              <h2>Chinh phục kỳ thi cùng Thỏ 🚀</h2>
+              <h2>Chào mừng, {userId}! Chinh phục kỳ thi cùng Thỏ 🚀</h2>
               <p>Chọn trường đại học mục tiêu của bạn để bắt đầu luyện đề thi thử bám sát cấu trúc:</p>
             </div>
             <div className="university-grid">
@@ -556,11 +606,11 @@ export default function App() {
               <h2>{selectedUni?.name}</h2>
             </div>
 
-            {/* KHU VỰC VÍ TIỀN & MÃ QR NẠP TIỀN */}
-            <div style={{ background: '#f5f3ff', border: '2px stroke #c084fc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+            {/* KHU VỰC VÍ TIỀN & MÃ QR NẠP TIỀN CÁ NHÂN */}
+            <div style={{ background: '#f5f3ff', border: '2px solid #c084fc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử của bạn (ID: {userId})</h3>
+                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử của: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
                   <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 'bold', color: '#7e22ce' }}>
                     Số dư hiện tại: {walletBalance.toLocaleString()} VNĐ
                   </p>
@@ -571,18 +621,18 @@ export default function App() {
               </div>
 
               <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
-                <p style={{ margin: '0 0 6px', fontWeight: 'bold', color: '#374151' }}>📲 Hướng dẫn Nạp tiền tự động qua QR / VA Ngân hàng BIDV:</p>
+                <p style={{ margin: '0 0 6px', fontWeight: 'bold', color: '#374151' }}>📲 Quét mã QR nạp tiền tự động qua BIDV (Cho phép tự nhập số tiền):</p>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <img 
-                    src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&amount=10000&des=NAP%20${userId}`} 
+                    src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&des=NAP%20${userId}`} 
                     alt="Mã QR Nạp Tiền SePay" 
                     style={{ width: '130px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                   />
                   <div style={{ fontSize: '14px', lineHeight: '1.6', color: '#4b5563' }}>
                     <p style={{ margin: 0 }}>• Ngân hàng: <strong>BIDV (SePay Bank Hub)</strong></p>
                     <p style={{ margin: 0 }}>• Số TK / Số VA: <strong style={{ color: '#2563eb' }}>96247THOLAMTOAN</strong></p>
-                    <p style={{ margin: 0 }}>• Cú pháp bắt buộc: <strong style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>NAP {userId}</strong></p>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#059669' }}>✅ Tiền sẽ tự động cộng vào ví sau vài giây quét mã thành công!</p>
+                    <p style={{ margin: 0 }}>• Cú pháp chuyển khoản: <strong style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>NAP {userId}</strong></p>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#059669' }}>✅ App ngân hàng sẽ tự điền đúng mã của bạn, nhập số tiền tùy ý và hệ thống tự động cộng ví sau vài giây!</p>
                   </div>
                 </div>
               </div>
@@ -596,7 +646,7 @@ export default function App() {
                     <span className="subject-icon">📖</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>Giá lượt thi: <strong>1.000 VNĐ</strong></p>
+                      <p>Giá lượt thi: <strong>10.000 VNĐ</strong></p>
                     </div>
                   </div>
                   <button
@@ -605,7 +655,7 @@ export default function App() {
                     disabled={isLoading}
                     onClick={() => handleBuyAndStartExam(subject)}
                   >
-                    🛒 Mua đề & Vào thi (1.000đ) ⚡
+                    🛒 Mua đề & Vào thi (10.000đ) ⚡
                   </button>
                 </div>
               ))}
