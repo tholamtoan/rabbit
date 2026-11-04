@@ -134,7 +134,9 @@ async function fetchJson(url, options) {
     throw new Error(`Máy chủ trả về dữ liệu không hợp lệ (${response.status}).`);
   }
   if (!response.ok) {
-    throw new Error(data?.message || `Lỗi máy chủ (${response.status}).`);
+    const error = new Error(data?.message || `Lỗi máy chủ (${response.status}).`);
+    error.status = response.status;
+    throw error;
   }
   return data;
 }
@@ -170,6 +172,29 @@ export default function App() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [otpCooldown, setOtpCooldown] = useState(0);
+  const [usernameAvailability, setUsernameAvailability] = useState({ status: 'idle', message: '' });
+  const [emailAvailability, setEmailAvailability] = useState({ status: 'idle', message: '' });
+  const usernameCheckRef = useRef(0);
+  const emailCheckRef = useRef(0);
+
+  const checkRegistrationField = async (field, rawValue) => {
+    const value = String(rawValue || '').trim();
+    const setAvailability = field === 'username' ? setUsernameAvailability : setEmailAvailability;
+    const checkRef = field === 'username' ? usernameCheckRef : emailCheckRef;
+    const requestId = ++checkRef.current;
+    if (!value) { setAvailability({ status: 'idle', message: '' }); return; }
+    setAvailability({ status: 'checking', message: 'Đang kiểm tra...' });
+    try {
+      const data = await fetchJson(`${API_BASE}/auth/check-registration`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, value })
+      });
+      if (requestId === checkRef.current) setAvailability({ status: 'available', message: data.message || 'Có thể sử dụng.' });
+    } catch (err) {
+      if (requestId === checkRef.current) setAvailability({ status: err.status === 409 ? 'taken' : 'error', message: err.message });
+    }
+  };
+
 
   useEffect(() => {
     let cancelled = false;
@@ -239,6 +264,11 @@ export default function App() {
 
     if (!usernameInput.trim() || !emailOrPhoneInput.trim() || !passwordInput.trim() || !confirmPasswordInput.trim()) {
       setError('Vui lòng điền đầy đủ tất cả các trường!');
+      return;
+    }
+
+    if (usernameAvailability.status === 'taken' || emailAvailability.status === 'taken') {
+      setError(usernameAvailability.status === 'taken' ? usernameAvailability.message : emailAvailability.message);
       return;
     }
 
@@ -704,8 +734,16 @@ export default function App() {
             {/* 2. Đăng ký: OTP nằm ngay dưới xác nhận mật khẩu */}
             {authMode === 'register' && (
               <form onSubmit={handleVerifyRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
-                <input type="text" placeholder="Nhập tên tài khoản" value={usernameInput} onChange={(e) => setUsernameInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
-                <input type="email" placeholder="Nhập email" value={emailOrPhoneInput} onChange={(e) => setEmailOrPhoneInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="text" placeholder="Nhập tên tài khoản" value={usernameInput}
+                  onChange={(e) => { setUsernameInput(e.target.value); setUsernameAvailability({ status: 'idle', message: '' }); }}
+                  onBlur={() => checkRegistrationField('username', usernameInput)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: usernameAvailability.status === 'taken' ? '1px solid #dc2626' : '1px solid #d1d5db', fontSize: '15px' }} />
+                {usernameAvailability.message && <small role="status" style={{ color: usernameAvailability.status === 'available' ? '#15803d' : usernameAvailability.status === 'checking' ? '#64748b' : '#dc2626', marginTop: '-10px' }}>{usernameAvailability.message}</small>}
+                <input type="email" placeholder="Nhập email" value={emailOrPhoneInput}
+                  onChange={(e) => { setEmailOrPhoneInput(e.target.value); setEmailAvailability({ status: 'idle', message: '' }); }}
+                  onBlur={() => checkRegistrationField('email', emailOrPhoneInput)}
+                  style={{ padding: '12px 16px', borderRadius: '8px', border: emailAvailability.status === 'taken' ? '1px solid #dc2626' : '1px solid #d1d5db', fontSize: '15px' }} />
+                {emailAvailability.message && <small role="status" style={{ color: emailAvailability.status === 'available' ? '#15803d' : emailAvailability.status === 'checking' ? '#64748b' : '#dc2626', marginTop: '-10px' }}>{emailAvailability.message}</small>}
                 <input type="password" placeholder="Nhập mật khẩu" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
                 <input type="password" placeholder="Nhập lại mật khẩu" value={confirmPasswordInput} onChange={(e) => setConfirmPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
                 <div className="otp-input-row">
@@ -733,7 +771,7 @@ export default function App() {
             <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f3f4f6', fontSize: '14px', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {authMode === 'login' && (
                 <>
-                  <p>Chưa có tài khoản? <span onClick={() => { setAuthMode('register'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng ký ngay</span></p>
+                  <p>Chưa có tài khoản? <span onClick={() => { setAuthMode('register'); setError(''); setUsernameAvailability({ status: 'idle', message: '' }); setEmailAvailability({ status: 'idle', message: '' }); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng ký ngay</span></p>
                   <p><span onClick={() => { setAuthMode('forgot'); setError(''); }} style={{ color: '#dc2626', cursor: 'pointer', textDecoration: 'underline' }}>Quên mật khẩu?</span></p>
                 </>
               )}

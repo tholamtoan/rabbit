@@ -37,6 +37,38 @@ function cleanUsername(value) {
 module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
   const router = express.Router();
 
+  // Kiểm tra tên tài khoản/email ngay khi người dùng rời khỏi ô nhập.
+  // Đây chỉ là kiểm tra UX; send-otp và verify-register vẫn kiểm tra lại ở backend.
+  router.post('/api/auth/check-registration', async (req, res) => {
+    try {
+      const field = req.body?.field;
+      if (field === 'username') {
+        const username = cleanUsername(req.body?.value);
+        if (!username) return res.status(400).json({ message: 'Vui lòng nhập tên tài khoản!' });
+        if (username.length < 3 || username.length > 30 || !/^[a-z0-9_.-]+$/.test(username)) {
+          return res.status(400).json({ message: 'Tên tài khoản phải dài 3–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
+        }
+        const found = await pool.query('SELECT 1 FROM users WHERE LOWER(username) = $1 LIMIT 1', [username]);
+        if (found.rowCount) return res.status(409).json({ available: false, message: 'Tên tài khoản đã tồn tại. Vui lòng chọn tên khác!' });
+        return res.json({ available: true, message: 'Tên tài khoản có thể sử dụng.' });
+      }
+      if (field === 'email') {
+        const email = cleanEmail(req.body?.value);
+        if (!email) return res.status(400).json({ message: 'Vui lòng nhập email!' });
+        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+          return res.status(400).json({ message: 'Email không đúng định dạng!' });
+        }
+        const found = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
+        if (found.rowCount) return res.status(409).json({ available: false, message: 'Email này đã được đăng ký. Vui lòng sử dụng email khác!' });
+        return res.json({ available: true, message: 'Email có thể sử dụng.' });
+      }
+      return res.status(400).json({ message: 'Thông tin kiểm tra không hợp lệ!' });
+    } catch (error) {
+      console.error('Lỗi kiểm tra đăng ký:', error.message);
+      return res.status(500).json({ message: 'Chưa kiểm tra được thông tin. Vui lòng thử lại!' });
+    }
+  });
+
   router.post('/api/auth/send-otp', async (req, res) => {
     try {
       const { username, emailOrPhone, password, confirmPassword, isRegister } = req.body || {};
