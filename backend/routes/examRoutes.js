@@ -41,10 +41,17 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
   router.get('/api/universities', (req, res) => {
     res.json(Object.keys(catalog).map(key => ({ id: key, name: catalog[key].name })));
   });
-  router.get('/api/universities/:uniId/subjects', (req, res) => {
+  router.get('/api/universities/:uniId/subjects', async (req, res) => {
     const { uniId } = req.params;
-    if (catalog[uniId]) res.json(catalog[uniId].subjects);
-    else res.status(404).json({ message: 'Không tìm thấy trường!' });
+    if (!catalog[uniId]) return res.status(404).json({ message: 'Không tìm thấy trường!' });
+    try {
+      const settings = await pool.query('SELECT subject_id, enabled FROM subject_settings');
+      const flags = new Map(settings.rows.map(row => [row.subject_id, row.enabled]));
+      return res.json(catalog[uniId].subjects.filter(subject => flags.get(subject.id) !== false));
+    } catch (error) {
+      console.error('Không tải được trạng thái môn học:', error.message);
+      return res.status(500).json({ message: 'Không tải được danh sách môn học!' });
+    }
   });
   const crypto = require('node:crypto');
   router.get('/api/exam/random/:subjectId', requireAuth, async (req, res) => {
@@ -138,6 +145,8 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     }
     const client = await pool.connect();
     try {
+      const subjectSetting = await client.query('SELECT enabled FROM subject_settings WHERE subject_id=$1', [subjectId]);
+      if (subjectSetting.rows[0]?.enabled === false) return res.status(403).json({ success: false, message: 'Môn học hiện đang tạm ngừng bán.' });
       await client.query('BEGIN');
       const priceResult = await client.query("SELECT value FROM app_settings WHERE key = 'exam_price' FOR SHARE");
       const amount = Number(priceResult.rows[0]?.value ?? pricing.EXAM_PRICE);

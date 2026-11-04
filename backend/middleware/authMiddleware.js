@@ -13,12 +13,13 @@ function createAuthMiddleware(pool) {
     }
     try {
       const result = await pool.query(
-        `SELECT u.username, u.email, u.balance, s.expires_at
+        `SELECT u.username, u.email, u.balance, u.status, s.expires_at
          FROM user_sessions s JOIN users u ON u.username = s.username
          WHERE s.token_hash = $1 AND s.expires_at > NOW() LIMIT 1`,
         [hashToken(token)]
       );
       if (!result.rows[0]) return res.status(401).json({ message: 'Phiên đăng nhập đã hết hạn!' });
+      if (result.rows[0].status === 'suspended') return res.status(403).json({ message: 'Tài khoản đã bị tạm khóa. Vui lòng liên hệ quản trị viên.' });
       req.user = result.rows[0];
       next();
     } catch (error) {

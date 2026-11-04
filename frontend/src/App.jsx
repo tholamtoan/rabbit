@@ -141,22 +141,6 @@ async function fetchJson(url, options) {
   return data;
 }
 
-// Xác nhận quyền Admin bằng endpoint được backend bảo vệ, không chỉ tin cờ
-// isAdmin từ phản hồi đăng nhập/khôi phục phiên.
-async function verifyAdminPermission(token, fallback = false) {
-  if (!token) return false;
-  try {
-    await fetchJson(`${API_BASE}/admin/pricing`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    return true;
-  } catch (error) {
-    if (error.status === 403 || error.status === 401) return false;
-    // Giữ tương thích nếu backend đang deploy dở hoặc endpoint chưa cập nhật.
-    return Boolean(fallback);
-  }
-}
-
 export default function App() {
   const [step, setStep] = useState('auth'); 
   const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'verify-otp', 'forgot', 'reset-otp'
@@ -175,6 +159,18 @@ export default function App() {
   const [examPrice, setExamPrice] = useState(1000);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPricing, setShowAdminPricing] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminTab, setAdminTab] = useState('overview');
+  const [adminDashboard, setAdminDashboard] = useState(null);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminUserQuery, setAdminUserQuery] = useState('');
+  const [adminTransactions, setAdminTransactions] = useState([]);
+  const [adminAudit, setAdminAudit] = useState([]);
+  const [adminCatalog, setAdminCatalog] = useState([]);
+  const [adminRoles, setAdminRoles] = useState([]);
+  const [adminRoleUsername, setAdminRoleUsername] = useState('');
+  const [adminRoleType, setAdminRoleType] = useState('support');
+  const [adminLoading, setAdminLoading] = useState(false);
   const [adminPriceInput, setAdminPriceInput] = useState('1000');
   const [adminPriceSaving, setAdminPriceSaving] = useState(false);
 
@@ -273,10 +269,9 @@ export default function App() {
       });
 
       if (data.token) localStorage.setItem('hct_session_token', data.token);
-      const adminStatus = await verifyAdminPermission(data.token, data.isAdmin);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
-      setIsAdmin(adminStatus);
+      setIsAdmin(Boolean(data.isAdmin));
       setStep('select-uni');
       setPasswordInput('');
       setLoginKeyInput('');
@@ -352,10 +347,9 @@ export default function App() {
       });
 
       if (data.token) localStorage.setItem('hct_session_token', data.token);
-      const adminStatus = await verifyAdminPermission(data.token, data.isAdmin);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
-      setIsAdmin(adminStatus);
+      setIsAdmin(Boolean(data.isAdmin));
       setStep('select-uni');
       setOtpInput('');
     } catch (err) {
@@ -459,13 +453,11 @@ export default function App() {
       return undefined;
     }
     fetchJson(`${API_BASE}/auth/session`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (data) => {
-        if (cancelled) return;
-        const adminStatus = await verifyAdminPermission(token, data.isAdmin);
+      .then((data) => {
         if (cancelled) return;
         setUserId(data.userId);
         setWalletBalance(Number(data.balance) || 0);
-        setIsAdmin(adminStatus);
+        setIsAdmin(Boolean(data.isAdmin));
         setStep('select-uni');
       })
       .catch(() => {
@@ -684,6 +676,87 @@ export default function App() {
     setAuthMode('login');
   };
 
+
+  const adminRequest = async (path, options = {}) => {
+    const token = localStorage.getItem('hct_session_token');
+    return fetchJson(`${API_BASE}/admin/${path}`, {
+      ...options,
+      headers: { ...(options.headers || {}), Authorization: `Bearer ${token || ''}`, ...(options.body ? { 'Content-Type': 'application/json' } : {}) }
+    });
+  };
+
+  const loadAdminTab = async (tab = adminTab) => {
+    setAdminLoading(true);
+    setError('');
+    try {
+      if (tab === 'overview') setAdminDashboard(await adminRequest('dashboard'));
+      if (tab === 'users') setAdminUsers((await adminRequest(`users?q=${encodeURIComponent(adminUserQuery)}`)).users || []);
+      if (tab === 'transactions') setAdminTransactions((await adminRequest('transactions')).transactions || []);
+      if (tab === 'audit') setAdminAudit((await adminRequest('audit')).logs || []);
+      if (tab === 'catalog') setAdminCatalog((await adminRequest('catalog')).subjects || []);
+      if (tab === 'roles') setAdminRoles((await adminRequest('roles')).roles || []);
+      if (tab === 'pricing') {
+        const data = await adminRequest('pricing');
+        setAdminPriceInput(String(data.examPrice));
+        setExamPrice(Number(data.examPrice));
+      }
+    } catch (err) {
+      setError(err.message || 'Không tải được dữ liệu quản trị.');
+    } finally { setAdminLoading(false); }
+  };
+
+  const openAdminPanel = () => {
+    setShowAdminPanel(true);
+    setShowAdminPricing(false);
+    setAdminTab('overview');
+    void loadAdminTab('overview');
+  };
+
+  const changeAdminTab = (tab) => {
+    setAdminTab(tab);
+    void loadAdminTab(tab);
+  };
+
+  const adminWalletAction = async (username, direction) => {
+    const raw = window.prompt(`${direction === 'credit' ? 'Số tiền cần cộng' : 'Số tiền cần trừ'} cho ${username} (VNĐ):`);
+    if (raw === null) return;
+    const amount = Number(raw);
+    if (!Number.isSafeInteger(amount) || amount <= 0) { setError('Số tiền phải là số nguyên dương.'); return; }
+    const description = window.prompt('Lý do điều chỉnh số dư:', 'Điều chỉnh bởi quản trị viên') || 'Điều chỉnh bởi quản trị viên';
+    try {
+      await adminRequest(`users/${encodeURIComponent(username)}/wallet`, { method: 'POST', body: JSON.stringify({ amount, direction, description }) });
+      setSuccessMessage(`Đã ${direction === 'credit' ? 'cộng' : 'trừ'} ${amount.toLocaleString('vi-VN')} VNĐ cho ${username}.`);
+      void loadAdminTab('users');
+    } catch (err) { setError(err.message); }
+  };
+
+  const adminSetUserStatus = async (username, status) => {
+    if (!window.confirm(`${status === 'suspended' ? 'Tạm khóa' : 'Mở khóa'} tài khoản ${username}?`)) return;
+    try {
+      await adminRequest(`users/${encodeURIComponent(username)}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      setSuccessMessage(`Đã cập nhật tài khoản ${username}.`);
+      void loadAdminTab('users');
+    } catch (err) { setError(err.message); }
+  };
+
+  const adminToggleSubject = async (subject) => {
+    try {
+      await adminRequest(`catalog/${encodeURIComponent(subject.id)}`, { method: 'PATCH', body: JSON.stringify({ enabled: !subject.enabled }) });
+      void loadAdminTab('catalog');
+      setSuccessMessage(`Đã ${subject.enabled ? 'ẩn' : 'mở'} môn ${subject.name}.`);
+    } catch (err) { setError(err.message); }
+  };
+
+  const adminGrantRole = async (e) => {
+    e.preventDefault();
+    try {
+      await adminRequest('roles', { method: 'POST', body: JSON.stringify({ username: adminRoleUsername, role: adminRoleType }) });
+      setAdminRoleUsername('');
+      void loadAdminTab('roles');
+      setSuccessMessage('Đã cập nhật phân quyền.');
+    } catch (err) { setError(err.message); }
+  };
+
   const handleSaveExamPrice = async (e) => {
     e.preventDefault();
     const amount = Number(adminPriceInput);
@@ -719,13 +792,55 @@ export default function App() {
           <RabbitLogo />
           {step !== 'auth' && (
             <div style={{ display: 'flex', gap: '10px' }}>
-              {isAdmin && <button className="home-btn" onClick={() => { setAdminPriceInput(String(examPrice)); setShowAdminPricing(v => !v); }} type="button">⚙️ Quản lý giá</button>}
+              {isAdmin && <button className="home-btn" onClick={openAdminPanel} type="button">⚙️ Quản trị Admin</button>}
               <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
               <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đăng xuất ({userId})</button>
             </div>
           )}
         </div>
       </header>
+
+
+      {showAdminPanel && isAdmin && (
+        <section style={{maxWidth:'1450px',margin:'22px auto',padding:'20px',background:'#fff',border:'1px solid #e9d5ff',borderRadius:'18px',boxShadow:'0 12px 35px rgba(91,33,182,.10)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+            <div><h2 style={{margin:'0 0 4px',color:'#6b21a8'}}>⚙️ Trung tâm quản trị Học cùng Thỏ</h2><small style={{color:'#7c6b91'}}>Quản lý hệ thống · thao tác được ghi nhật ký</small></div>
+            <button className="btn-secondary" onClick={()=>setShowAdminPanel(false)} type="button">Đóng quản trị ×</button>
+          </div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'18px 0'}}>
+            {[
+              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
+            ].map(([id,label])=><button key={id} type="button" onClick={()=>changeAdminTab(id==='wallet'?'transactions':id)} style={{border:adminTab===(id==='wallet'?'transactions':id)?'2px solid #9333ea':'1px solid #ddd6fe',background:adminTab===(id==='wallet'?'transactions':id)?'#f3e8ff':'#fff',color:'#6b21a8',borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:'pointer'}}>{label}</button>)}
+          </div>
+          {adminLoading && <p style={{color:'#7e22ce'}}>Đang tải dữ liệu...</p>}
+          {adminTab==='overview' && adminDashboard && (
+            <div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12}}>
+                {[
+                  ['Tổng tài khoản',adminDashboard.users?.total??0],['Tài khoản mới (30 ngày)',adminDashboard.users?.new_30d??0],
+                  ['Đang bị khóa',adminDashboard.users?.suspended??0],['Tổng số dư ví',`${Number(adminDashboard.money?.total_balance||0).toLocaleString('vi-VN')} đ`],
+                  ['Lượt mua (30 ngày)',adminDashboard.sales?.purchases??0],['Doanh thu (30 ngày)',`${Number(adminDashboard.sales?.revenue||0).toLocaleString('vi-VN')} đ`]
+                ].map(([label,value])=><div key={label} style={{padding:16,borderRadius:13,background:'#faf5ff',border:'1px solid #e9d5ff'}}><small style={{color:'#7c6b91'}}>{label}</small><div style={{fontSize:23,fontWeight:800,color:'#6b21a8',marginTop:5}}>{value}</div></div>)}
+              </div>
+              <h3 style={{color:'#6b21a8',marginTop:24}}>Doanh thu 14 ngày gần nhất</h3>
+              <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse'}}><thead><tr><th style={{textAlign:'left',padding:10}}>Ngày</th><th style={{textAlign:'right',padding:10}}>Lượt mua</th><th style={{textAlign:'right',padding:10}}>Doanh thu</th></tr></thead><tbody>{(adminDashboard.daily||[]).map(d=><tr key={d.day}><td style={{padding:10,borderTop:'1px solid #eee'}}>{String(d.day).slice(0,10)}</td><td style={{padding:10,textAlign:'right',borderTop:'1px solid #eee'}}>{d.purchases}</td><td style={{padding:10,textAlign:'right',borderTop:'1px solid #eee'}}>{Number(d.revenue).toLocaleString('vi-VN')} đ</td></tr>)}</tbody></table></div>
+            </div>
+          )}
+          {adminTab==='users' && <div>
+            <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}><input value={adminUserQuery} onChange={e=>setAdminUserQuery(e.target.value)} placeholder="Tìm username hoặc email..." style={{padding:11,border:'1px solid #ddd6fe',borderRadius:9,minWidth:240}}/><button className="btn-primary" onClick={()=>loadAdminTab('users')} type="button">Tìm kiếm</button></div>
+            <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:780}}><thead><tr>{['Tài khoản','Email','Số dư','Trạng thái','Thao tác'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminUsers.map(u=><tr key={u.username}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{u.username}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{u.email}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{Number(u.balance).toLocaleString('vi-VN')} đ</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{u.status==='suspended'?'🔒 Đã khóa':'🟢 Hoạt động'}</td><td style={{padding:10,borderBottom:'1px solid #eee',display:'flex',gap:5,flexWrap:'wrap'}}><button type="button" className="btn-secondary" onClick={()=>adminWalletAction(u.username,'credit')}>+ Tiền</button><button type="button" className="btn-secondary" onClick={()=>adminWalletAction(u.username,'debit')}>− Tiền</button><button type="button" className="btn-secondary" onClick={()=>adminSetUserStatus(u.username,u.status==='suspended'?'active':'suspended')}>{u.status==='suspended'?'Mở khóa':'Khóa'}</button></td></tr>)}</tbody></table></div>
+          </div>}
+          {adminTab==='transactions' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['ID','Tài khoản','Loại','Số tiền','Nội dung','Thời gian'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminTransactions.map(t=><tr key={t.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.id}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.username}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.type}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{Number(t.amount).toLocaleString('vi-VN')} đ</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{t.description}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(t.created_at).toLocaleString('vi-VN')}</td></tr>)}</tbody></table></div>}
+          {adminTab==='pricing' && <form onSubmit={handleSaveExamPrice} style={{maxWidth:520,display:'grid',gap:12,padding:16,background:'#faf5ff',borderRadius:12}}><p>Giá hiện tại: <strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></p><label>Giá mới (VNĐ)<input type="number" min="0" max="100000000" step="1" value={adminPriceInput} onChange={e=>setAdminPriceInput(e.target.value)} required style={{display:'block',width:'100%',padding:12,marginTop:6,border:'1px solid #ddd6fe',borderRadius:8}}/></label><button className="btn-primary" type="submit" disabled={adminPriceSaving}>{adminPriceSaving?'Đang lưu...':'💾 Lưu giá mới'}</button></form>}
+          {adminTab==='catalog' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Trường','Môn học','Số câu hỏi','Hiển thị'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminCatalog.map(c=><tr key={c.id}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.universityName}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.name}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.questionCount}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}><button className="btn-secondary" type="button" onClick={()=>adminToggleSubject(c)}>{c.enabled?'Đang mở · Ẩn môn':'Đang ẩn · Mở môn'}</button></td></tr>)}</tbody></table></div>}
+          {adminTab==='audit' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Thời gian','Người thao tác','Hành động','Đối tượng','Chi tiết'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminAudit.map(a=><tr key={a.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(a.created_at).toLocaleString('vi-VN')}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.actor}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.action}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.target}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{JSON.stringify(a.details)}</td></tr>)}</tbody></table></div>}
+          {adminTab==='roles' && <div>
+            <form onSubmit={adminGrantRole} style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}><input value={adminRoleUsername} onChange={e=>setAdminRoleUsername(e.target.value)} placeholder="Username cần cấp quyền" required style={{padding:11,border:'1px solid #ddd6fe',borderRadius:8}}/><select value={adminRoleType} onChange={e=>setAdminRoleType(e.target.value)} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:8}}><option value="support">Hỗ trợ</option><option value="admin">Quản trị viên</option></select><button className="btn-primary" type="submit">Cấp/cập nhật quyền</button></form>
+            {adminRoles.map(r=><div key={r.username} style={{display:'flex',justifyContent:'space-between',padding:10,borderBottom:'1px solid #eee'}}><span>{r.username} · {r.role} · cấp bởi {r.granted_by}</span><button className="btn-secondary" type="button" onClick={async()=>{if(!window.confirm(`Thu hồi quyền của ${r.username}?`))return;try{await adminRequest(`roles/${encodeURIComponent(r.username)}`,{method:'DELETE'});void loadAdminTab('roles')}catch(e){setError(e.message)}}}>Thu hồi</button></div>)}
+            <small style={{color:'#7c6b91'}}>Super Admin được cấu hình bằng ADMIN_USERNAMES trên Render; chỉ Super Admin được cấp hoặc thu hồi quyền.</small>
+          </div>}
+        </section>
+      )}
 
       {showAdminPricing && isAdmin && (
         <section style={{ maxWidth: '520px', margin: '20px auto', padding: '22px', background: '#fff', border: '1px solid #ddd6fe', borderRadius: '14px', boxShadow: '0 8px 24px rgba(0,0,0,.08)' }}>

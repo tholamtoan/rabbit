@@ -10,6 +10,7 @@ const { sendOtpEmail } = require('./services/emailService');
 const shuffleArray = require('./utils/shuffleArray');
 const createAuthRoutes = require('./routes/authRoutes');
 const createExamRoutes = require('./routes/examRoutes');
+const createAdminRoutes = require('./routes/adminRoutes');
 const { createAuthMiddleware } = require('./middleware/authMiddleware');
 
 const app = express();
@@ -61,6 +62,7 @@ app.get('/api/config/pricing', async (req, res) => {
 
 app.use(createAuthRoutes({ pool, sendOtpEmail }));
 const requireAuth = createAuthMiddleware(pool);
+app.use(createAdminRoutes({ pool, requireAuth, catalog, questionBank }));
 app.use(createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, requireAuth }));
 
 const PORT = process.env.PORT || 5000;

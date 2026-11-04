@@ -202,15 +202,17 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
     if (typeof loginKey !== 'string' || typeof password !== 'string' || !loginKey.trim() || !password) return res.status(400).json({ message: 'Vui lòng nhập thông tin đăng nhập và mật khẩu!' });
     try {
       const cleanKey = loginKey.trim().toLowerCase();
-      const result = await pool.query('SELECT username, email, password, balance FROM users WHERE LOWER(username) = $1 OR LOWER(email) = $1 LIMIT 1', [cleanKey]);
+      const result = await pool.query('SELECT username, email, password, balance, status FROM users WHERE LOWER(username) = $1 OR LOWER(email) = $1 LIMIT 1', [cleanKey]);
       const user = result.rows[0];
       if (!user || !(await verifyPassword(password, user.password))) return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
+      if (user.status === 'suspended') return res.status(403).json({ message: 'Tài khoản đã bị tạm khóa. Vui lòng liên hệ quản trị viên.' });
       if (!user.password.startsWith('scrypt$')) await pool.query('UPDATE users SET password = $1 WHERE username = $2', [await hashPassword(password), user.username]);
       const token = crypto.randomBytes(32).toString('hex');
       const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
       await pool.query('INSERT INTO user_sessions (token_hash, username, expires_at) VALUES ($1, $2, NOW() + INTERVAL \'30 days\')', [tokenHash, user.username]);
       const admins = (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-      return res.json({ success: true, token, userId: user.username, balance: Number(user.balance), isAdmin: admins.includes(user.username.toLowerCase()) });
+      const role = await pool.query('SELECT 1 FROM admin_roles WHERE LOWER(username)=LOWER($1)', [user.username]);
+      return res.json({ success: true, token, userId: user.username, balance: Number(user.balance), isAdmin: admins.includes(user.username.toLowerCase()) || role.rowCount > 0 });
     } catch (error) {
       console.error('Lỗi đăng nhập:', error.message);
       return res.status(500).json({ message: 'Máy chủ đang bận. Vui lòng thử lại!' });
@@ -226,7 +228,8 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       const result = await pool.query(`SELECT u.username, u.balance FROM user_sessions s JOIN users u ON u.username = s.username WHERE s.token_hash = $1 AND s.expires_at > NOW() LIMIT 1`, [tokenHash]);
       if (!result.rows[0]) return res.status(401).json({ message: 'Phiên đăng nhập đã hết hạn!' });
       const admins = (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
-      return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance), isAdmin: admins.includes(result.rows[0].username.toLowerCase()) });
+      const role = await pool.query('SELECT 1 FROM admin_roles WHERE LOWER(username)=LOWER($1)', [result.rows[0].username]);
+      return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance), isAdmin: admins.includes(result.rows[0].username.toLowerCase()) || role.rowCount > 0 });
     } catch (error) {
       console.error('Lỗi khôi phục phiên:', error.message);
       return res.status(500).json({ message: 'Không thể khôi phục phiên đăng nhập!' });
