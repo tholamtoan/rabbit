@@ -459,7 +459,7 @@ export default function App() {
       return undefined;
     }
     fetchJson(`${API_BASE}/auth/session`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((data) => {
+      .then(async (data) => {
         if (cancelled) return;
         const adminStatus = await verifyAdminPermission(token, data.isAdmin);
         if (cancelled) return;
