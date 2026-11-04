@@ -286,7 +286,7 @@ export default function App() {
     setSuccessMessage('');
 
     if (!emailOrPhoneInput.trim()) {
-      setError('Vui lòng nhập Email hoặc SĐT liên kết!');
+      setError('Vui lòng nhập Email liên kết!');
       return;
     }
 
@@ -387,12 +387,12 @@ export default function App() {
   };
 
   const handleBuyAndStartExam = async (subject) => {
-    const EXAM_PRICE = 10000;
+    const EXAM_PRICE = 1000;
     if (walletBalance < EXAM_PRICE) {
       alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ.`);
       return;
     }
-    if (!window.confirm(`Xác nhận dùng 10.000đ mở khóa bài thi môn "${subject.name}"?`)) return;
+    if (!window.confirm(`Xác nhận dùng 1.000đ mở khóa bài thi môn "${subject.name}"?`)) return;
 
     setIsLoading(true);
     try {
@@ -619,7 +619,7 @@ export default function App() {
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <input 
                   type="text" 
-                  placeholder="Tên tài khoản, Email hoặc Số điện thoại" 
+                  placeholder="Tên tài khoản hoặc Email đăng ký" 
                   value={loginKeyInput}
                   onChange={(e) => setLoginKeyInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
@@ -640,14 +640,14 @@ export default function App() {
               <form onSubmit={handleRequestRegisterOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <input 
                   type="text" 
-                  placeholder="Tên tài khoản mới" 
+                  placeholder="Nhập tên tài khoản" 
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
                 <input 
                   type="text" 
-                  placeholder="Email hoặc Số điện thoại nhận OTP" 
+                  placeholder="Nhập tên Email" 
                   value={emailOrPhoneInput}
                   onChange={(e) => setEmailOrPhoneInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
@@ -661,12 +661,12 @@ export default function App() {
                 />
                 <input 
                   type="password" 
-                  placeholder="Nhập lại mật khẩu xác nhận" 
+                  placeholder="Nhập lại mật khẩu" 
                   value={confirmPasswordInput}
                   onChange={(e) => setConfirmPasswordInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
                 />
-                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi Mã OTP Đăng Ký</button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>📨 Gửi Mã OTP</button>
               </form>
             )}
 
@@ -685,12 +685,12 @@ export default function App() {
               </form>
             )}
 
-            {/* 4. Quên mật khẩu (Gửi OTP) */}
+            {/* 4. Quên mật khẩu */}
             {authMode === 'forgot' && (
               <form onSubmit={handleRequestForgotOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '20px' }}>
                 <input 
                   type="text" 
-                  placeholder="Nhập Email hoặc SĐT đã đăng ký" 
+                  placeholder="Nhập Email đã đăng ký" 
                   value={emailOrPhoneInput}
                   onChange={(e) => setEmailOrPhoneInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
@@ -711,7 +711,7 @@ export default function App() {
                 />
                 <input 
                   type="password" 
-                  placeholder="Mật khẩu mới" 
+                  placeholder="Nhập mật khẩu mới" 
                   value={newPasswordInput}
                   onChange={(e) => setNewPasswordInput(e.target.value)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}
@@ -797,7 +797,7 @@ export default function App() {
                       <p>Giá: <strong>10.000 VNĐ</strong></p>
                     </div>
                   </div>
-                  <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề & Vào thi ⚡</button>
+                  <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề⚡</button>
                 </div>
               ))}
             </div>
@@ -846,7 +846,7 @@ export default function App() {
 
             <div className="exam-footer-action">
               {!isSubmitted ? (
-                <button className="btn-submit" type="button" onClick={() => void handleSubmit()}>🚀 Nộp bài thi ngay</button>
+                <button className="btn-submit" type="button" onClick={() => void handleSubmit()}>🚀 Nộp bài thi</button>
               ) : (
                 <div className="result-summary-card">
                   <div className="result-header-badge">🎉 Kết Quả Bài Thi</div>

@@ -360,7 +360,7 @@ app.post('/api/exam/submit-random', (req, res) => {
 
   res.json({ totalQuestions: total, score, percentage: Math.round((score / total) * 100), details });
 });
-
+100
 app.get('/api/wallet/:userId', (req, res) => {
   const { userId } = req.params;
   const user = userWallets[userId.toLowerCase()];
