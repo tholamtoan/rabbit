@@ -205,6 +205,7 @@ export default function App() {
         body: JSON.stringify({ loginKey: loginKeyInput, password: passwordInput })
       });
 
+      if (data.token) localStorage.setItem('hct_session_token', data.token);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
       setStep('select-uni');
@@ -276,6 +277,7 @@ export default function App() {
         body: JSON.stringify({ emailOrPhone: emailOrPhoneInput, otp: otpInput })
       });
 
+      if (data.token) localStorage.setItem('hct_session_token', data.token);
       setUserId(data.userId);
       setWalletBalance(data.balance || 0);
       setStep('select-uni');
@@ -370,6 +372,24 @@ export default function App() {
   useEffect(() => {
     if (userId) fetchWalletBalance();
   }, [userId, fetchWalletBalance]);
+
+  // Restore login after F5 using a server-validated, expiring session token.
+  useEffect(() => {
+    let cancelled = false;
+    const token = localStorage.getItem('hct_session_token');
+    if (!token) return undefined;
+    fetchJson(`${API_BASE}/auth/session`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((data) => {
+        if (cancelled) return;
+        setUserId(data.userId);
+        setWalletBalance(Number(data.balance) || 0);
+        setStep('select-uni');
+      })
+      .catch(() => {
+        localStorage.removeItem('hct_session_token');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -558,8 +578,21 @@ export default function App() {
     setIsSubmitted(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = localStorage.getItem('hct_session_token');
+    if (token) {
+      try {
+        await fetchJson(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (err) {
+        console.warn('Không thể thu hồi phiên trên máy chủ:', err);
+      }
+    }
+    localStorage.removeItem('hct_session_token');
     setUserId('');
+    setWalletBalance(0);
     setStep('auth');
     setAuthMode('login');
   };
@@ -740,7 +773,7 @@ export default function App() {
                     <span className="subject-icon">📖</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>Giá: <strong>1000 VNĐ</strong></p>
+                      <p>Giá: <strong>1.000 VNĐ</strong></p>
                     </div>
                   </div>
                   <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề⚡</button>

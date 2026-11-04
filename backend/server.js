@@ -123,9 +123,16 @@ async function initializeDatabase() {
       phone TEXT NOT NULL DEFAULT '',
       balance NUMERIC(14, 2) NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
+    );
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      token_hash TEXT PRIMARY KEY,
+      username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS user_sessions_expires_at_idx ON user_sessions(expires_at);
   `);
-  console.log('PostgreSQL connected; users table is ready.');
+  console.log('PostgreSQL connected; users and sessions tables are ready.');
 }
 
 const otpStorage = {};
@@ -251,8 +258,15 @@ app.post('/api/auth/verify-register', async (req, res) => {
        RETURNING username, balance`,
       [username, cleanContact, password]
     );
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
+    await pool.query(
+      `INSERT INTO user_sessions (token_hash, username, expires_at)
+       VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
+      [tokenHash, result.rows[0].username]
+    );
     delete otpStorage[cleanContact];
-    return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance), message: 'Đăng ký tài khoản thành công!' });
+    return res.json({ success: true, token: sessionToken, userId: result.rows[0].username, balance: Number(result.rows[0].balance), message: 'Đăng ký tài khoản thành công!' });
   } catch (error) {
     if (error.code === '23505') {
       return res.status(400).json({ message: 'Tên tài khoản hoặc email này đã được đăng ký!' });
@@ -280,11 +294,49 @@ app.post('/api/auth/login', async (req, res) => {
     if (!foundUser || foundUser.password !== password) {
       return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu không chính xác!' });
     }
-    return res.json({ success: true, userId: foundUser.username, balance: Number(foundUser.balance) });
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
+    await pool.query(
+      `INSERT INTO user_sessions (token_hash, username, expires_at)
+       VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
+      [tokenHash, foundUser.username]
+    );
+    return res.json({ success: true, token: sessionToken, userId: foundUser.username, balance: Number(foundUser.balance) });
   } catch (error) {
     console.error('Lỗi đăng nhập:', error.message);
     return res.status(500).json({ message: 'Máy chủ đang bận. Vui lòng thử lại!' });
   }
+});
+
+// Restore a persistent login session after refresh/reopening the browser.
+app.get('/api/auth/session', async (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (!token) return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ!' });
+  try {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const result = await pool.query(
+      `SELECT u.username, u.balance FROM user_sessions s
+       JOIN users u ON u.username = s.username
+       WHERE s.token_hash = $1 AND s.expires_at > NOW() LIMIT 1`,
+      [tokenHash]
+    );
+    if (!result.rows[0]) return res.status(401).json({ message: 'Phiên đăng nhập đã hết hạn!' });
+    return res.json({ success: true, userId: result.rows[0].username, balance: Number(result.rows[0].balance) });
+  } catch (error) {
+    console.error('Lỗi khôi phục phiên:', error.message);
+    return res.status(500).json({ message: 'Không thể khôi phục phiên đăng nhập!' });
+  }
+});
+
+app.post('/api/auth/logout', async (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (token) {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    await pool.query('DELETE FROM user_sessions WHERE token_hash = $1', [tokenHash]);
+  }
+  return res.json({ success: true });
 });
 
 // ==========================================
@@ -398,9 +450,9 @@ app.get('/api/wallet/:userId', async (req, res) => {
 });
 
 app.post('/api/exam/buy', async (req, res) => {
-  const { userId, subjectId, price } = req.body;
-  const amount = Number(price);
-  if (!userId || !Number.isFinite(amount) || amount < 0) {
+  const { userId, subjectId } = req.body;
+  const amount = 1000; // Giá cố định mỗi đề thi: 1.000đ
+  if (!userId || !subjectId) {
     return res.status(400).json({ success: false, message: 'Thông tin giao dịch không hợp lệ!' });
   }
   const client = await pool.connect();
