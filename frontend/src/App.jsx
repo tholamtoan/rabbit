@@ -740,7 +740,7 @@ export default function App() {
                     <span className="subject-icon">📖</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>Giá: <strong>10.000 VNĐ</strong></p>
+                      <p>Giá: <strong>1000 VNĐ</strong></p>
                     </div>
                   </div>
                   <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề⚡</button>
