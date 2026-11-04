@@ -7,6 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Bảng dữ liệu giả lập số dư tài khoản học sinh (Lưu trong bộ nhớ tạm)
+// Key là ID học sinh, Value là số dư ví (VNĐ)
+const userWallets = {
+  "12345": 0 // Mặc định học sinh ID 12345 có 0 đồng
+};
+
 // Hàm thuật toán xáo trộn ngẫu nhiên mảng (Fisher-Yates Shuffle)
 function shuffleArray(array) {
   let arr = [...array];
@@ -133,31 +139,34 @@ app.post('/api/exam/submit-random', (req, res) => {
 });
 
 // ==========================================
-// 5. API NHẬN WEBHOOK TỪ SEPAY (TỰ ĐỘNG NẠP TIỀN)
+// 5. API NHẬN WEBHOOK TỪ SEPAY (CỘNG TIỀN VÀO VÍ QUA SỐ VA)
 // ==========================================
 app.post('/api/sepay-webhook', async (req, res) => {
     try {
         const data = req.body;
         
-        const gateway = data.gateway;           
-        const transactionDate = data.transactionDate; 
-        const transferAmount = data.transferAmount;   
-        const content = data.content;                 
+        const transferAmount = Number(data.transferAmount) || 0;   
+        const content = data.content ? data.content.trim() : "";                 
         
         console.log(`[SePay Webhook] Nhận giao dịch: ${transferAmount}đ - Nội dung: ${content}`);
         
-        // Kiểm tra nội dung chuyển khoản xem có chứa cú pháp mua đề không (Ví dụ: "THO 12345")
-        if (content && content.toUpperCase().includes("THO")) {
-            const matches = content.match(/THO\s*(\d+)/i);
+        // Kiểm tra nội dung chuyển khoản xem có chứa cú pháp NAP không (Ví dụ: "NAP 12345")
+        if (content && content.toUpperCase().includes("NAP")) {
+            const matches = content.match(/NAP\s*(\d+)/i);
             
             if (matches && matches[1]) {
                 const userId = matches[1];
-                console.log(`=> Đã xác thực thành công thanh toán cho User ID: ${userId}`);
                 
-                // TODO: Cập nhật cơ sở dữ liệu ở đây để mở khóa quyền làm đề cho học sinh (userId)
+                // Cộng tiền vào ví của học sinh
+                if (!userWallets[userId]) {
+                    userWallets[userId] = 0;
+                }
+                userWallets[userId] += transferAmount;
+                
+                console.log(`=> Đã cộng thành công ${transferAmount}đ vào ví User ID: ${userId}. Số dư mới: ${userWallets[userId]}đ`);
             }
             
-            return res.status(200).json({ success: true, message: "Đã xử lý mở khóa đề thành công!" });
+            return res.status(200).json({ success: true, message: "Đã xử lý cộng tiền vào ví thành công!" });
         }
         
         return res.status(200).json({ success: true, message: "Bỏ qua giao dịch không khớp cú pháp." });
@@ -166,6 +175,44 @@ app.post('/api/sepay-webhook', async (req, res) => {
         console.error("Lỗi xử lý webhook:", error);
         return res.status(500).json({ success: false, error: error.message });
     }
+});
+
+// ==========================================
+// 6. API KIỂM TRA SỐ DƯ VÍ CỦA HỌC SINH
+// ==========================================
+app.get('/api/wallet/:userId', (req, res) => {
+  const { userId } = req.params;
+  const balance = userWallets[userId] || 0;
+  res.json({ userId, balance });
+});
+
+// ==========================================
+// 7. API TRỪ TIỀN VÀ MUA ĐỀ THI (ĐÃ CHÈN VÀO ĐÂY)
+// ==========================================
+app.post('/api/exam/buy', (req, res) => {
+    const { userId, subjectId, price } = req.body;
+
+    // Lấy số dư ví hiện tại
+    const currentBalance = userWallets[userId] || 0;
+
+    // Kiểm tra nếu số dư không đủ
+    if (currentBalance < price) {
+        return res.status(400).json({ 
+            success: false, 
+            message: `Số dư không đủ! Bạn hiện có ${currentBalance.toLocaleString()}đ, đề thi giá ${price.toLocaleString()}đ. Vui lòng nạp thêm tiền!` 
+        });
+    }
+
+    // Thực hiện trừ tiền
+    userWallets[userId] -= price;
+
+    console.log(`[Mua Đề] User ${userId} đã mua môn ${subjectId} với giá ${price}đ. Số dư còn lại: ${userWallets[userId]}đ`);
+
+    res.json({ 
+        success: true, 
+        message: "Mua đề thi thành công!", 
+        newBalance: userWallets[userId] 
+    });
 });
 
 const PORT = process.env.PORT || 5000;
