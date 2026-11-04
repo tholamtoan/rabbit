@@ -45,8 +45,8 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       if (field === 'username') {
         const username = cleanUsername(req.body?.value);
         if (!username) return res.status(400).json({ message: 'Vui lòng nhập tên tài khoản!' });
-        if (username.length < 3 || username.length > 30 || !/^[a-z0-9_.-]+$/.test(username)) {
-          return res.status(400).json({ message: 'Tên tài khoản phải dài 3–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
+        if (username.length < 6 || username.length > 30 || !/^[a-z0-9_.-]+$/.test(username)) {
+          return res.status(400).json({ message: 'Tên tài khoản phải dài 6–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
         }
         const found = await pool.query('SELECT 1 FROM users WHERE LOWER(username) = $1 LIMIT 1', [username]);
         if (found.rowCount) return res.status(409).json({ available: false, message: 'Tên tài khoản đã tồn tại. Vui lòng chọn tên khác!' });
@@ -55,7 +55,7 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       if (field === 'email') {
         const email = cleanEmail(req.body?.value);
         if (!email) return res.status(400).json({ message: 'Vui lòng nhập email!' });
-        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           return res.status(400).json({ message: 'Email không đúng định dạng!' });
         }
         const found = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);
@@ -85,11 +85,11 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
         if (!normalizedUsername || !password || !confirmPassword) {
           return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin đăng ký!' });
         }
-        if (normalizedUsername.length < 3 || normalizedUsername.length > 30 || !/^[a-z0-9_.-]+$/.test(normalizedUsername)) {
-          return res.status(400).json({ message: 'Tên tài khoản phải dài 3–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
+        if (normalizedUsername.length < 6 || normalizedUsername.length > 30 || !/^[a-z0-9_.-]+$/.test(normalizedUsername)) {
+          return res.status(400).json({ message: 'Tên tài khoản phải dài 6–30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.' });
         }
-        if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
-          return res.status(400).json({ message: 'Mật khẩu phải có từ 8 đến 128 ký tự!' });
+        if (typeof password !== 'string' || password.length < 6 || password.length > 128 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+          return res.status(400).json({ message: 'Mật khẩu phải có từ 6 đến 128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!' });
         }
         if (password !== confirmPassword) return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp!' });
 
@@ -245,7 +245,7 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
     const email = cleanEmail(emailOrPhone);
     const cleanOtp = typeof otp === 'string' ? otp.trim() : '';
     if (!email || !/^\d{6}$/.test(cleanOtp) || typeof newPassword !== 'string' || typeof confirmNewPassword !== 'string') return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin hợp lệ!' });
-    if (newPassword.length < 8 || newPassword.length > 128) return res.status(400).json({ message: 'Mật khẩu mới phải có từ 8 đến 128 ký tự!' });
+    if (newPassword.length < 6 || newPassword.length > 128 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) return res.status(400).json({ message: 'Mật khẩu mới phải có từ 6 đến 128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!' });
     if (newPassword !== confirmNewPassword) return res.status(400).json({ message: 'Mật khẩu mới không khớp!' });
     const client = await pool.connect();
     try {

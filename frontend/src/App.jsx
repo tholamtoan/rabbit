@@ -272,6 +272,14 @@ export default function App() {
       return;
     }
 
+    if (usernameInput.trim().length < 6 || usernameInput.trim().length > 30 || !/^[a-zA-Z0-9_.-]+$/.test(usernameInput.trim())) {
+      setError('Tên tài khoản phải có từ 6 đến 30 ký tự, chỉ gồm chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.');
+      return;
+    }
+    if (passwordInput.length < 6 || passwordInput.length > 128 || !/[a-z]/.test(passwordInput) || !/[A-Z]/.test(passwordInput) || !/[0-9]/.test(passwordInput) || !/[^A-Za-z0-9]/.test(passwordInput)) {
+      setError('Mật khẩu phải có từ 6 đến 128 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt!');
+      return;
+    }
     if (passwordInput !== confirmPasswordInput) {
       setError('Mật khẩu nhập lại không khớp!');
       return;
@@ -738,13 +746,15 @@ export default function App() {
                   onChange={(e) => { setUsernameInput(e.target.value); setUsernameAvailability({ status: 'idle', message: '' }); }}
                   onBlur={() => checkRegistrationField('username', usernameInput)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: usernameAvailability.status === 'taken' ? '1px solid #dc2626' : '1px solid #d1d5db', fontSize: '15px' }} />
+                <small style={{ color: '#64748b', marginTop: '-10px' }}>Tên tài khoản từ 6–30 ký tự; dùng chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang.</small>
                 {usernameAvailability.message && <small role="status" style={{ color: usernameAvailability.status === 'available' ? '#15803d' : usernameAvailability.status === 'checking' ? '#64748b' : '#dc2626', marginTop: '-10px' }}>{usernameAvailability.message}</small>}
                 <input type="email" placeholder="Nhập email" value={emailOrPhoneInput}
                   onChange={(e) => { setEmailOrPhoneInput(e.target.value); setEmailAvailability({ status: 'idle', message: '' }); }}
                   onBlur={() => checkRegistrationField('email', emailOrPhoneInput)}
                   style={{ padding: '12px 16px', borderRadius: '8px', border: emailAvailability.status === 'taken' ? '1px solid #dc2626' : '1px solid #d1d5db', fontSize: '15px' }} />
                 {emailAvailability.message && <small role="status" style={{ color: emailAvailability.status === 'available' ? '#15803d' : emailAvailability.status === 'checking' ? '#64748b' : '#dc2626', marginTop: '-10px' }}>{emailAvailability.message}</small>}
-                <input type="password" placeholder="Nhập mật khẩu" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <input type="password" placeholder="Nhập mật khẩu" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} autoComplete="new-password" style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+                <small style={{ color: '#64748b', marginTop: '-10px' }}>Mật khẩu từ 6 ký tự, bắt buộc có chữ thường, chữ hoa, chữ số và ký tự đặc biệt.</small>
                 <input type="password" placeholder="Nhập lại mật khẩu" value={confirmPasswordInput} onChange={(e) => setConfirmPasswordInput(e.target.value)} style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
                 <div className="otp-input-row">
                   <input type="text" inputMode="numeric" maxLength={6} placeholder="Nhập mã OTP 6 chữ số" value={otpInput} onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, '').slice(0, 6))} />
