@@ -1,11 +1,21 @@
 const express = require('express');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 const questionBank = require('./questionBank'); // Nhập kho câu hỏi vào
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Cấu hình gửi mail Nodemailer sử dụng App Password Gmail
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || 'tholamtoan@gmail.com',
+    pass: process.env.GMAIL_APP_PASS || 'vnot cval fkya uvwg' // Chuỗi 16 ký tự App Password
+  }
+});
 
 // Bảng dữ liệu lưu trữ tài khoản học sinh
 const userWallets = {
@@ -18,10 +28,10 @@ const userWallets = {
   } 
 };
 
-// Kho lưu trữ OTP tạm thời: { "email_hoặc_sđt": { otp: "123456", tempData: {...} } }
+// Kho lưu trữ OTP tạm thời
 const otpStorage = {};
 
-// Hàm thuật toán xáo trộn ngẫu nhiên mảng (Fisher-Yates Shuffle)
+// Hàm xáo trộn mảng (Fisher-Yates Shuffle)
 function shuffleArray(array) {
   let arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -43,46 +53,82 @@ const database = {
 };
 
 // ==========================================
-// 1. API GỬI MÃ OTP (DÙNG CHO ĐĂNG KÝ VÀ QUÊN MẬT KHẨU)
+// 1. API GỬI MÃ OTP QUA EMAIL THẬT (GMAIL SMTP)
 // ==========================================
-app.post('/api/auth/send-otp', (req, res) => {
-  const { username, emailOrPhone, password, confirmPassword, isRegister } = req.body;
+app.post('/api/auth/send-otp', async (req, res) => {
+  try {
+    const { username, emailOrPhone, password, confirmPassword, isRegister } = req.body;
 
-  if (!emailOrPhone) {
-    return res.status(400).json({ message: 'Vui lòng nhập Email hoặc Số điện thoại!' });
+    if (!emailOrPhone) {
+      return res.status(400).json({ message: 'Vui lòng nhập Email hoặc Số điện thoại!' });
+    }
+
+    const cleanContact = emailOrPhone.trim().toLowerCase();
+
+    if (isRegister) {
+      if (!username || !password || !confirmPassword) {
+        return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin đăng ký!' });
+      }
+      if (password !== confirmPassword) {
+        return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp! Vui lòng kiểm tra lại.' });
+      }
+      const cleanUser = username.trim().toLowerCase();
+      if (userWallets[cleanUser]) {
+        return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại, vui lòng chọn tên khác!' });
+      }
+    }
+
+    // Sinh mã OTP ngẫu nhiên 6 chữ số
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Lưu trữ OTP tạm thời
+    otpStorage[cleanContact] = {
+      otp: otpCode,
+      tempData: { username: username?.trim().toLowerCase(), emailOrPhone: cleanContact, password }
+    };
+
+    console.log(`[Mã OTP sinh ra cho ${cleanContact}]: ${otpCode}`);
+
+    // Kiểm tra nếu là địa chỉ Email thì gửi qua Nodemailer
+    if (cleanContact.includes('@')) {
+      const mailOptions = {
+        from: '"Học cùng Thỏ 🐰" <tholamtoan2023@gmail.com>',
+        to: cleanContact,
+        subject: 'Mã xác thực OTP - Học cùng Thỏ',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; max-width: 500px;">
+            <h2 style="color: #7c3aed;">🐰 Học cùng Thỏ - Mã Xác Thực OTP</h2>
+            <p>Mã OTP dùng để xác thực tài khoản của bạn là:</p>
+            <div style="background-color: #f3e8ff; color: #6b21a8; font-size: 28px; font-weight: bold; letter-spacing: 6px; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+              ${otpCode}
+            </div>
+            <p style="color: #6b7280; font-size: 13px;">Mã có hiệu lực trong vài phút. Tuyệt đối không chia sẻ mã này cho bất kỳ ai khác.</p>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`=> Đã gửi email OTP thật thành công đến ${cleanContact}`);
+      
+      return res.json({ 
+        success: true, 
+        message: `Mã OTP đã được gửi đến email ${cleanContact}! Hãy kiểm tra Hộp thư đến (hoặc thư Rác).` 
+      });
+    } else {
+      // Trường hợp nhập SĐT (Mô phỏng log console nếu chưa dùng Twilio/SMS Gateway)
+      return res.json({ 
+        success: true, 
+        message: `Mã OTP đã gửi đến SĐT ${cleanContact}! (Mã test log: ${otpCode})`,
+        debugOtp: otpCode
+      });
+    }
+
+  } catch (error) {
+    console.error("Lỗi gửi mail OTP:", error);
+    return res.status(500).json({ 
+      message: `Không thể gửi email OTP: ${error.message}. Kiểm tra lại cấu hình App Password!` 
+    });
   }
-
-  const cleanContact = emailOrPhone.trim().toLowerCase();
-
-  if (isRegister) {
-    if (!username || !password || !confirmPassword) {
-      return res.status(400).json({ message: 'Vui lòng điền đầy đủ thông tin đăng ký!' });
-    }
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: 'Mật khẩu nhập lại không khớp! Vui lòng kiểm tra lại.' });
-    }
-    const cleanUser = username.trim().toLowerCase();
-    if (userWallets[cleanUser]) {
-      return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại, vui lòng chọn tên khác!' });
-    }
-  }
-
-  // Sinh mã OTP ngẫu nhiên 6 chữ số
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-  // Lưu trữ OTP tạm thời
-  otpStorage[cleanContact] = {
-    otp: otpCode,
-    tempData: { username: username?.trim().toLowerCase(), emailOrPhone: cleanContact, password }
-  };
-
-  console.log(`[Mã OTP gửi đến ${cleanContact}]: ${otpCode}`);
-
-  res.json({ 
-    success: true, 
-    message: `Mã OTP đã được gửi đến ${cleanContact}! (Mã test của bạn là: ${otpCode})`,
-    debugOtp: otpCode
-  });
 });
 
 // ==========================================
@@ -334,7 +380,7 @@ app.get('/api/wallet/:userId', (req, res) => {
 });
 
 // ==========================================
-// 10. API TRỪ TIỀN VÀ MUA ĐỀ THI
+// 10. API TRƯ TIỀN VÀ MUA ĐỀ THI
 // ==========================================
 app.post('/api/exam/buy', (req, res) => {
     const { userId, subjectId, price } = req.body;
