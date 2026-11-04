@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.GMAIL_USER || 'tholamtoan@gmail.com',
-    pass: process.env.GMAIL_APP_PASS || 'vnot cval fkya uvwg' // Chuỗi 16 ký tự App Password
+    pass: process.env.GMAIL_APP_PASS || 'vnotcvalfkyauvwg' // Chuỗi 16 ký tự App Password
   }
 });
 
