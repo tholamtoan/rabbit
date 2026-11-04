@@ -7,10 +7,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Bảng dữ liệu giả lập số dư tài khoản học sinh (Lưu trong bộ nhớ tạm)
-// Key là ID học sinh, Value là số dư ví (VNĐ)
+// Bảng dữ liệu giả lập tài khoản và số dư ví học sinh
+// Cấu trúc: { "username": { password: "...", balance: 0 } }
 const userWallets = {
-  "12345": 0 // Mặc định học sinh ID 12345 có 0 đồng
+  "thong": { password: "123", balance: 0 } // Tài khoản mẫu mặc định
 };
 
 // Hàm thuật toán xáo trộn ngẫu nhiên mảng (Fisher-Yates Shuffle)
@@ -34,7 +34,44 @@ const database = {
   }
 };
 
-// 1. API lấy danh sách trường
+// ==========================================
+// 1. API ĐĂNG KÝ / ĐĂNG NHẬP TÀI KHOẢN
+// ==========================================
+app.post('/api/auth/register', (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Vui lòng nhập đầy đủ Tên tài khoản và Mật khẩu!' });
+  }
+
+  const cleanUser = username.trim().toLowerCase();
+
+  if (userWallets[cleanUser]) {
+    return res.status(400).json({ message: 'Tên tài khoản này đã tồn tại, vui lòng chọn tên khác!' });
+  }
+
+  userWallets[cleanUser] = {
+    password: password,
+    balance: 0
+  };
+
+  res.json({ success: true, userId: cleanUser, balance: 0, message: 'Đăng ký tài khoản thành công!' });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  const cleanUser = (username || '').trim().toLowerCase();
+
+  const user = userWallets[cleanUser];
+  if (!user || user.password !== password) {
+    return res.status(401).json({ message: 'Tên tài khoản hoặc mật khẩu không chính xác!' });
+  }
+
+  res.json({ success: true, userId: cleanUser, balance: user.balance });
+});
+
+// ==========================================
+// 2. API TRƯỜNG & MÔN HỌC
+// ==========================================
 app.get('/api/universities', (req, res) => {
   const uniList = Object.keys(database).map(key => ({
     id: key,
@@ -43,7 +80,6 @@ app.get('/api/universities', (req, res) => {
   res.json(uniList);
 });
 
-// 2. API lấy danh sách môn học
 app.get('/api/universities/:uniId/subjects', (req, res) => {
   const { uniId } = req.params;
   if (database[uniId]) {
@@ -53,7 +89,9 @@ app.get('/api/universities/:uniId/subjects', (req, res) => {
   }
 });
 
-// 3. API TẠO ĐỀ THI NGẪU NHIÊN (TRÁO ĐỀ & XÁO TRỘN)
+// ==========================================
+// 3. API TẠO ĐỀ THI NGẪU NHIÊN
+// ==========================================
 app.get('/api/exam/random/:subjectId', (req, res) => {
   const { subjectId } = req.params;
   const bank = questionBank[subjectId];
@@ -106,7 +144,9 @@ app.get('/api/exam/random/:subjectId', (req, res) => {
   });
 });
 
-// 4. API Nộp bài chấm điểm dựa trên đề đã phát
+// ==========================================
+// 4. API NỘP BÀI CHẤM ĐIỂM
+// ==========================================
 app.post('/api/exam/submit-random', (req, res) => {
   const { userAnswers, secretKey, secretExplanation } = req.body;
 
@@ -139,31 +179,30 @@ app.post('/api/exam/submit-random', (req, res) => {
 });
 
 // ==========================================
-// 5. API NHẬN WEBHOOK TỪ SEPAY (CỘNG TIỀN VÀO VÍ QUA SỐ VA)
+// 5. API NHẬN WEBHOOK TỪ SEPAY (CỘNG TIỀN VÀO VÍ)
 // ==========================================
 app.post('/api/sepay-webhook', async (req, res) => {
     try {
         const data = req.body;
-        
         const transferAmount = Number(data.transferAmount) || 0;   
         const content = data.content ? data.content.trim() : "";                 
         
         console.log(`[SePay Webhook] Nhận giao dịch: ${transferAmount}đ - Nội dung: ${content}`);
         
-        // Kiểm tra nội dung chuyển khoản xem có chứa cú pháp NAP không (Ví dụ: "NAP 12345")
         if (content && content.toUpperCase().includes("NAP")) {
-            const matches = content.match(/NAP\s*(\d+)/i);
+            const matches = content.match(/NAP\s*([a-zA-Z0-9]+)/i);
             
             if (matches && matches[1]) {
-                const userId = matches[1];
+                const userId = matches[1].toLowerCase();
                 
-                // Cộng tiền vào ví của học sinh
                 if (!userWallets[userId]) {
-                    userWallets[userId] = 0;
+                    userWallets[userId] = { password: "123", balance: 0 };
+                } else if (typeof userWallets[userId] === 'number') {
+                    userWallets[userId] = { password: "123", balance: userWallets[userId] };
                 }
-                userWallets[userId] += transferAmount;
                 
-                console.log(`=> Đã cộng thành công ${transferAmount}đ vào ví User ID: ${userId}. Số dư mới: ${userWallets[userId]}đ`);
+                userWallets[userId].balance += transferAmount;
+                console.log(`=> Đã cộng thành công ${transferAmount}đ vào ví tài khoản: ${userId}. Số dư mới: ${userWallets[userId].balance}đ`);
             }
             
             return res.status(200).json({ success: true, message: "Đã xử lý cộng tiền vào ví thành công!" });
@@ -178,24 +217,32 @@ app.post('/api/sepay-webhook', async (req, res) => {
 });
 
 // ==========================================
-// 6. API KIỂM TRA SỐ DƯ VÍ CỦA HỌC SINH
+// 6. API KIỂM TRA SỐ DƯ VÍ
 // ==========================================
 app.get('/api/wallet/:userId', (req, res) => {
   const { userId } = req.params;
-  const balance = userWallets[userId] || 0;
-  res.json({ userId, balance });
+  const cleanUser = userId.toLowerCase();
+  
+  let balance = 0;
+  if (userWallets[cleanUser]) {
+    balance = typeof userWallets[cleanUser] === 'object' ? userWallets[cleanUser].balance : userWallets[cleanUser];
+  }
+  
+  res.json({ userId: cleanUser, balance });
 });
 
 // ==========================================
-// 7. API TRỪ TIỀN VÀ MUA ĐỀ THI (ĐÃ CHÈN VÀO ĐÂY)
+// 7. API TRỪ TIỀN VÀ MUA ĐỀ THI
 // ==========================================
 app.post('/api/exam/buy', (req, res) => {
     const { userId, subjectId, price } = req.body;
+    const cleanUser = userId.toLowerCase();
 
-    // Lấy số dư ví hiện tại
-    const currentBalance = userWallets[userId] || 0;
+    let currentBalance = 0;
+    if (userWallets[cleanUser]) {
+      currentBalance = typeof userWallets[cleanUser] === 'object' ? userWallets[cleanUser].balance : userWallets[cleanUser];
+    }
 
-    // Kiểm tra nếu số dư không đủ
     if (currentBalance < price) {
         return res.status(400).json({ 
             success: false, 
@@ -203,15 +250,18 @@ app.post('/api/exam/buy', (req, res) => {
         });
     }
 
-    // Thực hiện trừ tiền
-    userWallets[userId] -= price;
+    if (typeof userWallets[cleanUser] === 'object') {
+      userWallets[cleanUser].balance -= price;
+    } else {
+      userWallets[cleanUser] = { password: "123", balance: currentBalance - price };
+    }
 
-    console.log(`[Mua Đề] User ${userId} đã mua môn ${subjectId} với giá ${price}đ. Số dư còn lại: ${userWallets[userId]}đ`);
+    console.log(`[Mua Đề] Tài khoản ${cleanUser} đã mua môn ${subjectId} với giá ${price}đ. Số dư còn lại: ${userWallets[cleanUser].balance}đ`);
 
     res.json({ 
         success: true, 
         message: "Mua đề thi thành công!", 
-        newBalance: userWallets[userId] 
+        newBalance: userWallets[cleanUser].balance 
     });
 });
 

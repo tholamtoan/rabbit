@@ -140,11 +140,14 @@ async function fetchJson(url, options) {
 }
 
 export default function App() {
-  // Thay đổi step ban đầu thành 'login' để học sinh nhập mã tài khoản trước
-  const [step, setStep] = useState('login');
-  
-  // Quản lý thông tin tài khoản học sinh
-  const [inputUserId, setInputUserId] = useState('');
+  const [step, setStep] = useState('auth'); // 'auth', 'select-uni', 'select-subject', 'doing-exam'
+  const [authMode, setAuthMode] = useState('login'); // 'login' hoặc 'register'
+
+  // Form đăng nhập / đăng ký
+  const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+
+  // Thông tin người dùng đăng nhập thành công
   const [userId, setUserId] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
 
@@ -170,20 +173,41 @@ export default function App() {
   const lastViolationAtRef = useRef(0);
   const MAX_TAB_VIOLATIONS = 3;
 
-  // Xử lý Đăng nhập / Vào hệ thống với Mã học sinh
-  const handleLogin = (e) => {
+  // Xử lý submit form Đăng nhập / Đăng ký
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
-    const cleanId = inputUserId.trim();
-    if (!cleanId) {
-      setError('Vui lòng nhập mã học sinh hoặc tên tài khoản của bạn!');
+    setError('');
+
+    if (!usernameInput.trim() || !passwordInput.trim()) {
+      setError('Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!');
       return;
     }
-    setUserId(cleanId);
-    setError('');
-    setStep('select-uni');
+
+    setIsLoading(true);
+    const endpoint = authMode === 'login' ? '/auth/login' : '/auth/register';
+
+    try {
+      const data = await fetchJson(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: usernameInput,
+          password: passwordInput
+        })
+      });
+
+      setUserId(data.userId);
+      setWalletBalance(data.balance || 0);
+      setStep('select-uni');
+      setPasswordInput('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Lấy số dư ví của đúng học sinh hiện tại từ server
+  // Lấy số dư ví từ server
   const fetchWalletBalance = useCallback(async () => {
     if (!userId) return;
     try {
@@ -225,10 +249,10 @@ export default function App() {
   };
 
   const handleBuyAndStartExam = async (subject) => {
-    const EXAM_PRICE = 10000; // 10.000 VNĐ / đề
+    const EXAM_PRICE = 10000;
 
     if (walletBalance < EXAM_PRICE) {
-      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ, đề thi giá ${EXAM_PRICE.toLocaleString()}đ. Vui lòng chuyển khoản quét mã nạp thêm tiền theo cú pháp cá nhân của bạn bên trên!`);
+      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ, đề thi giá ${EXAM_PRICE.toLocaleString()}đ. Vui lòng chuyển khoản nạp thêm tiền theo mã QR cá nhân bên trên!`);
       return;
     }
 
@@ -474,11 +498,11 @@ export default function App() {
     submitLock.current = true;
   };
 
-  // Đăng xuất / Đổi tài khoản
   const handleLogout = () => {
     setUserId('');
-    setInputUserId('');
-    setStep('login');
+    setUsernameInput('');
+    setPasswordInput('');
+    setStep('auth');
   };
 
   const handleDismissViolationNotice = () => {
@@ -495,14 +519,11 @@ export default function App() {
       <header className="app-header">
         <div className="header-content">
           <RabbitLogo />
-          {step !== 'login' && step !== 'select-uni' && (
+          {step !== 'auth' && (
             <div style={{ display: 'flex', gap: '10px' }}>
               <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
-              <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đổi tài khoản</button>
+              <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đăng xuất ({userId})</button>
             </div>
-          )}
-          {step === 'select-uni' && (
-            <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đổi tài khoản ({userId})</button>
           )}
         </div>
       </header>
@@ -549,36 +570,58 @@ export default function App() {
         <div className="loading-overlay">
           <div className="loading-spinner">
             <span className="spinner-icon">🐰</span>
-            <p>Thỏ đang chuẩn bị dữ liệu, chờ một chút nhé...</p>
+            <p>Thỏ đang xử lý, chờ một chút nhé...</p>
           </div>
         </div>
       )}
 
       <main className="app-main">
-        {/* MÀN HÌNH ĐĂNG NHẬP / NHẬP MÃ HỌC SINH */}
-        {step === 'login' && (
-          <section className="fade-in" style={{ maxWidth: '450px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
-            <h2 style={{ color: '#7c3aed', marginBottom: '10px' }}>Đăng nhập vào Hệ thống</h2>
-            <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>Nhập mã số học sinh hoặc tên tài khoản của bạn để quản lý số dư ví cá nhân:</p>
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {/* MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ TÀI KHOẢN */}
+        {step === 'auth' && (
+          <section className="fade-in" style={{ maxWidth: '420px', margin: '40px auto', background: '#fff', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
+            <h2 style={{ color: '#7c3aed', marginBottom: '8px' }}>
+              {authMode === 'login' ? '🔑 Đăng Nhập' : '📝 Đăng Ký Tài Khoản'}
+            </h2>
+            <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '14px' }}>
+              {authMode === 'login' 
+                ? 'Nhập tài khoản & mật khẩu để truy cập ví tiền cá nhân' 
+                : 'Tạo tài khoản mới để bắt đầu nạp tiền & luyện đề'}
+            </p>
+
+            <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <input 
                 type="text" 
-                placeholder="Ví dụ: thong123, hs01,..." 
-                value={inputUserId}
-                onChange={(e) => setInputUserId(e.target.value)}
-                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '16px', outline: 'none' }}
+                placeholder="Tên tài khoản (Ví dụ: thong123)" 
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none' }}
               />
-              <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px' }}>
-                🚀 Vào luyện thi ngay
+              <input 
+                type="password" 
+                placeholder="Mật khẩu" 
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outline: 'none' }}
+              />
+              <button type="submit" className="btn-primary" style={{ padding: '12px', fontSize: '16px', marginTop: '6px' }}>
+                {authMode === 'login' ? '🚀 Đăng Nhập Ngay' : '✨ Tạo Tài Khoản'}
               </button>
             </form>
+
+            <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f3f4f6', fontSize: '14px', color: '#4b5563' }}>
+              {authMode === 'login' ? (
+                <p>Chưa có tài khoản? <span onClick={() => { setAuthMode('register'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng ký tại đây</span></p>
+              ) : (
+                <p>Đã có tài khoản? <span onClick={() => { setAuthMode('login'); setError(''); }} style={{ color: '#7c3aed', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>Đăng nhập ngay</span></p>
+              )}
+            </div>
           </section>
         )}
 
         {step === 'select-uni' && (
           <section className="fade-in">
             <div className="hero-banner">
-              <h2>Chào mừng, {userId}! Chinh phục kỳ thi cùng Thỏ 🚀</h2>
+              <h2>Xin chào {userId}! Chinh phục kỳ thi cùng Thỏ 🚀</h2>
               <p>Chọn trường đại học mục tiêu của bạn để bắt đầu luyện đề thi thử bám sát cấu trúc:</p>
             </div>
             <div className="university-grid">
@@ -610,7 +653,7 @@ export default function App() {
             <div style={{ background: '#f5f3ff', border: '2px solid #c084fc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử của: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
+                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử tài khoản: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
                   <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 'bold', color: '#7e22ce' }}>
                     Số dư hiện tại: {walletBalance.toLocaleString()} VNĐ
                   </p>
@@ -632,7 +675,7 @@ export default function App() {
                     <p style={{ margin: 0 }}>• Ngân hàng: <strong>BIDV (SePay Bank Hub)</strong></p>
                     <p style={{ margin: 0 }}>• Số TK / Số VA: <strong style={{ color: '#2563eb' }}>96247THOLAMTOAN</strong></p>
                     <p style={{ margin: 0 }}>• Cú pháp chuyển khoản: <strong style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 6px', borderRadius: '4px' }}>NAP {userId}</strong></p>
-                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#059669' }}>✅ App ngân hàng sẽ tự điền đúng mã của bạn, nhập số tiền tùy ý và hệ thống tự động cộng ví sau vài giây!</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#059669' }}>✅ App ngân hàng tự điền tên tài khoản của bạn, nhập số tiền tùy ý và hệ thống tự cộng số dư sau vài giây!</p>
                   </div>
                 </div>
               </div>
