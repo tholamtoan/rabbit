@@ -22,6 +22,44 @@ async function initializeDatabase() {
       balance NUMERIC(14, 2) NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    -- Migrate older Neon databases safely before auth middleware reads users.status.
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'users_status_check'
+          AND conrelid = 'users'::regclass
+      ) THEN
+        ALTER TABLE users
+          ADD CONSTRAINT users_status_check
+          CHECK (status IN ('active', 'suspended'));
+      END IF;
+    END $$;
+
+    CREATE TABLE IF NOT EXISTS admin_roles (
+      username TEXT PRIMARY KEY REFERENCES users(username) ON DELETE CASCADE,
+      role TEXT NOT NULL CHECK (role IN ('admin', 'support')),
+      granted_by TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS admin_audit_log (
+      id BIGSERIAL PRIMARY KEY,
+      actor TEXT NOT NULL,
+      action TEXT NOT NULL,
+      target TEXT NOT NULL DEFAULT '',
+      details JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS admin_audit_log_created_idx
+      ON admin_audit_log(created_at DESC);
+    CREATE TABLE IF NOT EXISTS subject_settings (
+      subject_id TEXT PRIMARY KEY,
+      enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      updated_by TEXT,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS user_sessions (
       token_hash TEXT PRIMARY KEY,
       username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
@@ -85,7 +123,7 @@ async function initializeDatabase() {
     `INSERT INTO app_settings (key, value) VALUES ('exam_price', to_jsonb($1::numeric)) ON CONFLICT (key) DO NOTHING`,
     [Number(require('./pricing').EXAM_PRICE)]
   );
-  console.log('PostgreSQL connected; users, sessions, wallet, exam and settings tables are ready.');
+  console.log('PostgreSQL connected; user status, admin roles/audit, subject settings, sessions, wallet, exam and app settings are ready.');
 }
 
 module.exports = { pool, initializeDatabase };
