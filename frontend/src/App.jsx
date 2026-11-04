@@ -154,6 +154,7 @@ export default function App() {
 
   const [userId, setUserId] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
+  const [examPrice, setExamPrice] = useState(1000);
 
   const [universities, setUniversities] = useState([]);
   const [selectedUni, setSelectedUni] = useState(null);
@@ -169,6 +170,17 @@ export default function App() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [otpCooldown, setOtpCooldown] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchJson(`${API_BASE}/config/pricing`)
+      .then((data) => {
+        const value = Number(data?.examPrice);
+        if (!cancelled && Number.isFinite(value) && value >= 0) setExamPrice(value);
+      })
+      .catch((err) => console.error('Không tải được cấu hình giá:', err));
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (otpCooldown <= 0) return;
@@ -363,7 +375,8 @@ export default function App() {
   const fetchWalletBalance = useCallback(async () => {
     if (!userId) return;
     try {
-      const data = await fetchJson(`${API_BASE}/wallet/${userId}`);
+      const token = localStorage.getItem('hct_session_token');
+      const data = await fetchJson(`${API_BASE}/wallet`, { headers: { Authorization: `Bearer ${token}` } });
       setWalletBalance(data.balance || 0);
     } catch (err) {
       console.error("Lỗi lấy số dư ví:", err);
@@ -423,19 +436,18 @@ export default function App() {
   };
 
   const handleBuyAndStartExam = async (subject) => {
-    const EXAM_PRICE = 1000;
-    if (walletBalance < EXAM_PRICE) {
+    if (walletBalance < examPrice) {
       alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ.`);
       return;
     }
-    if (!window.confirm(`Xác nhận dùng 1.000đ mở khóa bài thi môn "${subject.name}"?`)) return;
+    if (!window.confirm(`Xác nhận dùng ${examPrice.toLocaleString('vi-VN')}đ mở khóa bài thi môn "${subject.name}"?`)) return;
 
     setIsLoading(true);
     try {
       const buyRes = await fetchJson(`${API_BASE}/exam/buy`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, subjectId: subject.id, price: EXAM_PRICE })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` },
+        body: JSON.stringify({ subjectId: subject.id })
       });
       if (buyRes.success) {
         setWalletBalance(buyRes.newBalance);
@@ -464,7 +476,7 @@ export default function App() {
     }
 
     try {
-      const data = await fetchJson(`${API_BASE}/exam/random/${subject.id}`);
+      const data = await fetchJson(`${API_BASE}/exam/random/${subject.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` } });
       setExamData(data);
       examRef.current = data;
       setTimeLeft(Math.max(0, Number(data.durationMinutes) || 0) * 60);
@@ -500,8 +512,8 @@ export default function App() {
     try {
       const data = await fetchJson(`${API_BASE}/exam/submit-random`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userAnswers: answersToSubmit, secretKey: currentExam._secretKey, secretExplanation: currentExam._secretExplanation })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` },
+        body: JSON.stringify({ attemptId: currentExam.attemptId, userAnswers: answersToSubmit })
       });
       setResult(data);
       setIncompleteSubmitNotice('');
@@ -785,7 +797,7 @@ export default function App() {
                     <span className="subject-icon">📖</span>
                     <div>
                       <h3>{subject.name}</h3>
-                      <p>Giá: <strong>1.000 VNĐ</strong></p>
+                      <p>Giá: <strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></p>
                     </div>
                   </div>
                   <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề⚡</button>
