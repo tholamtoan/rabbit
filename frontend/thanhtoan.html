@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán mua đề thi</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .payment-box { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 380px; }
+        img { max-width: 260px; border: 1px solid #ddd; border-radius: 8px; margin-top: 15px; }
+        .syntax { color: #0275d8; font-weight: bold; font-size: 18px; background: #f0f7ff; padding: 8px 10px; border-radius: 5px; display: inline-block; margin-top: 5px; }
+        .note { font-size: 13px; color: #666; margin-top: 15px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <div class="payment-box">
+        <h3>Quét Mã QR Thanh Toán</h3>
+        <p>Số tiền: <strong style="color: #d9534f; font-size: 18px;">2,000 đ</strong></p>
+        
+        <div>Chuyển khoản vào Số Tài Khoản VA:</div>
+        <div id="va-account" class="syntax">Đang tải...</div>
+        
+        <!-- Khu vực hiển thị ảnh mã QR -->
+        <div>
+            <img id="vietqr-img" src="" alt="Mã QR thanh toán VA" />
+        </div>
+        
+        <div class="note">
+            ⚠️ Hệ thống sẽ tự động nhận diện giao dịch qua Số VA và mở khóa đề thi ngay lập tức sau 1-2 giây!
+        </div>
+    </div>
+
+    <script>
+        // 1. Thông tin cấu hình Số VA của Thông trên SePay
+        const bankId = "BIDV";                // Ngân hàng liên kết
+        const accountNo = "96247THOLAMTOAN";   // Số tài khoản VA của em trên SePay
+        const amount = "2000";               // Số tiền mua đề thi
+        
+        // Hiển thị số VA lên màn hình cho học sinh nhìn thấy rõ
+        document.getElementById("va-account").innerText = accountNo;
+        
+        // 2. Tạo đường dẫn ảnh QR VietQR gắn trực tiếp Số VA (Không cần cú pháp lằng nhằng nữa)
+        const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}`;
+        
+        // Đưa đường dẫn ảnh vào thẻ img để hiện mã QR lên web
+        document.getElementById("vietqr-img").src = qrUrl;
+    </script>
+
+</body>
+</html>
+

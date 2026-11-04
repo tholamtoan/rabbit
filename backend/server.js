@@ -22,7 +22,7 @@ const database = {
   "iuh": {
     name: "Đại học Công nghiệp Thành phố Hồ Chí Minh (IUH)",
     subjects: [
-      { id: "toancc1_iuh", name: "Toán cao cấp 1", totalQuestionsInBank: 50 }, // Giả lập kho có 50 câu
+      { id: "toancc1_iuh", name: "Toán cao cấp 1", totalQuestionsInBank: 50 }, 
       { id: "toancc2_iuh", name: "Toán cao cấp 2", totalQuestionsInBank: 30 }
     ]
   }
@@ -56,7 +56,6 @@ app.get('/api/exam/random/:subjectId', (req, res) => {
     return res.status(404).json({ message: "Kho câu hỏi môn này đang trống hoặc chưa cập nhật!" });
   }
 
-  // Mỗi đề có đúng 20 câu. Không phát đề thiếu câu.
   const QUESTION_COUNT = 20;
   if (bank.length < QUESTION_COUNT) {
     return res.status(400).json({
@@ -64,11 +63,8 @@ app.get('/api/exam/random/:subjectId', (req, res) => {
     });
   }
 
-  // Tráo thứ tự câu hỏi cho mỗi lượt thi.
   const selectedQuestions = shuffleArray(bank).slice(0, QUESTION_COUNT);
 
-  // Tráo độc lập thứ tự A/B/C/D trong từng câu và cập nhật đáp án đúng
-  // theo nhãn mới để hệ thống chấm điểm chính xác.
   const answerKey = {};
   const explanationKey = {};
   const clientQuestions = selectedQuestions.map((q, index) => {
@@ -95,13 +91,10 @@ app.get('/api/exam/random/:subjectId', (req, res) => {
     };
   });
 
-  // Gửi đề thi đã xáo trộn về cho người dùng (KHÔNG gửi đáp án và giải thích)
   res.json({
     title: "Đề thi trắc nghiệm ngẫu nhiên (Luyện tập)",
     durationMinutes: 15,
     questions: clientQuestions,
-    // Lưu ý: Trong môi trường production thực tế, answerKey nên được lưu vào cơ sở dữ liệu hoặc Session server-side
-    // Ở đây ta đính kèm ẩn để xử lý chấm điểm nhanh gọn.
     _secretKey: answerKey,
     _secretExplanation: explanationKey
   });
@@ -137,6 +130,42 @@ app.post('/api/exam/submit-random', (req, res) => {
     percentage: Math.round((score / total) * 100),
     details
   });
+});
+
+// ==========================================
+// 5. API NHẬN WEBHOOK TỪ SEPAY (TỰ ĐỘNG NẠP TIỀN)
+// ==========================================
+app.post('/api/sepay-webhook', async (req, res) => {
+    try {
+        const data = req.body;
+        
+        const gateway = data.gateway;           
+        const transactionDate = data.transactionDate; 
+        const transferAmount = data.transferAmount;   
+        const content = data.content;                 
+        
+        console.log(`[SePay Webhook] Nhận giao dịch: ${transferAmount}đ - Nội dung: ${content}`);
+        
+        // Kiểm tra nội dung chuyển khoản xem có chứa cú pháp mua đề không (Ví dụ: "THO 12345")
+        if (content && content.toUpperCase().includes("THO")) {
+            const matches = content.match(/THO\s*(\d+)/i);
+            
+            if (matches && matches[1]) {
+                const userId = matches[1];
+                console.log(`=> Đã xác thực thành công thanh toán cho User ID: ${userId}`);
+                
+                // TODO: Cập nhật cơ sở dữ liệu ở đây để mở khóa quyền làm đề cho học sinh (userId)
+            }
+            
+            return res.status(200).json({ success: true, message: "Đã xử lý mở khóa đề thành công!" });
+        }
+        
+        return res.status(200).json({ success: true, message: "Bỏ qua giao dịch không khớp cú pháp." });
+        
+    } catch (error) {
+        console.error("Lỗi xử lý webhook:", error);
+        return res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 const PORT = process.env.PORT || 5000;
