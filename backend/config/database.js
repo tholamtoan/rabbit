@@ -92,7 +92,7 @@ async function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS deposit_orders (
       id BIGSERIAL PRIMARY KEY,
       username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
-      credit_amount BIGINT NOT NULL CHECK (credit_amount >= 10000),
+      credit_amount BIGINT NOT NULL CHECK (credit_amount >= 1),
       transfer_amount BIGINT NOT NULL,
       suffix SMALLINT NOT NULL DEFAULT 0 CHECK (suffix BETWEEN 0 AND 99),
       order_code TEXT UNIQUE,
@@ -102,6 +102,9 @@ async function initializeDatabase() {
       sepay_transaction_id TEXT UNIQUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    -- Remove the old minimum top-up restriction (10,000 VND); any positive integer is accepted.
+    ALTER TABLE deposit_orders DROP CONSTRAINT IF EXISTS deposit_orders_credit_amount_check;
+    ALTER TABLE deposit_orders ADD CONSTRAINT deposit_orders_credit_amount_check CHECK (credit_amount >= 1);
     -- Migrate existing installations from amount-suffix matching to unique transfer content codes.
     ALTER TABLE deposit_orders ADD COLUMN IF NOT EXISTS order_code TEXT;
     ALTER TABLE deposit_orders ALTER COLUMN suffix SET DEFAULT 0;

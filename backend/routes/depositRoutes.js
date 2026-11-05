@@ -7,8 +7,8 @@ module.exports = function createDepositRoutes({ pool, requireAuth }) {
   // Học viên tạo đơn nạp: chuyển đúng mệnh giá, nhận diện bằng mã nội dung riêng.
   router.post('/api/deposits/orders', requireAuth, async (req, res) => {
     const creditAmount = Number(req.body?.amount);
-    if (!Number.isSafeInteger(creditAmount) || creditAmount < 10000 || creditAmount > 50000000 || creditAmount % 1000 !== 0) {
-      return res.status(400).json({ message: 'Số tiền nạp phải từ 10.000đ đến 50.000.000đ và là bội số của 1.000đ.' });
+    if (!Number.isSafeInteger(creditAmount) || creditAmount < 1 || creditAmount > 50000000) {
+      return res.status(400).json({ message: 'Số tiền nạp phải lớn hơn 0đ và không vượt quá 50.000.000đ.' });
     }
     try {
       let inserted;
