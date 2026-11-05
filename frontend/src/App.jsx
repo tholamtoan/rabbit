@@ -4,10 +4,15 @@ import 'katex/dist/katex.min.css';
 import './App.css';
 
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
-const EXAM_TYPE_IDS = Array.from({ length: 16 }, (_, index) => index + 1);
 
 function MathContent({ value = '', inline = false }) {
-  const source = String(value ?? '').replace(/\r\n/g, '\n');
+  const source = String(value ?? '')
+    .replace(/\r\n/g, '\n')
+    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
+    .replace(/\\\\\(/g, '\\(')
+    .replace(/\\\\\)/g, '\\)')
+    .replace(/\\\\\[/g, '\\[')
+    .replace(/\\\\\]/g, '\\]');
 
   const parts = [];
   let key = 0;
@@ -45,7 +50,7 @@ function MathContent({ value = '', inline = false }) {
     }
   };
 
-  const tokenRegex = /\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
+  const tokenRegex = /\\{1,2}\[([\s\S]*?)\\{1,2}\]|\\{1,2}\(([\s\S]*?)\\{1,2}\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
   let lastIndex = 0;
   let match;
 
@@ -58,6 +63,8 @@ function MathContent({ value = '', inline = false }) {
     const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
+      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
+      .replace(/\\\\(?=[a-zA-Z])/g, '\\')
       .trim();
 
     const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
@@ -169,12 +176,6 @@ export default function App() {
   const [adminAudit, setAdminAudit] = useState([]);
   const [adminCatalog, setAdminCatalog] = useState([]);
   const [adminExamSettings, setAdminExamSettings] = useState([]);
-  const [bankUploadSubject, setBankUploadSubject] = useState('toancc1_iuh');
-  const [bankUploadBusy, setBankUploadBusy] = useState(false);
-  const [newUniversityId, setNewUniversityId] = useState('iuh');
-  const [newUniversityName, setNewUniversityName] = useState('Đại học Công nghiệp Thành phố Hồ Chí Minh (IUH)');
-  const [newSubjectId, setNewSubjectId] = useState('');
-  const [newSubjectName, setNewSubjectName] = useState('');
   const [adminRoles, setAdminRoles] = useState([]);
   const [adminRoleUsername, setAdminRoleUsername] = useState('');
   const [adminRoleType, setAdminRoleType] = useState('support');
@@ -248,6 +249,7 @@ export default function App() {
   
   const [tabViolationCount, setTabViolationCount] = useState(0);
   const [violationNotice, setViolationNotice] = useState('');
+  const [preExamSubject, setPreExamSubject] = useState(null);
   const [incompleteSubmitNotice, setIncompleteSubmitNotice] = useState('');
 
   const answersRef = useRef({});
@@ -501,13 +503,34 @@ export default function App() {
     }
   };
 
-  const handleBuyAndStartExam = async (subject) => {
+  // Hiển thị quy chế trước khi mua/mở đề; chỉ bắt đầu khi người dùng xác nhận.
+  const handleBuyAndStartExam = (subject) => {
+    setPreExamSubject(subject);
+  };
+
+  const confirmStartExam = async () => {
+    const subject = preExamSubject;
+    if (!subject) return;
     if (walletBalance < examPrice) {
-      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString()}đ.`);
+      setPreExamSubject(null);
+      alert(`Số dư không đủ! Bạn hiện có ${walletBalance.toLocaleString('vi-VN')}đ.`);
       return;
     }
-    if (!window.confirm(`Xác nhận dùng ${examPrice.toLocaleString('vi-VN')}đ mở khóa bài thi môn "${subject.name}"?`)) return;
 
+    // requestFullscreen phải được gọi trực tiếp từ thao tác bấm của người dùng.
+    try {
+      if (!document.fullscreenElement) {
+        if (!document.documentElement.requestFullscreen) {
+          throw new Error('Trình duyệt không hỗ trợ chế độ toàn màn hình.');
+        }
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      setError(`Không bật được toàn màn hình: ${err.message || 'Hãy cho phép trình duyệt bật toàn màn hình rồi thử lại.'}`);
+      return;
+    }
+
+    setPreExamSubject(null);
     setIsLoading(true);
     try {
       const buyRes = await fetchJson(`${API_BASE}/exam/buy`, {
@@ -521,6 +544,7 @@ export default function App() {
       }
     } catch (err) {
       setError(`Không mua được đề: ${err.message}`);
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
     } finally {
       setIsLoading(false);
     }
@@ -537,9 +561,6 @@ export default function App() {
     lastViolationAtRef.current = 0;
     submitLock.current = false;
 
-    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
-    }
 
     try {
       const data = await fetchJson(`${API_BASE}/exam/random/${subject.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` } });
@@ -598,6 +619,12 @@ export default function App() {
     if (step !== 'doing-exam' || isSubmitted) return undefined;
     const registerViolation = (reason) => {
       if (submitLock.current || tabViolationCountRef.current >= MAX_TAB_VIOLATIONS) return;
+      // blur + fullscreenchange/visibilitychange có thể cùng phát sinh cho một thao tác.
+      // Gộp chúng thành một lần vi phạm trong khoảng 1,5 giây.
+      const now = Date.now();
+      if (now - lastViolationAtRef.current < 1500) return;
+      lastViolationAtRef.current = now;
+
       const nextCount = tabViolationCountRef.current + 1;
       tabViolationCountRef.current = nextCount;
       setTabViolationCount(nextCount);
@@ -609,12 +636,12 @@ export default function App() {
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
         return;
       }
-      setViolationNotice(`Cảnh báo vi phạm (${nextCount}/${MAX_TAB_VIOLATIONS}): Bạn vừa ${reason}.`);
+      setViolationNotice(`Cảnh báo vi phạm (${nextCount}/${MAX_TAB_VIOLATIONS}): Bạn vừa ${reason}. Bài thi vẫn được giữ nguyên. Hãy bấm nút bên dưới để quay lại toàn màn hình.`);
     };
 
-    const handleVis = () => { if (document.visibilityState === 'hidden') registerViolation('rời khỏi tab thi'); };
-    const handleBlur = () => registerViolation('rời khỏi cửa sổ thi');
-    const handleFull = () => { if (!document.fullscreenElement) registerViolation('thoát toàn màn hình'); };
+    const handleVis = () => { if (!violationNotice && document.visibilityState === 'hidden') registerViolation('rời khỏi tab thi'); };
+    const handleBlur = () => { if (!violationNotice) registerViolation('rời khỏi cửa sổ thi'); };
+    const handleFull = () => { if (!violationNotice && !document.fullscreenElement) registerViolation('thoát toàn màn hình'); };
 
     document.addEventListener('visibilitychange', handleVis);
     window.addEventListener('blur', handleBlur);
@@ -624,7 +651,18 @@ export default function App() {
       window.removeEventListener('blur', handleBlur);
       document.removeEventListener('fullscreenchange', handleFull);
     };
-  }, [step, isSubmitted]);
+  }, [step, isSubmitted, violationNotice]);
+
+  const resumeExamFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+      setViolationNotice('');
+    } catch (err) {
+      setViolationNotice('Trình duyệt chưa cho phép bật toàn màn hình. Hãy bấm lại nút bên dưới để tiếp tục làm bài ở chế độ toàn màn hình.');
+    }
+  };
 
   useEffect(() => {
     if (step !== 'doing-exam' || timeLeft <= 0 || isSubmitted || !examData) return undefined;
@@ -702,7 +740,7 @@ export default function App() {
       if (tab === 'transactions') setAdminTransactions((await adminRequest('transactions')).transactions || []);
       if (tab === 'audit') setAdminAudit((await adminRequest('audit')).logs || []);
       if (tab === 'catalog') setAdminCatalog((await adminRequest('catalog')).subjects || []);
-      if (tab === 'examSettings' || tab === 'bankUpload') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
+      if (tab === 'examSettings') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
       if (tab === 'roles') setAdminRoles((await adminRequest('roles')).roles || []);
       if (tab === 'pricing') {
         const data = await adminRequest('pricing');
@@ -757,14 +795,7 @@ export default function App() {
   };
 
   const updateAdminExamSetting = (subjectId, field, value) => {
-    setAdminExamSettings(current => current.map(item => {
-      if (item.id !== subjectId) return item;
-      if (field === 'questionDistribution') {
-        const total = Object.values(value).reduce((sum, count) => sum + Number(count || 0), 0);
-        return { ...item, questionDistribution: value, questionCount: total };
-      }
-      return { ...item, [field]: value };
-    }));
+    setAdminExamSettings(current => current.map(item => item.id === subjectId ? { ...item, [field]: value } : item));
   };
 
   const saveAdminExamSetting = async (subject) => {
@@ -781,48 +812,12 @@ export default function App() {
     try {
       await adminRequest(`exam-settings/${encodeURIComponent(subject.id)}`, {
         method: 'PUT',
-        body: JSON.stringify({ questionCount, durationMinutes, questionDistribution: subject.questionDistribution || {} })
+        body: JSON.stringify({ questionCount, durationMinutes })
       });
       setSuccessMessage(`Đã lưu cấu hình ${subject.name}: ${questionCount} câu / ${durationMinutes} phút.`);
       void loadAdminTab('examSettings');
     } catch (err) {
       setError(err.message || 'Không lưu được cấu hình đề thi.');
-    }
-  };
-
-  const handleCreateSubject = async (event) => {
-    event.preventDefault();
-    try {
-      const result = await adminRequest('subjects', { method:'POST', body:JSON.stringify({
-        universityId:newUniversityId, universityName:newUniversityName, subjectId:newSubjectId, subjectName:newSubjectName
-      }) });
-      setSuccessMessage(result.message);
-      setBankUploadSubject(newSubjectId.trim().toLowerCase());
-      setNewSubjectId(''); setNewSubjectName('');
-      void loadAdminTab('examSettings'); void loadAdminTab('catalog');
-    } catch(err) { setError(err.message || 'Không tạo được môn học.'); }
-  };
-
-  const handleQuestionBankUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setBankUploadBusy(true);
-    setError('');
-    try {
-      const parsed = JSON.parse(await file.text());
-      const questions = Array.isArray(parsed) ? parsed : parsed.questions;
-      if (!Array.isArray(questions)) throw new Error('File JSON phải là một mảng câu hỏi hoặc có thuộc tính questions.');
-      const result = await adminRequest(`question-bank/${encodeURIComponent(bankUploadSubject)}`, {
-        method: 'POST', body: JSON.stringify({ questions })
-      });
-      setSuccessMessage(`${result.message} Phân bố: ${Object.entries(result.byType || {}).map(([type,count])=>`Dạng ${type}: ${count}`).join(' · ')}`);
-      void loadAdminTab('examSettings');
-      void loadAdminTab('catalog');
-    } catch (err) {
-      setError(err.message || 'Không thể upload ngân hàng câu hỏi.');
-    } finally {
-      setBankUploadBusy(false);
-      event.target.value = '';
     }
   };
 
@@ -888,7 +883,7 @@ export default function App() {
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'18px 0'}}>
             {[
-              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['bankUpload','📤 Upload ngân hàng'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
+              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
             ].map(([id,label])=><button key={id} type="button" onClick={()=>changeAdminTab(id==='wallet'?'transactions':id)} style={{border:adminTab===(id==='wallet'?'transactions':id)?'2px solid #9333ea':'1px solid #ddd6fe',background:adminTab===(id==='wallet'?'transactions':id)?'#f3e8ff':'#fff',color:'#6b21a8',borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:'pointer'}}>{label}</button>)}
           </div>
           {adminLoading && <p style={{color:'#7e22ce'}}>Đang tải dữ liệu...</p>}
@@ -922,30 +917,8 @@ export default function App() {
                 <label style={{fontSize:13,color:'#6b21a8'}}>Số câu<input type="number" min="1" max={subject.bankSize} value={subject.questionCount} onChange={e=>updateAdminExamSetting(subject.id,'questionCount',e.target.value)} style={{display:'block',width:'100%',padding:9,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}/></label>
                 <label style={{fontSize:13,color:'#6b21a8'}}>Thời gian (phút)<input type="number" min="1" max="360" value={subject.durationMinutes} onChange={e=>updateAdminExamSetting(subject.id,'durationMinutes',e.target.value)} style={{display:'block',width:'100%',padding:9,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}/></label>
                 <button className="btn-primary" type="button" onClick={()=>saveAdminExamSetting(subject)}>💾 Lưu</button>
-                <div style={{gridColumn:'1 / -1',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(115px,1fr))',gap:8,marginTop:4}}>
-                  {EXAM_TYPE_IDS.map(type=><label key={type} style={{fontSize:12,color:'#6b21a8'}}>Dạng {type} · kho {subject.typeCounts?.[type] || 0}<input type="number" min="0" max={subject.typeCounts?.[type] || 0} value={subject.questionDistribution?.[type] ?? 0} onChange={e=>updateAdminExamSetting(subject.id,'questionDistribution',{...(subject.questionDistribution||{}),[type]:e.target.value})} style={{display:'block',width:'100%',padding:7,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>)}
-                </div>
-                <small style={{gridColumn:'1 / -1',color:'#8b5cf6'}}>Tổng số câu ở 16 dạng phải bằng số câu của đề. Để 0 nếu không lấy câu ở dạng đó.</small>
               </div>)}
             </div>
-          </div>}
-          {adminTab==='bankUpload' && <div style={{maxWidth:760,padding:18,border:'1px solid #e9d5ff',borderRadius:14,background:'#fff'}}>
-            <h3 style={{marginTop:0,color:'#6b21a8'}}>Upload ngân hàng câu hỏi</h3>
-            <details style={{marginBottom:16,padding:12,border:'1px solid #ddd6fe',borderRadius:9}}>
-              <summary style={{cursor:'pointer',fontWeight:700,color:'#6b21a8'}}>＋ Tạo môn học mới (không cần sửa code)</summary>
-              <form onSubmit={handleCreateSubject} style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:9,marginTop:12}}>
-                <label style={{fontSize:12}}>Mã trường<input value={newUniversityId} onChange={e=>setNewUniversityId(e.target.value)} placeholder="vd: iuh" required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
-                <label style={{fontSize:12}}>Tên trường<input value={newUniversityName} onChange={e=>setNewUniversityName(e.target.value)} required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
-                <label style={{fontSize:12}}>Mã môn<input value={newSubjectId} onChange={e=>setNewSubjectId(e.target.value)} placeholder="vd: giaitich1_hust" required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
-                <label style={{fontSize:12}}>Tên môn<input value={newSubjectName} onChange={e=>setNewSubjectName(e.target.value)} placeholder="vd: Giải tích 1" required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
-                <button className="btn-primary" type="submit" style={{gridColumn:'1 / -1'}}>＋ Tạo môn học</button>
-              </form>
-            </details>
-            <p style={{color:'#6b7280',fontSize:13}}>Chọn môn học và tải lên file JSON đã chuyển từ Word. Dữ liệu được lưu trong PostgreSQL/Neon nên không mất khi Render khởi động lại. Upload sẽ thay thế toàn bộ ngân hàng hiện tại của môn đã chọn.</p>
-            <label style={{display:'block',marginBottom:12,color:'#6b21a8'}}>Môn học<select value={bankUploadSubject} onChange={e=>setBankUploadSubject(e.target.value)} style={{display:'block',width:'100%',padding:11,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}>{adminExamSettings.map(subject=><option key={subject.id} value={subject.id}>{subject.name}</option>)}</select></label>
-            <label style={{display:'block',padding:16,border:'2px dashed #c4b5fd',borderRadius:10,color:'#6b21a8'}}>Chọn file ngân hàng (.json)<input type="file" accept=".json,application/json" onChange={handleQuestionBankUpload} disabled={bankUploadBusy} style={{display:'block',marginTop:10}}/></label>
-            {bankUploadBusy && <p>Đang kiểm tra và lưu ngân hàng câu hỏi...</p>}
-            <small style={{display:'block',marginTop:12,color:'#64748b'}}>Định dạng mỗi câu: id, type (1–16), content, options A/B/C/D, correct. Hệ thống sẽ từ chối file thiếu đáp án hoặc thiếu lựa chọn.</small>
           </div>}
           {adminTab==='catalog' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Trường','Môn học','Số câu hỏi','Hiển thị'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminCatalog.map(c=><tr key={c.id}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.universityName}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.name}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.questionCount}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}><button className="btn-secondary" type="button" onClick={()=>adminToggleSubject(c)}>{c.enabled?'Đang mở · Ẩn môn':'Đang ẩn · Mở môn'}</button></td></tr>)}</tbody></table></div>}
           {adminTab==='audit' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Thời gian','Người thao tác','Hành động','Đối tượng','Chi tiết'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminAudit.map(a=><tr key={a.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(a.created_at).toLocaleString('vi-VN')}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.actor}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.action}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.target}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{JSON.stringify(a.details)}</td></tr>)}</tbody></table></div>}
@@ -987,13 +960,30 @@ export default function App() {
         </div>
       )}
 
+      {preExamSubject && (
+        <div className="exam-warning-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="pre-exam-warning-title">
+          <div className="exam-warning-modal">
+            <div className="exam-warning-icon">📋</div>
+            <h2 id="pre-exam-warning-title">Lưu ý trước khi vào thi</h2>
+            <p>Bài thi sẽ chạy ở chế độ toàn màn hình. Nếu thoát toàn màn hình, chuyển tab hoặc rời cửa sổ thi, hệ thống sẽ ghi nhận vi phạm.</p>
+            <p><strong>Đủ 3 lần vi phạm, bài thi sẽ bị hủy.</strong> Khi có cảnh báo, hãy quay lại toàn màn hình bằng nút tiếp tục.</p>
+            <div className="exam-warning-actions">
+              <button className="btn-secondary" type="button" onClick={() => setPreExamSubject(null)}>Hủy</button>
+              <button className="btn-primary exam-warning-confirm" type="button" onClick={() => void confirmStartExam()}>Đồng ý, vào làm bài</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {violationNotice && (
-        <div className="exam-warning-backdrop" role="alertdialog">
+        <div className="exam-warning-backdrop" role="alertdialog" aria-modal="true">
           <div className="exam-warning-modal">
             <div className="exam-warning-icon">⚠️</div>
             <h2>Cảnh báo quy chế thi</h2>
             <p>{violationNotice}</p>
-            <button className="btn-primary exam-warning-confirm" type="button" onClick={() => setViolationNotice('')}>Đã hiểu</button>
+            {step === 'doing-exam' && !isSubmitted && (
+              <button className="btn-primary exam-warning-confirm" type="button" onClick={() => void resumeExamFullscreen()}>Quay lại toàn màn hình và tiếp tục</button>
+            )}
           </div>
         </div>
       )}

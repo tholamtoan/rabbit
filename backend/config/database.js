@@ -87,36 +87,6 @@ async function initializeDatabase() {
       DROP CONSTRAINT IF EXISTS wallet_transactions_amount_check;
     ALTER TABLE wallet_transactions
       ADD CONSTRAINT wallet_transactions_amount_check CHECK (amount >= 0);
-    CREATE TABLE IF NOT EXISTS managed_subjects (
-      subject_id TEXT PRIMARY KEY,
-      university_id TEXT NOT NULL,
-      university_name TEXT NOT NULL,
-      subject_name TEXT NOT NULL,
-      created_by TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    CREATE TABLE IF NOT EXISTS question_banks (
-      subject_id TEXT PRIMARY KEY,
-      questions JSONB NOT NULL DEFAULT '[]'::jsonb,
-      updated_by TEXT,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
-    ALTER TABLE exam_subject_settings
-      ADD COLUMN IF NOT EXISTS question_distribution JSONB NOT NULL DEFAULT '{}'::jsonb;
-    CREATE TABLE IF NOT EXISTS exam_question_history (
-      username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
-      subject_id TEXT NOT NULL,
-      question_id TEXT NOT NULL,
-      first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      seen_count INTEGER NOT NULL DEFAULT 1,
-      PRIMARY KEY (username, subject_id, question_id)
-    );
-    CREATE INDEX IF NOT EXISTS exam_question_history_user_subject_idx
-      ON exam_question_history(username, subject_id, last_seen_at DESC);
-
     CREATE TABLE IF NOT EXISTS exam_attempts (
       id UUID PRIMARY KEY, username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
       answer_key JSONB NOT NULL, explanations JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -124,9 +94,6 @@ async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS exam_attempts_user_created_idx ON exam_attempts(username, created_at DESC);
-    ALTER TABLE exam_attempts
-      ADD COLUMN IF NOT EXISTS subject_id TEXT,
-      ADD COLUMN IF NOT EXISTS question_ids JSONB NOT NULL DEFAULT '[]'::jsonb;
     CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uidx ON users (LOWER(username));
     CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_uidx ON users (LOWER(email));
     CREATE TABLE IF NOT EXISTS app_settings (

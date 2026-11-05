@@ -3,45 +3,26 @@ const express = require('express');
 module.exports = function createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, requireAuth }) {
   const router = express.Router();
   const isAdminUser = (username) => (process.env.ADMIN_USERNAMES || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean).includes(String(username || '').toLowerCase());
-  const requireAdmin = async (req, res, next) => {
-    if (isAdminUser(req.user?.username)) return next();
-    try {
-      const role = await pool.query('SELECT role FROM admin_roles WHERE LOWER(username)=LOWER($1)', [req.user?.username || '']);
-      if (role.rowCount) return next();
-      return res.status(403).json({ message: 'Bạn không có quyền quản trị!' });
-    } catch (error) {
-      console.error('Xác minh quyền quản trị cấu hình đề:', error.message);
-      return res.status(500).json({ message: 'Không thể xác minh quyền quản trị.' });
-    }
+  const requireAdmin = (req, res, next) => {
+    if (!isAdminUser(req.user?.username)) return res.status(403).json({ message: 'Bạn không có quyền quản trị!' });
+    next();
   };
-
-  const defaultDistribution = (subjectId) => subjectId === 'toancc1_iuh'
-    ? { 1: 2, 2: 1, 3: 1, 4: 1, 5: 1, 6: 2, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 2, 13: 2, 14: 1, 15: 1, 16: 1 }
-    : {};
-  const countByType = (bank) => bank.reduce((acc, q) => {
-    const type = Number(q.type);
-    if (Number.isInteger(type) && type > 0) acc[type] = (acc[type] || 0) + 1;
-    return acc;
-  }, {});
 
   // Per-subject exam configuration, stored in Neon.
   router.get('/api/admin/exam-settings', requireAuth, requireAdmin, async (req, res) => {
     try {
-      const saved = await pool.query('SELECT subject_id, question_count, duration_minutes, question_distribution FROM exam_subject_settings');
+      const saved = await pool.query('SELECT subject_id, question_count, duration_minutes FROM exam_subject_settings');
       const settings = new Map(saved.rows.map(row => [row.subject_id, row]));
       const subjects = [];
       for (const [universityId, university] of Object.entries(catalog)) {
         for (const subject of (university.subjects || [])) {
-          const bank = questionBank[subject.id] || [];
-          const bankSize = bank.length;
+          const bankSize = (questionBank[subject.id] || []).length;
           const row = settings.get(subject.id);
-          const distribution = row?.question_distribution && Object.keys(row.question_distribution).length ? row.question_distribution : defaultDistribution(subject.id);
           subjects.push({
             id: subject.id, name: subject.name, universityId, universityName: university.name,
             bankSize,
             questionCount: Math.min(Number(row?.question_count || Math.min(20, bankSize)), bankSize),
-            durationMinutes: Number(row?.duration_minutes || (subject.id === 'toancc1_iuh' ? 60 : 15)),
-            questionDistribution: distribution, typeCounts: countByType(bank)
+            durationMinutes: Number(row?.duration_minutes || 15)
           });
         }
       }
@@ -56,7 +37,6 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     const subjectId = String(req.params.subjectId || '');
     const questionCount = Number(req.body?.questionCount);
     const durationMinutes = Number(req.body?.durationMinutes);
-    const questionDistribution = req.body?.questionDistribution && typeof req.body.questionDistribution === 'object' ? req.body.questionDistribution : null;
     const bankSize = (questionBank[subjectId] || []).length;
     if (!bankSize) return res.status(404).json({ message: 'Không tìm thấy môn học hoặc kho câu hỏi trống.' });
     if (!Number.isSafeInteger(questionCount) || questionCount < 1 || questionCount > bankSize) {
@@ -65,30 +45,15 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     if (!Number.isSafeInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 360) {
       return res.status(400).json({ message: 'Thời gian phải từ 1 đến 360 phút.' });
     }
-    const distribution = questionDistribution || defaultDistribution(subjectId);
-    if (Object.keys(distribution).length) {
-      const available = countByType(questionBank[subjectId] || []);
-      const normalized = {};
-      for (const [rawType, rawCount] of Object.entries(distribution)) {
-        const type = Number(rawType), count = Number(rawCount);
-        if (!Number.isInteger(type) || type < 1 || type > 100 || !Number.isSafeInteger(count) || count < 0 || count > (available[type] || 0)) {
-          return res.status(400).json({ message: `Cấu hình Dạng ${rawType} không hợp lệ hoặc vượt số câu trong ngân hàng.` });
-        }
-        if (count > 0) normalized[type] = count;
-      }
-      if (Object.values(normalized).reduce((a,b)=>a+b,0) !== questionCount) {
-        return res.status(400).json({ message: 'Tổng số câu theo các dạng phải bằng tổng số câu của đề.' });
-      }
-    }
     try {
       await pool.query(
-        `INSERT INTO exam_subject_settings(subject_id,question_count,duration_minutes,question_distribution,updated_by,updated_at)
-         VALUES($1,$2,$3,$4::jsonb,$5,NOW())
+        `INSERT INTO exam_subject_settings(subject_id,question_count,duration_minutes,updated_by,updated_at)
+         VALUES($1,$2,$3,$4,NOW())
          ON CONFLICT(subject_id) DO UPDATE SET question_count=EXCLUDED.question_count,
-           duration_minutes=EXCLUDED.duration_minutes,question_distribution=EXCLUDED.question_distribution,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,
-        [subjectId, questionCount, durationMinutes, JSON.stringify(distribution), req.user.username]
+           duration_minutes=EXCLUDED.duration_minutes,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,
+        [subjectId, questionCount, durationMinutes, req.user.username]
       );
-      return res.json({ success: true, subjectId, questionCount, durationMinutes, questionDistribution: distribution });
+      return res.json({ success: true, subjectId, questionCount, durationMinutes });
     } catch (error) {
       console.error('Admin lưu cấu hình đề:', error.message);
       return res.status(500).json({ message: 'Không lưu được cấu hình đề thi.' });
@@ -144,53 +109,23 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
   router.get('/api/exam/random/:subjectId', requireAuth, async (req, res) => {
     const bank = questionBank[req.params.subjectId];
     if (!bank || bank.length === 0) return res.status(404).json({ message: 'Kho câu hỏi trống!' });
-    let examConfig = { questionCount: Math.min(20, bank.length), durationMinutes: req.params.subjectId === 'toancc1_iuh' ? 60 : 15, questionDistribution: defaultDistribution(req.params.subjectId) };
+    let examConfig = { questionCount: Math.min(20, bank.length), durationMinutes: 15 };
     try {
       const savedConfig = await pool.query(
-        'SELECT question_count, duration_minutes, question_distribution FROM exam_subject_settings WHERE subject_id = $1',
+        'SELECT question_count, duration_minutes FROM exam_subject_settings WHERE subject_id = $1',
         [req.params.subjectId]
       );
       if (savedConfig.rows[0]) {
         examConfig = {
           questionCount: Math.min(Number(savedConfig.rows[0].question_count), bank.length),
-          durationMinutes: Number(savedConfig.rows[0].duration_minutes),
-          questionDistribution: savedConfig.rows[0].question_distribution && Object.keys(savedConfig.rows[0].question_distribution).length ? savedConfig.rows[0].question_distribution : defaultDistribution(req.params.subjectId)
+          durationMinutes: Number(savedConfig.rows[0].duration_minutes)
         };
       }
     } catch (error) {
       console.error('Không đọc được cấu hình đề môn học:', error.message);
       return res.status(500).json({ message: 'Không tải được cấu hình đề thi.' });
     }
-    let selectedQuestions = [];
-    try {
-      const seenResult = await pool.query(`SELECT question_id FROM exam_question_history WHERE username=$1 AND subject_id=$2
-        UNION SELECT jsonb_array_elements_text(question_ids) AS question_id FROM exam_attempts
-        WHERE username=$1 AND subject_id=$2 AND submitted_at IS NULL AND expires_at > NOW()`, [req.user.username, req.params.subjectId]);
-      const seen = new Set(seenResult.rows.map(row => String(row.question_id)));
-      const distribution = examConfig.questionDistribution || {};
-      if (Object.keys(distribution).length) {
-        for (const [typeText, rawCount] of Object.entries(distribution)) {
-          const type = Number(typeText), count = Number(rawCount);
-          const group = bank.filter(q => Number(q.type) === type);
-          const fresh = shuffleArray(group.filter(q => !seen.has(String(q.id))));
-          const repeated = shuffleArray(group.filter(q => seen.has(String(q.id))));
-          selectedQuestions.push(...fresh.slice(0, count));
-          if (fresh.length < count) selectedQuestions.push(...repeated.slice(0, count - fresh.length));
-        }
-      } else {
-        const fresh = shuffleArray(bank.filter(q => !seen.has(String(q.id))));
-        selectedQuestions = fresh.slice(0, examConfig.questionCount);
-        if (selectedQuestions.length < examConfig.questionCount) {
-          const chosen = new Set(selectedQuestions.map(q => String(q.id)));
-          selectedQuestions.push(...shuffleArray(bank.filter(q => !chosen.has(String(q.id)))).slice(0, examConfig.questionCount - selectedQuestions.length));
-        }
-      }
-      selectedQuestions = shuffleArray(selectedQuestions);
-      if (selectedQuestions.length !== examConfig.questionCount) return res.status(400).json({ message: 'Ngân hàng câu hỏi chưa đủ số lượng theo cấu hình từng dạng.' });
-    } catch (error) {
-      console.error('Không đọc được lịch sử câu hỏi:', error.message);
-      return res.status(500).json({ message: 'Không thể tạo đề thi lúc này!' });
-    }
+    const selectedQuestions = shuffleArray(bank).slice(0, examConfig.questionCount);
     const answerKey = {};
     const explanationKey = {};
     const clientQuestions = selectedQuestions.map((q, index) => {
@@ -210,9 +145,9 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     const attemptId = crypto.randomUUID();
     try {
       await pool.query(
-        `INSERT INTO exam_attempts (id, username, subject_id, question_ids, answer_key, explanations, total_questions, expires_at)
-         VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7, NOW() + INTERVAL '2 hours')`,
-        [attemptId, req.user.username, req.params.subjectId, JSON.stringify(selectedQuestions.map(q => String(q.id))), JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length]
+        `INSERT INTO exam_attempts (id, username, answer_key, explanations, total_questions, expires_at)
+         VALUES ($1, $2, $3::jsonb, $4::jsonb, $5, NOW() + INTERVAL '2 hours')`,
+        [attemptId, req.user.username, JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length]
       );
       return res.json({ attemptId, title: 'Đề thi ngẫu nhiên', durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
     } catch (error) {
@@ -230,7 +165,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     try {
       await client.query('BEGIN');
       const found = await client.query(
-        `SELECT answer_key, explanations, total_questions, subject_id, question_ids FROM exam_attempts
+        `SELECT answer_key, explanations, total_questions FROM exam_attempts
          WHERE id = $1 AND username = $2 AND expires_at > NOW() AND submitted_at IS NULL FOR UPDATE`,
         [attemptId, req.user.username]
       );
@@ -246,13 +181,6 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
         const isCorrect = submitted === correctAnswer;
         if (isCorrect) score += 1;
         details.push({ questionId: qId, userAnswer: submitted || 'Chưa chọn', correctAnswer, isCorrect, explanation: explanations?.[qId] || '' });
-      }
-      const attempt = found.rows[0];
-      for (const questionId of (attempt.question_ids || [])) {
-        await client.query(`INSERT INTO exam_question_history(username,subject_id,question_id)
-          VALUES($1,$2,$3) ON CONFLICT(username,subject_id,question_id)
-          DO UPDATE SET last_seen_at=NOW(),seen_count=exam_question_history.seen_count+1`,
-          [req.user.username, attempt.subject_id, String(questionId)]);
       }
       await client.query('UPDATE exam_attempts SET submitted_at = NOW() WHERE id = $1', [attemptId]);
       await client.query('COMMIT');

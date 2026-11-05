@@ -371,3 +371,16 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
   .otp-input-row { gap: 6px; }
   .otp-send-button { min-width: 96px; padding: 9px 8px; font-size: 12px; }
 }
+
+.exam-warning-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.exam-warning-actions .btn-secondary,
+.exam-warning-actions .btn-primary {
+  min-height: 42px;
+}
