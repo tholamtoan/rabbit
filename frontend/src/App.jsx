@@ -164,6 +164,10 @@ export default function App() {
 
   const [userId, setUserId] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
+  const [depositAmount, setDepositAmount] = useState('100000');
+  const [depositOrder, setDepositOrder] = useState(null);
+  const [depositBusy, setDepositBusy] = useState(false);
+  const [depositMessage, setDepositMessage] = useState('');
   const [examPrice, setExamPrice] = useState(1000);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPricing, setShowAdminPricing] = useState(false);
@@ -440,6 +444,20 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const createDepositOrder = async () => {
+    setDepositBusy(true); setDepositMessage(''); setDepositOrder(null);
+    try {
+      const token = localStorage.getItem('hct_session_token');
+      const data = await fetchJson(`${API_BASE}/deposits/orders`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token || ''}` },
+        body: JSON.stringify({ amount: Number(depositAmount) })
+      });
+      setDepositOrder(data.order);
+      setDepositMessage('Đơn nạp đã tạo. Hãy chuyển đúng số tiền hiển thị; không cần nhập nội dung chuyển khoản.');
+    } catch (err) { setDepositMessage(err.message); }
+    finally { setDepositBusy(false); }
   };
 
   const fetchWalletBalance = useCallback(async () => {
@@ -1198,15 +1216,24 @@ export default function App() {
                 <button className="btn-secondary" onClick={fetchWalletBalance} type="button">🔄 Cập nhật</button>
               </div>
 
-              <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
-                <p style={{ margin: '0 0 6px', fontWeight: 'bold' }}>📲 Quét QR nạp tiền qua BIDV:</p>
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <img src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&des=NAP%20${userId}`} alt="QR" style={{ width: '130px', borderRadius: '8px' }}/>
-                  <div style={{ fontSize: '14px', lineHeight: '1.6' }}>
-                    <p style={{ margin: 0 }}>• Số TK / VA: <strong>96247THOLAMTOAN</strong></p>
-                    <p style={{ margin: 0 }}>• Cú pháp: <strong style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 6px' }}>NAP {userId}</strong></p>
-                  </div>
+              <div style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
+                <p style={{ margin: '0 0 10px', fontWeight: 'bold' }}>📲 Nạp tiền tự động qua BIDV – không cần ghi nội dung:</p>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input aria-label="Số tiền muốn nạp" type="number" min="10000" step="1000" value={depositAmount} onChange={e=>setDepositAmount(e.target.value)} placeholder="Số tiền muốn nạp" style={{ padding: 10, border: '1px solid #c4b5fd', borderRadius: 8, width: 180 }}/>
+                  <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
                 </div>
+                {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
+                {depositOrder && <div style={{ display:'flex',gap:18,alignItems:'center',flexWrap:'wrap',marginTop:14 }}>
+                  <img src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&amount=${depositOrder.transfer_amount}&des=`} alt="QR nạp tiền" style={{ width: 150, borderRadius: 8 }}/>
+                  <div style={{fontSize:14,lineHeight:1.7}}>
+                    <p style={{margin:0}}>Số tài khoản / VA: <strong>96247THOLAMTOAN</strong></p>
+                    <p style={{margin:0}}>Số tiền phải chuyển: <strong style={{color:'#dc2626',fontSize:19}}>{Number(depositOrder.transfer_amount).toLocaleString('vi-VN')}đ</strong></p>
+                    <p style={{margin:0}}>Số tiền cộng vào ví: <strong>{Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ</strong></p>
+                    <p style={{margin:0,color:'#92400e'}}>Hiệu lực đến: {new Date(depositOrder.expires_at).toLocaleTimeString('vi-VN')}</p>
+                    <p style={{margin:'5px 0 0',fontWeight:600}}>Không cần ghi nội dung. Chuyển đúng số tiền trên QR.</p>
+                  </div>
+                </div>}
+                <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>Nếu chuyển sai số tiền hoặc đơn hết hạn, giao dịch sẽ không tự cộng ví và cần admin đối soát.</p>
               </div>
             </div>
 

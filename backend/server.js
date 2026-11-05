@@ -11,6 +11,7 @@ const shuffleArray = require('./utils/shuffleArray');
 const createAuthRoutes = require('./routes/authRoutes');
 const createExamRoutes = require('./routes/examRoutes');
 const createAdminRoutes = require('./routes/adminRoutes');
+const createDepositRoutes = require('./routes/depositRoutes');
 const { createAuthMiddleware } = require('./middleware/authMiddleware');
 
 const app = express();
@@ -64,6 +65,7 @@ app.use(createAuthRoutes({ pool, sendOtpEmail }));
 const requireAuth = createAuthMiddleware(pool);
 app.use(createAdminRoutes({ pool, requireAuth, catalog, questionBank }));
 app.use(createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, requireAuth }));
+app.use(createDepositRoutes({ pool, requireAuth }));
 
 const PORT = process.env.PORT || 5000;
 initializeDatabase()

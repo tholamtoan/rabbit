@@ -83,10 +83,35 @@ async function initializeDatabase() {
     );
     CREATE INDEX IF NOT EXISTS wallet_transactions_username_created_idx ON wallet_transactions(username, created_at DESC);
     -- Allow zero-value wallet entries so free exams (price = 0) can be purchased.
+    ALTER TABLE wallet_transactions DROP CONSTRAINT IF EXISTS wallet_transactions_type_check;
+    ALTER TABLE wallet_transactions ADD CONSTRAINT wallet_transactions_type_check CHECK (type IN ('exam_purchase','admin_credit','admin_debit','deposit_credit'));
     ALTER TABLE wallet_transactions
       DROP CONSTRAINT IF EXISTS wallet_transactions_amount_check;
     ALTER TABLE wallet_transactions
       ADD CONSTRAINT wallet_transactions_amount_check CHECK (amount >= 0);
+    CREATE TABLE IF NOT EXISTS deposit_orders (
+      id BIGSERIAL PRIMARY KEY,
+      username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+      credit_amount BIGINT NOT NULL CHECK (credit_amount >= 10000),
+      transfer_amount BIGINT NOT NULL UNIQUE,
+      suffix SMALLINT NOT NULL CHECK (suffix BETWEEN 1 AND 99),
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','expired','manual_review')),
+      expires_at TIMESTAMPTZ NOT NULL,
+      paid_at TIMESTAMPTZ,
+      sepay_transaction_id TEXT UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS deposit_orders_user_created_idx ON deposit_orders(username, created_at DESC);
+    CREATE INDEX IF NOT EXISTS deposit_orders_pending_idx ON deposit_orders(transfer_amount, expires_at) WHERE status='pending';
+    CREATE TABLE IF NOT EXISTS sepay_transactions (
+      transaction_id TEXT PRIMARY KEY,
+      transfer_amount BIGINT NOT NULL,
+      content TEXT NOT NULL DEFAULT '',
+      reference_code TEXT NOT NULL DEFAULT '',
+      payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+      matched_order_id BIGINT REFERENCES deposit_orders(id),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS exam_attempts (
       id UUID PRIMARY KEY, username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
       answer_key JSONB NOT NULL, explanations JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -136,7 +161,7 @@ async function initializeDatabase() {
     `INSERT INTO app_settings (key, value) VALUES ('exam_price', to_jsonb($1::numeric)) ON CONFLICT (key) DO NOTHING`,
     [Number(require('./pricing').EXAM_PRICE)]
   );
-  console.log('PostgreSQL connected; user status, admin roles/audit, subject settings, sessions, wallet, exam and app settings are ready.');
+  console.log('PostgreSQL connected; wallet, deposit orders, SePay transactions and app settings are ready.');
 }
 
 module.exports = { pool, initializeDatabase };
