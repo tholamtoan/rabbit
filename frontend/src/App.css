@@ -518,3 +518,36 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
   cursor: not-allowed;
   filter: grayscale(.2);
 }
+
+
+/* Subject exam-term folders: Midterm / Final */
+.term-folder-intro { color: #64748b; margin: 8px 0 18px; }
+.term-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+.term-folder-card {
+  min-height: 172px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid #e9d5ff;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #faf5ff);
+  color: #5b21b6;
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(91,33,182,.07);
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.term-folder-card:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 24px rgba(91,33,182,.13);
+}
+.term-folder-card:disabled { cursor: not-allowed; opacity: .55; filter: grayscale(.25); }
+.term-folder-icon { font-size: 42px; line-height: 1; }
+.term-folder-card strong { font-size: 19px; }
+.term-folder-card small { color: #7c6b91; text-align: center; }

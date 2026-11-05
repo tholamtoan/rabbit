@@ -251,6 +251,8 @@ export default function App() {
   const [violationNotice, setViolationNotice] = useState('');
   const [preExamSubject, setPreExamSubject] = useState(null);
   const [purchaseSubject, setPurchaseSubject] = useState(null);
+  const [termSubject, setTermSubject] = useState(null);
+  const [selectedExamTerm, setSelectedExamTerm] = useState('midterm');
   const [incompleteSubmitNotice, setIncompleteSubmitNotice] = useState('');
 
   const answersRef = useRef({});
@@ -549,11 +551,11 @@ export default function App() {
       const buyRes = await fetchJson(`${API_BASE}/exam/buy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` },
-        body: JSON.stringify({ subjectId: subject.id })
+        body: JSON.stringify({ subjectId: subject.id, examTerm: selectedExamTerm })
       });
       if (buyRes.success) {
         setWalletBalance(buyRes.newBalance);
-        await handleStartRandomExam(subject);
+        await handleStartRandomExam(subject, selectedExamTerm);
       }
     } catch (err) {
       setError(`Không mua được đề: ${err.message}`);
@@ -563,7 +565,7 @@ export default function App() {
     }
   };
 
-  const handleStartRandomExam = async (subject) => {
+  const handleStartRandomExam = async (subject, examTerm = selectedExamTerm) => {
     setCurrentSubject(subject);
     setError('');
     setIsLoading(true);
@@ -576,7 +578,7 @@ export default function App() {
 
 
     try {
-      const data = await fetchJson(`${API_BASE}/exam/random/${subject.id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` } });
+      const data = await fetchJson(`${API_BASE}/exam/random/${subject.id}?term=${encodeURIComponent(examTerm)}`, { headers: { Authorization: `Bearer ${localStorage.getItem('hct_session_token') || ''}` } });
       setExamData(data);
       examRef.current = data;
       setTimeLeft(Math.max(0, Number(data.durationMinutes) || 0) * 60);
@@ -1012,7 +1014,7 @@ export default function App() {
           <div className="exam-warning-modal purchase-confirm-modal">
             <div className="exam-warning-icon">🛒</div>
             <h2 id="purchase-confirm-title">Xác nhận mua đề thi</h2>
-            <p>Bạn đang chuẩn bị mua quyền làm đề môn <strong>{purchaseSubject.name}</strong>.</p>
+            <p>Bạn đang chuẩn bị mua quyền làm đề <strong>{selectedExamTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} – {purchaseSubject.name}</strong>.</p>
             <div className="purchase-confirm-breakdown">
               <div><span>Giá đề thi</span><strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></div>
               <div><span>Số dư hiện tại</span><strong>{walletBalance.toLocaleString('vi-VN')} VNĐ</strong></div>
@@ -1218,9 +1220,31 @@ export default function App() {
                       <p>Giá: <strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></p>
                     </div>
                   </div>
-                  <button className="btn-primary" type="button" onClick={() => handleBuyAndStartExam(subject)}>🛒 Mua đề⚡</button>
+                  <button className="btn-primary" type="button" onClick={() => { setTermSubject(subject); setStep('select-term'); }}>📁 Chọn kỳ thi</button>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {step === 'select-term' && termSubject && (
+          <section className="fade-in">
+            <div className="section-header-nav">
+              <button className="back-link" type="button" onClick={() => setStep('select-subject')}>← Quay lại danh sách môn</button>
+              <h2>{termSubject.name}</h2>
+            </div>
+            <p className="term-folder-intro">Chọn thư mục đề thi bạn muốn làm.</p>
+            <div className="term-folder-grid">
+              <button className="term-folder-card" type="button" disabled={termSubject.id !== 'toancc1_iuh'} onClick={() => { setSelectedExamTerm('midterm'); handleBuyAndStartExam(termSubject); }}>
+                <span className="term-folder-icon">📁</span>
+                <strong>Giữa kỳ</strong>
+                <small>{termSubject.id === 'toancc1_iuh' ? '20 câu hỏi · Đã có đề' : 'Chưa có đề thi'}</small>
+              </button>
+              <button className="term-folder-card" type="button" disabled>
+                <span className="term-folder-icon">📁</span>
+                <strong>Cuối kỳ</strong>
+                <small>Chưa có đề thi</small>
+              </button>
             </div>
           </section>
         )}

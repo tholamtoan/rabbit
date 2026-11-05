@@ -107,8 +107,12 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
   });
   const crypto = require('node:crypto');
   router.get('/api/exam/random/:subjectId', requireAuth, async (req, res) => {
-    const bank = questionBank[req.params.subjectId];
-    if (!bank || bank.length === 0) return res.status(404).json({ message: 'Kho câu hỏi trống!' });
+    const subjectId = req.params.subjectId;
+    const examTerm = ['midterm', 'final'].includes(String(req.query.term || 'midterm')) ? String(req.query.term || 'midterm') : null;
+    if (!examTerm) return res.status(400).json({ message: 'Kỳ thi không hợp lệ.' });
+    const subjectBank = questionBank[subjectId] || [];
+    const bank = subjectBank.filter(question => (question.term || 'midterm') === examTerm);
+    if (!bank.length) return res.status(404).json({ message: `Thư mục ${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} chưa có câu hỏi.` });
     let examConfig = { questionCount: Math.min(20, bank.length), durationMinutes: 15 };
     try {
       const savedConfig = await pool.query(
@@ -149,7 +153,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
          VALUES ($1, $2, $3::jsonb, $4::jsonb, $5, NOW() + INTERVAL '2 hours')`,
         [attemptId, req.user.username, JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length]
       );
-      return res.json({ attemptId, title: 'Đề thi ngẫu nhiên', durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
+      return res.json({ attemptId, title: `${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} - ${catalog[Object.keys(catalog).find(key => (catalog[key].subjects || []).some(subject => subject.id === subjectId))]?.subjects?.find(subject => subject.id === subjectId)?.name || 'Đề thi'}`, durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
     } catch (error) {
       console.error('Không lưu được đề thi:', error.message);
       return res.status(500).json({ message: 'Không thể tạo đề thi lúc này!' });
@@ -208,6 +212,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
 
   router.post('/api/exam/buy', requireAuth, async (req, res) => {
     const { subjectId } = req.body;
+    const examTerm = ['midterm', 'final'].includes(String(req.body?.examTerm || 'midterm')) ? String(req.body?.examTerm || 'midterm') : 'midterm';
     if (!subjectId || !questionBank[subjectId]) {
       return res.status(400).json({ success: false, message: 'Thông tin giao dịch không hợp lệ!' });
     }
@@ -228,7 +233,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
       const updated = await client.query('UPDATE users SET balance = balance - $1 WHERE username = $2 RETURNING balance', [amount, user.username]);
       await client.query(
         `INSERT INTO wallet_transactions (username, type, amount, description) VALUES ($1, 'exam_purchase', $2, $3)`,
-        [user.username, amount, `Mua đề môn ${subjectId}`]
+        [user.username, amount, `Mua đề ${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} môn ${subjectId}`]
       );
       await client.query('COMMIT');
       return res.json({ success: true, message: 'Mua đề thi thành công!', newBalance: Number(updated.rows[0].balance) });
