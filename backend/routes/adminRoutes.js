@@ -134,6 +134,75 @@ module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questi
     finally {client.release();}
   });
 
+  // Add a university/subject without editing catalog.js. The entry is persisted and restored at startup.
+  router.post('/api/admin/subjects', requireManager, async (req,res) => {
+    const universityId = String(req.body?.universityId || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0,60);
+    const universityName = String(req.body?.universityName || '').trim().slice(0,180);
+    const subjectId = String(req.body?.subjectId || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0,80);
+    const subjectName = String(req.body?.subjectName || '').trim().slice(0,180);
+    if (!universityId || !universityName || !subjectId || !subjectName) return res.status(400).json({message:'Cần nhập mã/tên trường và mã/tên môn học.'});
+    const existing = Object.values(catalog).some(u => (u.subjects || []).some(s => s.id === subjectId));
+    if (existing) return res.status(409).json({message:'Mã môn học đã tồn tại. Hãy dùng mã khác.'});
+    try {
+      await pool.query(`INSERT INTO managed_subjects(subject_id,university_id,university_name,subject_name,created_by)
+        VALUES($1,$2,$3,$4,$5)`,[subjectId,universityId,universityName,subjectName,req.user.username]);
+      if (!catalog[universityId]) catalog[universityId] = {name:universityName,subjects:[]};
+      else catalog[universityId].name = universityName;
+      catalog[universityId].subjects.push({id:subjectId,name:subjectName});
+      await pool.query('INSERT INTO admin_audit_log(actor,action,target,details) VALUES($1,$2,$3,$4::jsonb)',
+        [req.user.username,'create_subject',subjectId,JSON.stringify({universityId,universityName,subjectName})]);
+      res.json({success:true,subject:{id:subjectId,name:subjectName,universityId,universityName},message:`Đã tạo môn ${subjectName}. Giờ có thể upload ngân hàng câu hỏi.`});
+    } catch(e) {
+      console.error('Create subject:',e.message);
+      res.status(500).json({message:'Không tạo được môn học. Kiểm tra mã môn có bị trùng không.'});
+    }
+  });
+
+  // Replace/import a complete question bank for one subject. Uploads are stored in PostgreSQL,
+  // so they survive Render restarts and do not depend on the ephemeral filesystem.
+  router.post('/api/admin/question-bank/:subjectId', requireManager, async (req,res) => {
+    const subjectId = String(req.params.subjectId || '');
+    const exists = Object.values(catalog).some(u => (u.subjects || []).some(s => s.id === subjectId));
+    const questions = req.body?.questions;
+    if (!exists) return res.status(404).json({ message: 'Không tìm thấy môn học trong danh mục.' });
+    if (!Array.isArray(questions) || questions.length < 1 || questions.length > 20000) {
+      return res.status(400).json({ message: 'File phải chứa mảng questions có từ 1 đến 20.000 câu.' });
+    }
+    const ids = new Set();
+    const normalized = [];
+    for (let i=0; i<questions.length; i++) {
+      const q = questions[i] || {};
+      const id = String(q.id ?? `${subjectId}-q${i+1}`).trim();
+      const type = Number(q.type);
+      const options = q.options;
+      const correct = String(q.correct || '').toUpperCase();
+      if (!id || ids.has(id) || !Number.isInteger(type) || type < 1 || type > 100 ||
+          !String(q.content ?? q.text ?? '').trim() || !options || !['A','B','C','D'].every(k => typeof options[k] === 'string' && options[k].trim()) ||
+          !['A','B','C','D'].includes(correct)) {
+        return res.status(400).json({ message: `Câu thứ ${i+1} thiếu dữ liệu, trùng ID hoặc sai định dạng (cần dạng, nội dung, 4 lựa chọn và đáp án A-D).` });
+      }
+      ids.add(id);
+      normalized.push({ id, type, content: String(q.content ?? q.text).trim(), options: {A:options.A,B:options.B,C:options.C,D:options.D}, correct, explanation: String(q.explanation || '') });
+    }
+    const byType = normalized.reduce((acc,q)=>{acc[q.type]=(acc[q.type]||0)+1;return acc;},{});
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(`INSERT INTO question_banks(subject_id,questions,updated_by,updated_at)
+        VALUES($1,$2::jsonb,$3,NOW()) ON CONFLICT(subject_id) DO UPDATE
+        SET questions=EXCLUDED.questions,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,
+        [subjectId, JSON.stringify(normalized), req.user.username]);
+      await audit(client, req.user.username, 'replace_question_bank', subjectId, { total: normalized.length, byType });
+      await client.query('COMMIT');
+      questionBank[subjectId] = normalized;
+      res.json({ success:true, subjectId, total:normalized.length, byType, message:`Đã cập nhật ${normalized.length} câu hỏi.` });
+    } catch(e) {
+      await client.query('ROLLBACK').catch(()=>{});
+      console.error('Upload question bank:',e.message);
+      res.status(500).json({ message:'Không lưu được ngân hàng câu hỏi.' });
+    } finally { client.release(); }
+  });
+
   router.get('/api/admin/catalog', async (req,res) => {
     try {
       const enabled=await pool.query('SELECT subject_id,enabled FROM subject_settings');

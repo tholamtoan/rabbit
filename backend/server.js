@@ -3,6 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const questionBank = require('./questionBank');
+const fs = require('node:fs');
+const path = require('node:path');
+const importedBankPath = path.join(__dirname, 'data', 'question-banks', 'toancc1_iuh.json');
+if (fs.existsSync(importedBankPath)) questionBank.toancc1_iuh = JSON.parse(fs.readFileSync(importedBankPath, 'utf8'));
 const pricing = require('./config/pricing');
 const catalog = require('./config/catalog');
 const { pool, initializeDatabase } = require('./config/database');
@@ -32,7 +36,7 @@ app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   next();
 });
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({ limit: '15mb' }));
 
 // Basic per-IP throttle for authentication endpoints. Use a shared rate-limit store
 // (e.g. Redis) before running multiple backend instances.
@@ -67,7 +71,16 @@ app.use(createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, r
 
 const PORT = process.env.PORT || 5000;
 initializeDatabase()
-  .then(() => {
+  .then(async () => {
+    const savedBanks = await pool.query('SELECT subject_id, questions FROM question_banks');
+    for (const row of savedBanks.rows) questionBank[row.subject_id] = row.questions || [];
+    const managedSubjects = await pool.query('SELECT subject_id, university_id, university_name, subject_name FROM managed_subjects ORDER BY created_at');
+    for (const row of managedSubjects.rows) {
+      if (!catalog[row.university_id]) catalog[row.university_id] = { name: row.university_name, subjects: [] };
+      if (!catalog[row.university_id].subjects.some(subject => subject.id === row.subject_id)) {
+        catalog[row.university_id].subjects.push({ id: row.subject_id, name: row.subject_name });
+      }
+    }
     app.listen(PORT, () => console.log(`Server đang chạy tại http://localhost:${PORT}`));
   })
   .catch((error) => {

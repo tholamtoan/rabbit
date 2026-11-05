@@ -4,6 +4,7 @@ import 'katex/dist/katex.min.css';
 import './App.css';
 
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
+const EXAM_TYPE_IDS = Array.from({ length: 16 }, (_, index) => index + 1);
 
 function MathContent({ value = '', inline = false }) {
   const source = String(value ?? '').replace(/\r\n/g, '\n');
@@ -168,6 +169,12 @@ export default function App() {
   const [adminAudit, setAdminAudit] = useState([]);
   const [adminCatalog, setAdminCatalog] = useState([]);
   const [adminExamSettings, setAdminExamSettings] = useState([]);
+  const [bankUploadSubject, setBankUploadSubject] = useState('toancc1_iuh');
+  const [bankUploadBusy, setBankUploadBusy] = useState(false);
+  const [newUniversityId, setNewUniversityId] = useState('iuh');
+  const [newUniversityName, setNewUniversityName] = useState('Đại học Công nghiệp Thành phố Hồ Chí Minh (IUH)');
+  const [newSubjectId, setNewSubjectId] = useState('');
+  const [newSubjectName, setNewSubjectName] = useState('');
   const [adminRoles, setAdminRoles] = useState([]);
   const [adminRoleUsername, setAdminRoleUsername] = useState('');
   const [adminRoleType, setAdminRoleType] = useState('support');
@@ -695,7 +702,7 @@ export default function App() {
       if (tab === 'transactions') setAdminTransactions((await adminRequest('transactions')).transactions || []);
       if (tab === 'audit') setAdminAudit((await adminRequest('audit')).logs || []);
       if (tab === 'catalog') setAdminCatalog((await adminRequest('catalog')).subjects || []);
-      if (tab === 'examSettings') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
+      if (tab === 'examSettings' || tab === 'bankUpload') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
       if (tab === 'roles') setAdminRoles((await adminRequest('roles')).roles || []);
       if (tab === 'pricing') {
         const data = await adminRequest('pricing');
@@ -750,7 +757,14 @@ export default function App() {
   };
 
   const updateAdminExamSetting = (subjectId, field, value) => {
-    setAdminExamSettings(current => current.map(item => item.id === subjectId ? { ...item, [field]: value } : item));
+    setAdminExamSettings(current => current.map(item => {
+      if (item.id !== subjectId) return item;
+      if (field === 'questionDistribution') {
+        const total = Object.values(value).reduce((sum, count) => sum + Number(count || 0), 0);
+        return { ...item, questionDistribution: value, questionCount: total };
+      }
+      return { ...item, [field]: value };
+    }));
   };
 
   const saveAdminExamSetting = async (subject) => {
@@ -767,12 +781,48 @@ export default function App() {
     try {
       await adminRequest(`exam-settings/${encodeURIComponent(subject.id)}`, {
         method: 'PUT',
-        body: JSON.stringify({ questionCount, durationMinutes })
+        body: JSON.stringify({ questionCount, durationMinutes, questionDistribution: subject.questionDistribution || {} })
       });
       setSuccessMessage(`Đã lưu cấu hình ${subject.name}: ${questionCount} câu / ${durationMinutes} phút.`);
       void loadAdminTab('examSettings');
     } catch (err) {
       setError(err.message || 'Không lưu được cấu hình đề thi.');
+    }
+  };
+
+  const handleCreateSubject = async (event) => {
+    event.preventDefault();
+    try {
+      const result = await adminRequest('subjects', { method:'POST', body:JSON.stringify({
+        universityId:newUniversityId, universityName:newUniversityName, subjectId:newSubjectId, subjectName:newSubjectName
+      }) });
+      setSuccessMessage(result.message);
+      setBankUploadSubject(newSubjectId.trim().toLowerCase());
+      setNewSubjectId(''); setNewSubjectName('');
+      void loadAdminTab('examSettings'); void loadAdminTab('catalog');
+    } catch(err) { setError(err.message || 'Không tạo được môn học.'); }
+  };
+
+  const handleQuestionBankUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setBankUploadBusy(true);
+    setError('');
+    try {
+      const parsed = JSON.parse(await file.text());
+      const questions = Array.isArray(parsed) ? parsed : parsed.questions;
+      if (!Array.isArray(questions)) throw new Error('File JSON phải là một mảng câu hỏi hoặc có thuộc tính questions.');
+      const result = await adminRequest(`question-bank/${encodeURIComponent(bankUploadSubject)}`, {
+        method: 'POST', body: JSON.stringify({ questions })
+      });
+      setSuccessMessage(`${result.message} Phân bố: ${Object.entries(result.byType || {}).map(([type,count])=>`Dạng ${type}: ${count}`).join(' · ')}`);
+      void loadAdminTab('examSettings');
+      void loadAdminTab('catalog');
+    } catch (err) {
+      setError(err.message || 'Không thể upload ngân hàng câu hỏi.');
+    } finally {
+      setBankUploadBusy(false);
+      event.target.value = '';
     }
   };
 
@@ -838,7 +888,7 @@ export default function App() {
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'18px 0'}}>
             {[
-              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
+              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['bankUpload','📤 Upload ngân hàng'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
             ].map(([id,label])=><button key={id} type="button" onClick={()=>changeAdminTab(id==='wallet'?'transactions':id)} style={{border:adminTab===(id==='wallet'?'transactions':id)?'2px solid #9333ea':'1px solid #ddd6fe',background:adminTab===(id==='wallet'?'transactions':id)?'#f3e8ff':'#fff',color:'#6b21a8',borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:'pointer'}}>{label}</button>)}
           </div>
           {adminLoading && <p style={{color:'#7e22ce'}}>Đang tải dữ liệu...</p>}
@@ -872,8 +922,30 @@ export default function App() {
                 <label style={{fontSize:13,color:'#6b21a8'}}>Số câu<input type="number" min="1" max={subject.bankSize} value={subject.questionCount} onChange={e=>updateAdminExamSetting(subject.id,'questionCount',e.target.value)} style={{display:'block',width:'100%',padding:9,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}/></label>
                 <label style={{fontSize:13,color:'#6b21a8'}}>Thời gian (phút)<input type="number" min="1" max="360" value={subject.durationMinutes} onChange={e=>updateAdminExamSetting(subject.id,'durationMinutes',e.target.value)} style={{display:'block',width:'100%',padding:9,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}/></label>
                 <button className="btn-primary" type="button" onClick={()=>saveAdminExamSetting(subject)}>💾 Lưu</button>
+                <div style={{gridColumn:'1 / -1',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(115px,1fr))',gap:8,marginTop:4}}>
+                  {EXAM_TYPE_IDS.map(type=><label key={type} style={{fontSize:12,color:'#6b21a8'}}>Dạng {type} · kho {subject.typeCounts?.[type] || 0}<input type="number" min="0" max={subject.typeCounts?.[type] || 0} value={subject.questionDistribution?.[type] ?? 0} onChange={e=>updateAdminExamSetting(subject.id,'questionDistribution',{...(subject.questionDistribution||{}),[type]:e.target.value})} style={{display:'block',width:'100%',padding:7,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>)}
+                </div>
+                <small style={{gridColumn:'1 / -1',color:'#8b5cf6'}}>Tổng số câu ở 16 dạng phải bằng số câu của đề. Để 0 nếu không lấy câu ở dạng đó.</small>
               </div>)}
             </div>
+          </div>}
+          {adminTab==='bankUpload' && <div style={{maxWidth:760,padding:18,border:'1px solid #e9d5ff',borderRadius:14,background:'#fff'}}>
+            <h3 style={{marginTop:0,color:'#6b21a8'}}>Upload ngân hàng câu hỏi</h3>
+            <details style={{marginBottom:16,padding:12,border:'1px solid #ddd6fe',borderRadius:9}}>
+              <summary style={{cursor:'pointer',fontWeight:700,color:'#6b21a8'}}>＋ Tạo môn học mới (không cần sửa code)</summary>
+              <form onSubmit={handleCreateSubject} style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(210px,1fr))',gap:9,marginTop:12}}>
+                <label style={{fontSize:12}}>Mã trường<input value={newUniversityId} onChange={e=>setNewUniversityId(e.target.value)} placeholder="vd: iuh" required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
+                <label style={{fontSize:12}}>Tên trường<input value={newUniversityName} onChange={e=>setNewUniversityName(e.target.value)} required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
+                <label style={{fontSize:12}}>Mã môn<input value={newSubjectId} onChange={e=>setNewSubjectId(e.target.value)} placeholder="vd: giaitich1_hust" required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
+                <label style={{fontSize:12}}>Tên môn<input value={newSubjectName} onChange={e=>setNewSubjectName(e.target.value)} placeholder="vd: Giải tích 1" required style={{display:'block',width:'100%',padding:9,marginTop:4,border:'1px solid #ddd6fe',borderRadius:7}}/></label>
+                <button className="btn-primary" type="submit" style={{gridColumn:'1 / -1'}}>＋ Tạo môn học</button>
+              </form>
+            </details>
+            <p style={{color:'#6b7280',fontSize:13}}>Chọn môn học và tải lên file JSON đã chuyển từ Word. Dữ liệu được lưu trong PostgreSQL/Neon nên không mất khi Render khởi động lại. Upload sẽ thay thế toàn bộ ngân hàng hiện tại của môn đã chọn.</p>
+            <label style={{display:'block',marginBottom:12,color:'#6b21a8'}}>Môn học<select value={bankUploadSubject} onChange={e=>setBankUploadSubject(e.target.value)} style={{display:'block',width:'100%',padding:11,marginTop:5,border:'1px solid #ddd6fe',borderRadius:8}}>{adminExamSettings.map(subject=><option key={subject.id} value={subject.id}>{subject.name}</option>)}</select></label>
+            <label style={{display:'block',padding:16,border:'2px dashed #c4b5fd',borderRadius:10,color:'#6b21a8'}}>Chọn file ngân hàng (.json)<input type="file" accept=".json,application/json" onChange={handleQuestionBankUpload} disabled={bankUploadBusy} style={{display:'block',marginTop:10}}/></label>
+            {bankUploadBusy && <p>Đang kiểm tra và lưu ngân hàng câu hỏi...</p>}
+            <small style={{display:'block',marginTop:12,color:'#64748b'}}>Định dạng mỗi câu: id, type (1–16), content, options A/B/C/D, correct. Hệ thống sẽ từ chối file thiếu đáp án hoặc thiếu lựa chọn.</small>
           </div>}
           {adminTab==='catalog' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Trường','Môn học','Số câu hỏi','Hiển thị'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminCatalog.map(c=><tr key={c.id}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.universityName}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.name}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.questionCount}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}><button className="btn-secondary" type="button" onClick={()=>adminToggleSubject(c)}>{c.enabled?'Đang mở · Ẩn môn':'Đang ẩn · Mở môn'}</button></td></tr>)}</tbody></table></div>}
           {adminTab==='audit' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Thời gian','Người thao tác','Hành động','Đối tượng','Chi tiết'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminAudit.map(a=><tr key={a.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(a.created_at).toLocaleString('vi-VN')}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.actor}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.action}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.target}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{JSON.stringify(a.details)}</td></tr>)}</tbody></table></div>}
