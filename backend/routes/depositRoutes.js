@@ -4,42 +4,34 @@ const crypto = require('node:crypto');
 module.exports = function createDepositRoutes({ pool, requireAuth }) {
   const router = express.Router();
 
-  // Học viên tạo đơn nạp; số tiền chuyển là số tiền muốn nạp + mã phân biệt 1..99đ.
+  // Học viên tạo đơn nạp: chuyển đúng mệnh giá, nhận diện bằng mã nội dung riêng.
   router.post('/api/deposits/orders', requireAuth, async (req, res) => {
     const creditAmount = Number(req.body?.amount);
     if (!Number.isSafeInteger(creditAmount) || creditAmount < 10000 || creditAmount > 50000000 || creditAmount % 1000 !== 0) {
       return res.status(400).json({ message: 'Số tiền nạp phải từ 10.000đ đến 50.000.000đ và là bội số của 1.000đ.' });
     }
-    const client = await pool.connect();
     try {
-      await client.query('BEGIN');
-      // Serialize order allocation for each base amount to prevent two users receiving the same transfer amount.
-      await client.query('SELECT pg_advisory_xact_lock($1)', [creditAmount]);
-      const used = await client.query(
-        `SELECT suffix FROM deposit_orders WHERE credit_amount=$1 AND status='pending' AND expires_at > NOW() FOR UPDATE`,
-        [creditAmount]
-      );
-      const occupied = new Set(used.rows.map(r => Number(r.suffix)));
-      let suffix = 0;
-      for (let i = 1; i <= 99; i++) if (!occupied.has(i)) { suffix = i; break; }
-      if (!suffix) {
-        await client.query('ROLLBACK');
-        return res.status(429).json({ message: 'Đang có quá nhiều đơn cùng mệnh giá. Vui lòng thử lại sau ít phút.' });
+      let inserted;
+      // Retry rare code collisions; amount is never increased.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const orderCode = `HCT${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
+        try {
+          inserted = await pool.query(
+            `INSERT INTO deposit_orders(username,credit_amount,transfer_amount,suffix,order_code,status,expires_at)
+             VALUES($1,$2,$2,0,$3,'pending',NOW()+INTERVAL '20 minutes')
+             RETURNING id,credit_amount,transfer_amount,order_code,status,expires_at`,
+            [req.user.username, creditAmount, orderCode]
+          );
+          break;
+        } catch (error) {
+          if (error.code !== '23505' || attempt === 4) throw error;
+        }
       }
-      const transferAmount = creditAmount + suffix;
-      const inserted = await client.query(
-        `INSERT INTO deposit_orders(username,credit_amount,transfer_amount,suffix,status,expires_at)
-         VALUES($1,$2,$3,$4,'pending',NOW()+INTERVAL '20 minutes')
-         RETURNING id,credit_amount,transfer_amount,expires_at`,
-        [req.user.username, creditAmount, transferAmount, suffix]
-      );
-      await client.query('COMMIT');
       return res.status(201).json({ order: inserted.rows[0], bank: 'BIDV', account: process.env.SEPAY_VA_ACCOUNT || '96247THOLAMTOAN' });
     } catch (error) {
-      await client.query('ROLLBACK').catch(() => {});
       console.error('Tạo đơn nạp:', error.message);
       return res.status(500).json({ message: 'Không tạo được đơn nạp. Vui lòng thử lại.' });
-    } finally { client.release(); }
+    }
   });
 
   router.get('/api/deposits/orders/current', requireAuth, async (req, res) => {
@@ -77,14 +69,16 @@ module.exports = function createDepositRoutes({ pool, requireAuth }) {
       await client.query('BEGIN');
       const seen = await client.query('SELECT 1 FROM sepay_transactions WHERE transaction_id=$1', [transactionId]);
       if (seen.rowCount) { await client.query('COMMIT'); return res.status(200).json({ success: true, duplicate: true }); }
-      const orderResult = await client.query(
-        `SELECT * FROM deposit_orders WHERE transfer_amount=$1 AND status='pending' AND expires_at > NOW() FOR UPDATE`,
-        [transferAmount]
-      );
+      const content = String(p.content || p.description || p.transferContent || '').toUpperCase().replace(/\s+/g, ' ');
+      const codeMatch = content.match(/HCT[0-9A-F]{10}/);
+      const orderResult = codeMatch ? await client.query(
+        `SELECT * FROM deposit_orders WHERE order_code=$1 AND transfer_amount=$2 AND status='pending' AND expires_at > NOW() FOR UPDATE`,
+        [codeMatch[0], transferAmount]
+      ) : { rows: [], rowCount: 0 };
       await client.query(
         `INSERT INTO sepay_transactions(transaction_id,transfer_amount,content,reference_code,payload,matched_order_id)
          VALUES($1,$2,$3,$4,$5::jsonb,$6)`,
-        [transactionId, transferAmount, String(p.content || p.description || ''), String(p.referenceCode || ''), JSON.stringify(p), orderResult.rows[0]?.id || null]
+        [transactionId, transferAmount, String(p.content || p.description || p.transferContent || ''), String(p.referenceCode || ''), JSON.stringify(p), orderResult.rows[0]?.id || null]
       );
       if (orderResult.rowCount === 1) {
         const order = orderResult.rows[0];

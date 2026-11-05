@@ -168,6 +168,7 @@ export default function App() {
   const [depositOrder, setDepositOrder] = useState(null);
   const [depositBusy, setDepositBusy] = useState(false);
   const [depositMessage, setDepositMessage] = useState('');
+  const [depositNow, setDepositNow] = useState(Date.now());
   const [examPrice, setExamPrice] = useState(1000);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPricing, setShowAdminPricing] = useState(false);
@@ -455,10 +456,59 @@ export default function App() {
         body: JSON.stringify({ amount: Number(depositAmount) })
       });
       setDepositOrder(data.order);
-      setDepositMessage('Đơn nạp đã tạo. Hãy chuyển đúng số tiền hiển thị; không cần nhập nội dung chuyển khoản.');
+      setDepositMessage('Đơn nạp đã tạo. Quét QR để chuyển đúng số tiền; mã đơn đã được điền sẵn trong nội dung.');
     } catch (err) { setDepositMessage(err.message); }
     finally { setDepositBusy(false); }
   };
+
+  const getDepositQrUrl = (order) => `https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&amount=${order.transfer_amount}&des=${encodeURIComponent(order.order_code)}`;
+
+  const copyDepositCode = async () => {
+    if (!depositOrder?.order_code) return;
+    try {
+      await navigator.clipboard.writeText(depositOrder.order_code);
+      setDepositMessage('Đã sao chép mã đơn. Nếu ứng dụng ngân hàng không tự điền nội dung, hãy dán mã này vào ô nội dung chuyển khoản.');
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = depositOrder.order_code;
+      textArea.style.position = 'fixed'; textArea.style.opacity = '0';
+      document.body.appendChild(textArea); textArea.select();
+      const copied = document.execCommand('copy'); textArea.remove();
+      setDepositMessage(copied ? 'Đã sao chép mã đơn. Nếu ứng dụng ngân hàng không tự điền nội dung, hãy dán mã này vào ô nội dung chuyển khoản.' : `Mã đơn: ${depositOrder.order_code}. Hãy sao chép mã này để dán vào nội dung chuyển khoản nếu ngân hàng không tự điền.`);
+    }
+  };
+
+  const saveDepositQr = async () => {
+    if (!depositOrder) return;
+    const qrUrl = getDepositQrUrl(depositOrder);
+    // Mở sẵn tab đồng bộ với thao tác bấm để tránh trình duyệt chặn popup ở bước dự phòng.
+    const preview = window.open('about:blank', '_blank');
+    try {
+      const response = await fetch(qrUrl);
+      if (!response.ok) throw new Error('Không tải được ảnh QR');
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      if (preview) preview.close();
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `QR-nap-tien-${depositOrder.order_code}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+      setDepositMessage('Đã yêu cầu tải ảnh QR về thiết bị. Nếu điện thoại mở ảnh thay vì tải, hãy nhấn giữ ảnh và chọn Lưu hình ảnh.');
+    } catch {
+      if (preview) preview.location.href = qrUrl;
+      else window.location.href = qrUrl;
+      setDepositMessage('Trình duyệt không cho tải ảnh trực tiếp. Ảnh QR đã được mở; trên điện thoại hãy nhấn giữ ảnh và chọn Lưu hình ảnh.');
+    }
+  };
+
+  useEffect(() => {
+    if (!depositOrder?.expires_at) return;
+    const timer = window.setInterval(() => setDepositNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [depositOrder?.expires_at]);
 
   const fetchWalletBalance = useCallback(async () => {
     if (!userId) return;
@@ -1217,23 +1267,35 @@ export default function App() {
               </div>
 
               <div style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
-                <p style={{ margin: '0 0 10px', fontWeight: 'bold' }}>📲 Nạp tiền tự động qua BIDV – không cần ghi nội dung:</p>
+                <p style={{ margin: '0 0 10px', fontWeight: 'bold' }}>📲 Nạp tiền tự động qua BIDV – QR tự điền mã đơn:</p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                   <input aria-label="Số tiền muốn nạp" type="number" min="10000" step="1000" value={depositAmount} onChange={e=>setDepositAmount(e.target.value)} placeholder="Số tiền muốn nạp" style={{ padding: 10, border: '1px solid #c4b5fd', borderRadius: 8, width: 180 }}/>
                   <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
                 </div>
                 {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
-                {depositOrder && <div style={{ display:'flex',gap:18,alignItems:'center',flexWrap:'wrap',marginTop:14 }}>
-                  <img src={`https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&amount=${depositOrder.transfer_amount}&des=`} alt="QR nạp tiền" style={{ width: 150, borderRadius: 8 }}/>
-                  <div style={{fontSize:14,lineHeight:1.7}}>
-                    <p style={{margin:0}}>Số tài khoản / VA: <strong>96247THOLAMTOAN</strong></p>
-                    <p style={{margin:0}}>Số tiền phải chuyển: <strong style={{color:'#dc2626',fontSize:19}}>{Number(depositOrder.transfer_amount).toLocaleString('vi-VN')}đ</strong></p>
-                    <p style={{margin:0}}>Số tiền cộng vào ví: <strong>{Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ</strong></p>
-                    <p style={{margin:0,color:'#92400e'}}>Hiệu lực đến: {new Date(depositOrder.expires_at).toLocaleTimeString('vi-VN')}</p>
-                    <p style={{margin:'5px 0 0',fontWeight:600}}>Không cần ghi nội dung. Chuyển đúng số tiền trên QR.</p>
-                  </div>
-                </div>}
-                <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>Nếu chuyển sai số tiền hoặc đơn hết hạn, giao dịch sẽ không tự cộng ví và cần admin đối soát.</p>
+                {depositOrder && (() => {
+                  const remaining = Math.max(0, Math.ceil((new Date(depositOrder.expires_at).getTime() - depositNow) / 1000));
+                  const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+                  const ss = String(remaining % 60).padStart(2, '0');
+                  return <div style={{ display:'flex',gap:18,alignItems:'center',flexWrap:'wrap',marginTop:14 }}>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                      <img src={getDepositQrUrl(depositOrder)} alt="QR nạp tiền" style={{ width: 170, maxWidth:'100%', borderRadius: 8, border:'1px solid #e9d5ff' }}/>
+                      <button className="btn-secondary" type="button" onClick={saveDepositQr}>⬇️ Lưu ảnh QR</button>
+                    </div>
+                    <div style={{fontSize:14,lineHeight:1.7,minWidth:240,flex:'1 1 260px'}}>
+                      <p style={{margin:0}}>Số tài khoản / VA: <strong>96247THOLAMTOAN</strong></p>
+                      <p style={{margin:0}}>Số tiền phải chuyển: <strong style={{color:'#dc2626',fontSize:19}}>{Number(depositOrder.transfer_amount).toLocaleString('vi-VN')}đ</strong></p>
+                      <p style={{margin:0}}>Số tiền cộng vào ví: <strong>{Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ</strong></p>
+                      <p style={{margin:0}}>Mã đơn / nội dung QR: <strong style={{color:'#6b21a8'}}>{depositOrder.order_code}</strong></p>
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'5px 0'}}>
+                        <button className="btn-secondary" type="button" onClick={copyDepositCode}>📋 Sao chép mã đơn</button>
+                      </div>
+                      <p style={{margin:0,color: remaining > 0 ? '#92400e' : '#dc2626',fontWeight:700}}>⏳ Còn hiệu lực: {remaining > 0 ? `${mm}:${ss}` : 'Đã hết hạn'}</p>
+                      <p style={{margin:'5px 0 0',fontWeight:600}}>Quét QR rồi kiểm tra người nhận, số tiền và nội dung trước khi xác nhận chuyển khoản.</p>
+                    </div>
+                  </div>;
+                })()}
+                <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>QR thường tự điền số tiền và mã đơn, nhưng tùy ứng dụng ngân hàng có thể không tự nhận nội dung. Nếu ô nội dung trống, hãy bấm “Sao chép mã đơn” rồi dán vào trước khi chuyển. Luôn kiểm tra đúng người nhận và số tiền. Đơn hết hạn sẽ không được tự động ghi nhận.</p>
               </div>
             </div>
 

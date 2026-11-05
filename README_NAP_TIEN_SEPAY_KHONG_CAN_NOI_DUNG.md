@@ -32,3 +32,13 @@ Deploy backend. Khi backend khởi động, `initializeDatabase()` tự tạo c�
 - Không bật webhook không xác thực trên môi trường thật. Không đưa `SEPAY_WEBHOOK_API_KEY` vào mã frontend.
 - Giao dịch không khớp được lưu trong `sepay_transactions` với `matched_order_id` rỗng để phục vụ đối soát. Chưa có màn hình admin đối soát trong bản này.
 - Bản này dùng API Key webhook theo tài liệu SePay. Không tự động cấu hình webhook trên tài khoản SePay; người quản trị vẫn phải tạo webhook và nhập biến môi trường.
+
+## Cập nhật: mã đơn riêng, không cộng thêm tiền
+- Mỗi đơn nạp sinh mã riêng dạng `HCT` + 10 ký tự hex.
+- Số tiền chuyển bằng đúng số tiền muốn nạp; không còn cộng thêm 1–99đ.
+- QR tự điền mã đơn vào nội dung chuyển khoản (`des`). Người dùng chỉ cần quét QR, kiểm tra nội dung được điền sẵn và xác nhận; không cần tự gõ.
+- Webhook chỉ tự cộng ví khi khớp đồng thời mã đơn, số tiền, trạng thái pending và thời hạn.
+- Giao diện hiển thị đồng hồ đếm ngược 20 phút dạng MM:SS. Hết hạn thì không được tự động ghi nhận.
+- Hai người nạp cùng mệnh giá vẫn phân biệt bằng mã đơn khác nhau.
+
+**Quan trọng:** Trên SePay cần bật webhook tiền vào, định dạng JSON, API Key. Cấu hình nội dung chuyển khoản QR phải được ngân hàng giữ nguyên. Trước khi mở cho người dùng, hãy kiểm thử giao dịch thật số tiền nhỏ và xác nhận SePay gửi trường `content`/`description` có chứa mã `HCT...`; nếu SePay/bank bỏ nội dung chuyển khoản thì webhook sẽ không tự đối chiếu được và giao dịch cần admin xử lý thủ công.

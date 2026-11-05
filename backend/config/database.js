@@ -93,16 +93,24 @@ async function initializeDatabase() {
       id BIGSERIAL PRIMARY KEY,
       username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
       credit_amount BIGINT NOT NULL CHECK (credit_amount >= 10000),
-      transfer_amount BIGINT NOT NULL UNIQUE,
-      suffix SMALLINT NOT NULL CHECK (suffix BETWEEN 1 AND 99),
+      transfer_amount BIGINT NOT NULL,
+      suffix SMALLINT NOT NULL DEFAULT 0 CHECK (suffix BETWEEN 0 AND 99),
+      order_code TEXT UNIQUE,
       status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','expired','manual_review')),
       expires_at TIMESTAMPTZ NOT NULL,
       paid_at TIMESTAMPTZ,
       sepay_transaction_id TEXT UNIQUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    -- Migrate existing installations from amount-suffix matching to unique transfer content codes.
+    ALTER TABLE deposit_orders ADD COLUMN IF NOT EXISTS order_code TEXT;
+    ALTER TABLE deposit_orders ALTER COLUMN suffix SET DEFAULT 0;
+    ALTER TABLE deposit_orders DROP CONSTRAINT IF EXISTS deposit_orders_suffix_check;
+    ALTER TABLE deposit_orders ADD CONSTRAINT deposit_orders_suffix_check CHECK (suffix BETWEEN 0 AND 99);
+    ALTER TABLE deposit_orders DROP CONSTRAINT IF EXISTS deposit_orders_transfer_amount_key;
+    CREATE UNIQUE INDEX IF NOT EXISTS deposit_orders_order_code_uidx ON deposit_orders(order_code) WHERE order_code IS NOT NULL;
     CREATE INDEX IF NOT EXISTS deposit_orders_user_created_idx ON deposit_orders(username, created_at DESC);
-    CREATE INDEX IF NOT EXISTS deposit_orders_pending_idx ON deposit_orders(transfer_amount, expires_at) WHERE status='pending';
+    CREATE INDEX IF NOT EXISTS deposit_orders_pending_idx ON deposit_orders(order_code, expires_at) WHERE status='pending';
     CREATE TABLE IF NOT EXISTS sepay_transactions (
       transaction_id TEXT PRIMARY KEY,
       transfer_amount BIGINT NOT NULL,
