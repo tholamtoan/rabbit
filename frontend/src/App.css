@@ -384,3 +384,137 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
 .exam-warning-actions .btn-primary {
   min-height: 42px;
 }
+
+
+/* ===== Fix spacing and responsive layout for exam warning dialogs ===== */
+.exam-warning-backdrop {
+  padding: 24px !important;
+}
+.exam-warning-modal {
+  box-sizing: border-box !important;
+  width: min(100%, 560px) !important;
+  max-width: 560px !important;
+  flex: 0 1 560px !important;
+  padding: 28px 32px 30px !important;
+  overflow-wrap: anywhere;
+}
+.exam-warning-modal *,
+.exam-warning-modal *::before,
+.exam-warning-modal *::after {
+  box-sizing: border-box;
+}
+.exam-warning-modal h2 {
+  margin: 8px 0 12px !important;
+  line-height: 1.3;
+}
+.exam-warning-modal p {
+  margin: 8px 0 !important;
+  padding: 0 2px;
+  line-height: 1.55;
+}
+.exam-warning-actions {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  width: 100%;
+  margin: 20px auto 0 !important;
+  padding: 0 !important;
+}
+.exam-warning-actions button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: 132px;
+  max-width: 100%;
+  min-height: 46px;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 11px 20px !important;
+  border-radius: 10px !important;
+  line-height: 1.3 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  flex: 0 1 auto !important;
+}
+.exam-warning-modal .exam-warning-confirm {
+  min-width: 190px;
+  margin: 0 !important;
+}
+@media (max-width: 480px) {
+  .exam-warning-backdrop { padding: 14px !important; }
+  .exam-warning-modal {
+    width: 100% !important;
+    padding: 24px 20px 26px !important;
+  }
+  .exam-warning-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .exam-warning-actions button,
+  .exam-warning-modal .exam-warning-confirm {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+
+/* Purchase confirmation: clearly disclose charge before the exam starts */
+.purchase-confirm-modal {
+  max-width: 560px !important;
+}
+.purchase-confirm-breakdown {
+  display: grid;
+  gap: 0;
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid #e9d5ff;
+  border-radius: 12px;
+  background: #faf5ff;
+  text-align: left;
+}
+.purchase-confirm-breakdown > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  color: #475569;
+  border-bottom: 1px solid #eadcf8;
+}
+.purchase-confirm-breakdown > div:last-child { border-bottom: 0; }
+.purchase-confirm-breakdown strong {
+  color: #6b21a8;
+  text-align: right;
+  white-space: nowrap;
+}
+.purchase-confirm-breakdown .purchase-confirm-after {
+  margin-top: 4px;
+  padding-top: 13px;
+  font-weight: 700;
+  color: #312e81;
+}
+.purchase-confirm-breakdown .purchase-confirm-after strong {
+  color: #15803d;
+  font-size: 1.05em;
+}
+.purchase-confirm-note {
+  font-size: .94rem;
+  color: #475569;
+  background: #f8fafc;
+  border-left: 4px solid #8b5cf6;
+  padding: 10px 12px !important;
+  border-radius: 6px;
+  text-align: left;
+}
+.purchase-insufficient {
+  color: #b91c1c !important;
+  font-weight: 700;
+}
+.purchase-confirm-modal button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+  filter: grayscale(.2);
+}

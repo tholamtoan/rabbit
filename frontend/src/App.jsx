@@ -250,6 +250,7 @@ export default function App() {
   const [tabViolationCount, setTabViolationCount] = useState(0);
   const [violationNotice, setViolationNotice] = useState('');
   const [preExamSubject, setPreExamSubject] = useState(null);
+  const [purchaseSubject, setPurchaseSubject] = useState(null);
   const [incompleteSubmitNotice, setIncompleteSubmitNotice] = useState('');
 
   const answersRef = useRef({});
@@ -503,9 +504,21 @@ export default function App() {
     }
   };
 
-  // Hiển thị quy chế trước khi mua/mở đề; chỉ bắt đầu khi người dùng xác nhận.
+  // Luôn hiển thị xác nhận giá và số dư trước khi chuyển sang quy chế thi.
+  // Chưa có giao dịch/trừ tiền ở bước mở hộp thoại này.
   const handleBuyAndStartExam = (subject) => {
-    setPreExamSubject(subject);
+    setPurchaseSubject(subject);
+  };
+
+  const confirmPurchasePrompt = () => {
+    if (!purchaseSubject) return;
+    if (walletBalance < examPrice) {
+      alert(`Số dư không đủ. Giá đề ${examPrice.toLocaleString('vi-VN')}đ, số dư hiện tại ${walletBalance.toLocaleString('vi-VN')}đ. Vui lòng nạp thêm tiền.`);
+      return;
+    }
+    const selected = purchaseSubject;
+    setPurchaseSubject(null);
+    setPreExamSubject(selected);
   };
 
   const confirmStartExam = async () => {
@@ -631,8 +644,13 @@ export default function App() {
 
       if (nextCount >= MAX_TAB_VIOLATIONS) {
         submitLock.current = true;
-        setViolationNotice(`Bài thi bị hủy do vi phạm quy chế thi ${MAX_TAB_VIOLATIONS} lần.`);
+        setViolationNotice(`Bài thi đã bị hủy do vi phạm quy chế thi ${MAX_TAB_VIOLATIONS} lần. Bấm nút bên dưới để quay về danh sách môn học.`);
         setStep('select-subject');
+        setExamData(null);
+        examRef.current = null;
+        setUserAnswers({});
+        answersRef.current = {};
+        setTimeLeft(0);
         if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
         return;
       }
@@ -662,6 +680,35 @@ export default function App() {
     } catch (err) {
       setViolationNotice('Trình duyệt chưa cho phép bật toàn màn hình. Hãy bấm lại nút bên dưới để tiếp tục làm bài ở chế độ toàn màn hình.');
     }
+  };
+
+  // Người thi có thể chủ động dừng bài khi đang ở hộp cảnh báo.
+  // Thoát bài không bị tính thêm vi phạm và luôn đưa giao diện về danh sách môn.
+  const stopExamNow = () => {
+    submitLock.current = true;
+    setViolationNotice('');
+    setExamData(null);
+    examRef.current = null;
+    setUserAnswers({});
+    answersRef.current = {};
+    setTimeLeft(0);
+    setResult(null);
+    setIsSubmitted(false);
+    setIncompleteSubmitNotice('');
+    setStep('select-subject');
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
+  const closeCancelledExamNotice = () => {
+    setViolationNotice('');
+    setStep('select-subject');
+    setExamData(null);
+    examRef.current = null;
+    setUserAnswers({});
+    answersRef.current = {};
+    setTimeLeft(0);
   };
 
   useEffect(() => {
@@ -960,6 +1007,27 @@ export default function App() {
         </div>
       )}
 
+      {purchaseSubject && (
+        <div className="exam-warning-backdrop" role="dialog" aria-modal="true" aria-labelledby="purchase-confirm-title">
+          <div className="exam-warning-modal purchase-confirm-modal">
+            <div className="exam-warning-icon">🛒</div>
+            <h2 id="purchase-confirm-title">Xác nhận mua đề thi</h2>
+            <p>Bạn đang chuẩn bị mua quyền làm đề môn <strong>{purchaseSubject.name}</strong>.</p>
+            <div className="purchase-confirm-breakdown">
+              <div><span>Giá đề thi</span><strong>{examPrice.toLocaleString('vi-VN')} VNĐ</strong></div>
+              <div><span>Số dư hiện tại</span><strong>{walletBalance.toLocaleString('vi-VN')} VNĐ</strong></div>
+              <div className="purchase-confirm-after"><span>Số dư sau khi mua</span><strong>{Math.max(0, walletBalance - examPrice).toLocaleString('vi-VN')} VNĐ</strong></div>
+            </div>
+            <p className="purchase-confirm-note">Tiền chỉ bị trừ khi bạn tiếp tục xác nhận và bắt đầu bài thi ở bước tiếp theo. Nếu chọn Hủy, tài khoản không bị trừ tiền.</p>
+            {walletBalance < examPrice && <p className="purchase-insufficient">Số dư không đủ. Vui lòng nạp thêm tiền trước khi mua đề.</p>}
+            <div className="exam-warning-actions">
+              <button className="btn-secondary" type="button" onClick={() => setPurchaseSubject(null)}>Hủy</button>
+              <button className="btn-primary exam-warning-confirm" type="button" disabled={walletBalance < examPrice} onClick={confirmPurchasePrompt}>Xác nhận giá và tiếp tục</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {preExamSubject && (
         <div className="exam-warning-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="pre-exam-warning-title">
           <div className="exam-warning-modal">
@@ -981,8 +1049,15 @@ export default function App() {
             <div className="exam-warning-icon">⚠️</div>
             <h2>Cảnh báo quy chế thi</h2>
             <p>{violationNotice}</p>
-            {step === 'doing-exam' && !isSubmitted && (
-              <button className="btn-primary exam-warning-confirm" type="button" onClick={() => void resumeExamFullscreen()}>Quay lại toàn màn hình và tiếp tục</button>
+            {step === 'doing-exam' && !isSubmitted ? (
+              <div className="exam-warning-actions">
+                <button className="btn-secondary" type="button" onClick={stopExamNow}>Dừng làm bài</button>
+                <button className="btn-primary exam-warning-confirm" type="button" onClick={() => void resumeExamFullscreen()}>Quay lại toàn màn hình và tiếp tục</button>
+              </div>
+            ) : (
+              <div className="exam-warning-actions">
+                <button className="btn-primary" type="button" onClick={closeCancelledExamNotice}>Về danh sách môn học</button>
+              </div>
             )}
           </div>
         </div>
