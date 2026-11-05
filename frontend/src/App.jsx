@@ -1016,6 +1016,20 @@ export default function App() {
                   <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
                 </div>
                 {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
+                {depositOrder && (
+                  <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      className="btn-secondary"
+                      type="button"
+                      onClick={() => {
+                        setDepositOrder(null);
+                        setDepositMessage('Đã quay lại phần nhập số tiền. Lưu ý: đơn cũ vẫn còn hiệu lực đến khi hết hạn; không chuyển khoản theo QR cũ nếu mày tạo đơn mới.');
+                      }}
+                    >
+                      ← Quay lại sửa số tiền
+                    </button>
+                  </div>
+                )}
                 {depositOrder && (() => {
                   const remaining = Math.max(0, Math.ceil((new Date(depositOrder.expires_at).getTime() - depositNow) / 1000));
                   const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
