@@ -1,7 +1,7 @@
 # Tích hợp nạp tiền SePay không cần nội dung chuyển khoản
 
 ## Cách hoạt động
-- Học viên nhập số tiền muốn nạp (từ 10.000đ, bội số 1.000đ) và bấm **Tạo mã nạp tiền**.
+- Học viên nhập số tiền muốn nạp (từ 1đ đến 50.000.000đ; số nguyên dương) và bấm **Tạo mã nạp tiền**.
 - Backend tạo đơn có hiệu lực 20 phút và gán số tiền chuyển riêng: số tiền nạp + phần lẻ 1–99đ.
 - QR chứa đúng số tiền phải chuyển. Học viên không cần nhập nội dung.
 - SePay gọi webhook khi có tiền vào. Backend đối chiếu đúng số tiền, chỉ cộng phần tiền gốc vào ví.

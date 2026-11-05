@@ -169,6 +169,7 @@ export default function App() {
   const [depositBusy, setDepositBusy] = useState(false);
   const [depositMessage, setDepositMessage] = useState('');
   const [depositNow, setDepositNow] = useState(Date.now());
+  const [showDepositPanel, setShowDepositPanel] = useState(false);
   const [examPrice, setExamPrice] = useState(1000);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminPricing, setShowAdminPricing] = useState(false);
@@ -984,12 +985,65 @@ export default function App() {
           {step !== 'auth' && (
             <div style={{ display: 'flex', gap: '10px' }}>
               {isAdmin && <button className="home-btn" onClick={openAdminPanel} type="button">⚙️ Quản trị Admin</button>}
+              <button className="home-btn deposit-nav-btn" onClick={() => { setShowDepositPanel(true); fetchWalletBalance(); }} type="button">💳 Nạp tiền</button>
               <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
               <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đăng xuất ({userId})</button>
             </div>
           )}
         </div>
       </header>
+
+      {showDepositPanel && step !== 'auth' && (
+        <div className="deposit-modal-backdrop" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) setShowDepositPanel(false); }}>
+          <section className="deposit-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title">
+            <div className="deposit-modal-heading">
+              <div><h2 id="deposit-modal-title">💳 Nạp tiền vào ví</h2><p>Ví của tài khoản {userId}</p></div>
+              <button className="deposit-modal-close" type="button" onClick={() => setShowDepositPanel(false)} aria-label="Đóng">×</button>
+            </div>
+            <div style={{ background: '#f5f3ff', border: '2px solid #c084fc', padding: '16px', borderRadius: '12px', marginBottom: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 'bold', color: '#7e22ce' }}>Số dư: {walletBalance.toLocaleString()} VNĐ</p>
+                </div>
+                <button className="btn-secondary" onClick={fetchWalletBalance} type="button">🔄 Cập nhật</button>
+              </div>
+
+              <div style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
+                <p style={{ margin: '0 0 10px', fontWeight: 'bold' }}>📲 Nạp tiền tự động qua BIDV – QR tự điền mã đơn:</p>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input aria-label="Số tiền muốn nạp" type="number" min="1" step="1" value={depositAmount} onChange={e=>setDepositAmount(e.target.value)} placeholder="Số tiền muốn nạp" style={{ padding: 10, border: '1px solid #c4b5fd', borderRadius: 8, width: 180 }}/>
+                  <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
+                </div>
+                {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
+                {depositOrder && (() => {
+                  const remaining = Math.max(0, Math.ceil((new Date(depositOrder.expires_at).getTime() - depositNow) / 1000));
+                  const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+                  const ss = String(remaining % 60).padStart(2, '0');
+                  return <div style={{ display:'flex',gap:18,alignItems:'center',flexWrap:'wrap',marginTop:14 }}>
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                      <img src={getDepositQrUrl(depositOrder)} alt="QR nạp tiền" style={{ width: 170, maxWidth:'100%', borderRadius: 8, border:'1px solid #e9d5ff' }}/>
+                      <button className="btn-secondary" type="button" onClick={saveDepositQr}>⬇️ Lưu ảnh QR</button>
+                    </div>
+                    <div style={{fontSize:14,lineHeight:1.7,minWidth:240,flex:'1 1 260px'}}>
+                      <p style={{margin:0}}>Số tài khoản / VA: <strong>96247THOLAMTOAN</strong></p>
+                      <p style={{margin:0}}>Số tiền phải chuyển: <strong style={{color:'#dc2626',fontSize:19}}>{Number(depositOrder.transfer_amount).toLocaleString('vi-VN')}đ</strong></p>
+                      <p style={{margin:0}}>Số tiền cộng vào ví: <strong>{Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ</strong></p>
+                      <p style={{margin:0}}>Mã đơn / nội dung QR: <strong style={{color:'#6b21a8'}}>{depositOrder.order_code}</strong></p>
+                      <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'5px 0'}}>
+                        <button className="btn-secondary" type="button" onClick={copyDepositCode}>📋 Sao chép mã đơn</button>
+                      </div>
+                      <p style={{margin:0,color: remaining > 0 ? '#92400e' : '#dc2626',fontWeight:700}}>⏳ Còn hiệu lực: {remaining > 0 ? `${mm}:${ss}` : 'Đã hết hạn'}</p>
+                      <p style={{margin:'5px 0 0',fontWeight:600}}>Quét QR rồi kiểm tra người nhận, số tiền và nội dung trước khi xác nhận chuyển khoản.</p>
+                    </div>
+                  </div>;
+                })()}
+                <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>QR thường tự điền số tiền và mã đơn, nhưng tùy ứng dụng ngân hàng có thể không tự nhận nội dung. Nếu ô nội dung trống, hãy bấm “Sao chép mã đơn” rồi dán vào trước khi chuyển. Luôn kiểm tra đúng người nhận và số tiền. Đơn hết hạn sẽ không được tự động ghi nhận.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
 
 
       {showAdminPanel && isAdmin && (
@@ -1255,48 +1309,6 @@ export default function App() {
             <div className="section-header-nav">
               <button className="back-link" type="button" onClick={() => setStep('select-uni')}>← Chọn trường khác</button>
               <h2>{selectedUni?.name}</h2>
-            </div>
-
-            <div style={{ background: '#f5f3ff', border: '2px solid #c084fc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <div>
-                  <h3 style={{ margin: 0, color: '#6b21a8' }}>💳 Ví điện tử: <span style={{ color: '#dc2626' }}>{userId}</span></h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 'bold', color: '#7e22ce' }}>Số dư: {walletBalance.toLocaleString()} VNĐ</p>
-                </div>
-                <button className="btn-secondary" onClick={fetchWalletBalance} type="button">🔄 Cập nhật</button>
-              </div>
-
-              <div style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
-                <p style={{ margin: '0 0 10px', fontWeight: 'bold' }}>📲 Nạp tiền tự động qua BIDV – QR tự điền mã đơn:</p>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <input aria-label="Số tiền muốn nạp" type="number" min="10000" step="1000" value={depositAmount} onChange={e=>setDepositAmount(e.target.value)} placeholder="Số tiền muốn nạp" style={{ padding: 10, border: '1px solid #c4b5fd', borderRadius: 8, width: 180 }}/>
-                  <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
-                </div>
-                {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
-                {depositOrder && (() => {
-                  const remaining = Math.max(0, Math.ceil((new Date(depositOrder.expires_at).getTime() - depositNow) / 1000));
-                  const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
-                  const ss = String(remaining % 60).padStart(2, '0');
-                  return <div style={{ display:'flex',gap:18,alignItems:'center',flexWrap:'wrap',marginTop:14 }}>
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                      <img src={getDepositQrUrl(depositOrder)} alt="QR nạp tiền" style={{ width: 170, maxWidth:'100%', borderRadius: 8, border:'1px solid #e9d5ff' }}/>
-                      <button className="btn-secondary" type="button" onClick={saveDepositQr}>⬇️ Lưu ảnh QR</button>
-                    </div>
-                    <div style={{fontSize:14,lineHeight:1.7,minWidth:240,flex:'1 1 260px'}}>
-                      <p style={{margin:0}}>Số tài khoản / VA: <strong>96247THOLAMTOAN</strong></p>
-                      <p style={{margin:0}}>Số tiền phải chuyển: <strong style={{color:'#dc2626',fontSize:19}}>{Number(depositOrder.transfer_amount).toLocaleString('vi-VN')}đ</strong></p>
-                      <p style={{margin:0}}>Số tiền cộng vào ví: <strong>{Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ</strong></p>
-                      <p style={{margin:0}}>Mã đơn / nội dung QR: <strong style={{color:'#6b21a8'}}>{depositOrder.order_code}</strong></p>
-                      <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'5px 0'}}>
-                        <button className="btn-secondary" type="button" onClick={copyDepositCode}>📋 Sao chép mã đơn</button>
-                      </div>
-                      <p style={{margin:0,color: remaining > 0 ? '#92400e' : '#dc2626',fontWeight:700}}>⏳ Còn hiệu lực: {remaining > 0 ? `${mm}:${ss}` : 'Đã hết hạn'}</p>
-                      <p style={{margin:'5px 0 0',fontWeight:600}}>Quét QR rồi kiểm tra người nhận, số tiền và nội dung trước khi xác nhận chuyển khoản.</p>
-                    </div>
-                  </div>;
-                })()}
-                <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>QR thường tự điền số tiền và mã đơn, nhưng tùy ứng dụng ngân hàng có thể không tự nhận nội dung. Nếu ô nội dung trống, hãy bấm “Sao chép mã đơn” rồi dán vào trước khi chuyển. Luôn kiểm tra đúng người nhận và số tiền. Đơn hết hạn sẽ không được tự động ghi nhận.</p>
-              </div>
             </div>
 
             <div className="subject-grid">

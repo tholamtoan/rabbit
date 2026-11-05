@@ -551,3 +551,20 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
 .term-folder-icon { font-size: 42px; line-height: 1; }
 .term-folder-card strong { font-size: 19px; }
 .term-folder-card small { color: #7c6b91; text-align: center; }
+
+/* Nút nạp tiền luôn có trên thanh điều hướng sau khi đăng nhập */
+.deposit-nav-btn { background: linear-gradient(135deg, #9333ea, #7c3aed); color: #fff; }
+.deposit-nav-btn:hover { background: linear-gradient(135deg, #7e22ce, #6d28d9); color: #fff; }
+.deposit-modal-backdrop { position: fixed; inset: 0; z-index: 300; background: rgba(24, 16, 35, .58); display: flex; align-items: center; justify-content: center; padding: 18px; overflow-y: auto; }
+.deposit-modal { width: min(760px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; background: #fff; border: 1px solid #e9d5ff; border-radius: 18px; padding: 20px; box-shadow: 0 24px 70px rgba(30, 15, 50, .28); }
+.deposit-modal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.deposit-modal-heading h2 { color: #6b21a8; font-size: 1.25rem; }
+.deposit-modal-heading p { color: #7c6b91; font-size: .88rem; margin-top: 3px; }
+.deposit-modal-close { border: 0; background: #f3e8ff; color: #6b21a8; width: 36px; height: 36px; border-radius: 50%; font-size: 24px; cursor: pointer; line-height: 1; }
+@media (max-width: 640px) {
+  .app-header { padding: 10px 12px; }
+  .header-content { gap: 10px; flex-wrap: wrap; }
+  .header-content > div:last-child { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px !important; }
+  .home-btn { padding: 7px 10px; font-size: 12px; }
+  .deposit-modal { padding: 14px; }
+}
