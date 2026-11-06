@@ -526,6 +526,38 @@ export default function App() {
     if (userId) fetchWalletBalance();
   }, [userId, fetchWalletBalance]);
 
+
+  useEffect(() => {
+    if (!depositOrder?.order_code || depositOrder.status === 'paid' || depositOrder.status === 'manual_review') return;
+    let cancelled = false;
+    const checkOrder = async () => {
+      try {
+        const token = localStorage.getItem('hct_session_token');
+        const data = await fetchJson(`${API_BASE}/deposits/orders/current`, {
+          headers: { Authorization: `Bearer ${token || ''}` }
+        });
+        const latest = (data.orders || []).find(item => item.order_code === depositOrder.order_code);
+        if (!latest || cancelled) return;
+        if (latest.status !== depositOrder.status) {
+          setDepositOrder(current => current?.order_code === latest.order_code ? { ...current, ...latest } : current);
+        }
+        if (latest.status === 'paid') {
+          setDepositMessage('🎉 Thanh toán thành công! Tiền đã được cộng vào ví của bạn.');
+          await fetchWalletBalance();
+        } else if (latest.status === 'manual_review') {
+          setDepositMessage('⚠️ Đã nhận giao dịch nhưng cần quản trị viên kiểm tra. Vui lòng chưa chuyển thêm tiền.');
+        } else if (latest.status === 'expired') {
+          setDepositMessage('Đơn nạp đã hết hạn. Nếu bạn đã chuyển tiền, vui lòng liên hệ quản trị viên để đối soát.');
+        }
+      } catch (error) {
+        console.warn('Kiểm tra trạng thái đơn nạp:', error.message);
+      }
+    };
+    checkOrder();
+    const timer = window.setInterval(checkOrder, 3000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [depositOrder?.order_code, depositOrder?.status, fetchWalletBalance]);
+
   // Restore login after F5 using a server-validated, expiring session token.
   useEffect(() => {
     let cancelled = false;
@@ -985,6 +1017,13 @@ export default function App() {
           {step !== 'auth' && (
             <div style={{ display: 'flex', gap: '10px' }}>
               {isAdmin && <button className="home-btn" onClick={openAdminPanel} type="button">⚙️ Quản trị Admin</button>}
+              <button
+                className="home-btn"
+                type="button"
+                onClick={() => { fetchWalletBalance(); setShowDepositPanel(true); }}
+                title="Xem số dư và nạp tiền"
+                style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', fontWeight: 800 }}
+              >💰 Ví: {Number(walletBalance || 0).toLocaleString('vi-VN')}đ</button>
               <button className="home-btn deposit-nav-btn" onClick={() => { setShowDepositPanel(true); fetchWalletBalance(); }} type="button">💳 Nạp tiền</button>
               <button className="home-btn" onClick={handleReset} type="button">🏠 Trang chủ</button>
               <button className="home-btn" onClick={handleLogout} type="button" style={{ background: '#fee2e2', color: '#dc2626' }}>🚪 Đăng xuất ({userId})</button>
@@ -1024,10 +1063,13 @@ export default function App() {
                   const remaining = Math.max(0, Math.ceil((new Date(depositOrder.expires_at).getTime() - depositNow) / 1000));
                   const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
                   const ss = String(remaining % 60).padStart(2, '0');
+                  const isPaid = depositOrder.status === 'paid';
+                  const needsReview = depositOrder.status === 'manual_review';
+                  const isExpired = depositOrder.status === 'expired' || (!isPaid && remaining <= 0);
                   return <div style={{ display:'flex',gap:18,alignItems:'center',flexWrap:'wrap',marginTop:14 }}>
                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                      <img src={getDepositQrUrl(depositOrder)} alt="QR nạp tiền" style={{ width: 170, maxWidth:'100%', borderRadius: 8, border:'1px solid #e9d5ff' }}/>
-                      <button className="btn-secondary" type="button" onClick={saveDepositQr}>⬇️ Lưu ảnh QR</button>
+                      {!isPaid && !needsReview && !isExpired && <img src={getDepositQrUrl(depositOrder)} alt="QR nạp tiền" style={{ width: 170, maxWidth:'100%', borderRadius: 8, border:'1px solid #e9d5ff' }}/>}
+                      {!isPaid && !needsReview && !isExpired && <button className="btn-secondary" type="button" onClick={saveDepositQr}>⬇️ Lưu ảnh QR</button>}
                     </div>
                     <div style={{fontSize:14,lineHeight:1.7,minWidth:240,flex:'1 1 260px'}}>
                       <p style={{margin:0}}>Số tài khoản / VA: <strong>96247THOLAMTOAN</strong></p>
@@ -1037,12 +1079,14 @@ export default function App() {
                       <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'5px 0'}}>
                         <button className="btn-secondary" type="button" onClick={copyDepositCode}>📋 Sao chép mã đơn</button>
                       </div>
-                      <p style={{margin:0,color: remaining > 0 ? '#92400e' : '#dc2626',fontWeight:700}}>⏳ Còn hiệu lực: {remaining > 0 ? `${mm}:${ss}` : 'Đã hết hạn'}</p>
-                      <p style={{margin:'5px 0 0',fontWeight:600}}>Quét QR rồi kiểm tra người nhận, số tiền và nội dung trước khi xác nhận chuyển khoản.</p>
+                      {isPaid ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#dcfce7',color:'#166534',fontWeight:800,fontSize:17}}>✅ THANH TOÁN THÀNH CÔNG — Ví đã được cộng {Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ.</div>
+                        : needsReview ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#fef3c7',color:'#92400e',fontWeight:700}}>⚠️ Đã nhận giao dịch. Đơn đang chờ quản trị viên đối soát; vui lòng không chuyển thêm.</div>
+                        : isExpired ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#fee2e2',color:'#991b1b',fontWeight:700}}>⌛ Đơn đã hết hạn. Nếu đã chuyển tiền, vui lòng liên hệ quản trị viên để đối soát.</div>
+                        : <><p style={{margin:0,color:'#92400e',fontWeight:700}}>⏳ Còn hiệu lực: {`${mm}:${ss}`}</p><p style={{margin:'5px 0 0',fontWeight:600}}>Quét QR rồi kiểm tra người nhận, số tiền và nội dung trước khi xác nhận chuyển khoản.</p><p style={{margin:'4px 0 0',fontSize:12,color:'#64748b'}}>Hệ thống tự kiểm tra thanh toán mỗi vài giây. Bạn không cần tải lại trang.</p></>}
                     </div>
                   </div>;
                 })()}
-                <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>QR thường tự điền số tiền và mã đơn, nhưng tùy ứng dụng ngân hàng có thể không tự nhận nội dung. Nếu ô nội dung trống, hãy bấm “Sao chép mã đơn” rồi dán vào trước khi chuyển. Luôn kiểm tra đúng người nhận và số tiền. Đơn hết hạn sẽ không được tự động ghi nhận.</p>
+                {depositOrder?.status !== 'paid' && <p style={{fontSize:12,color:'#6b7280',margin:'10px 0 0'}}>QR thường tự điền số tiền và mã đơn, nhưng tùy ứng dụng ngân hàng có thể không tự nhận nội dung. Nếu ô nội dung trống, hãy bấm “Sao chép mã đơn” rồi dán vào trước khi chuyển. Luôn kiểm tra đúng người nhận và số tiền. Đơn hết hạn sẽ không được tự động ghi nhận.</p>}
               </div>
             </div>
           </section>
