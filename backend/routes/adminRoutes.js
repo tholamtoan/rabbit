@@ -212,9 +212,9 @@ module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questi
         pool.query(`SELECT COALESCE(SUM(balance),0)::numeric(16,2) total_balance FROM users`),
         pool.query(`SELECT COUNT(*)::int purchases, COALESCE(SUM(amount),0)::numeric(16,2) revenue
           FROM wallet_transactions WHERE type='exam_purchase' AND created_at >= NOW()-INTERVAL '30 days'`),
-        pool.query(`SELECT DATE(created_at) day, COUNT(*)::int purchases, COALESCE(SUM(amount),0)::numeric(16,2) revenue
+        pool.query(`SELECT DATE(created_at) AS sale_date, COUNT(*)::int purchases, COALESCE(SUM(amount),0)::numeric(16,2) revenue
           FROM wallet_transactions WHERE type='exam_purchase' AND created_at >= NOW()-INTERVAL '14 days'
-          GROUP BY DATE(created_at) ORDER BY day`)
+          GROUP BY DATE(created_at) ORDER BY DATE(created_at)`)
       ]);
       res.json({ users: users.rows[0], money: money.rows[0], sales: sales.rows[0], daily: latest.rows });
     } catch(e) { console.error('Admin dashboard:',e.message); res.status(500).json({message:'Không tải được thống kê.'}); }
@@ -342,7 +342,7 @@ module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questi
         }
       }
       res.json({subjects});
-    } catch(e) {res.status(500).json({message:'Không tải được danh mục đề thi.'});}
+    } catch(e) { console.error('Admin catalog:', e.message); res.status(500).json({message:'Không tải được danh mục đề thi.'}); }
   });
   router.patch('/api/admin/catalog/:subjectId', requireManager, async (req,res) => {
     const id=String(req.params.subjectId||'');
