@@ -5,57 +5,14 @@ import './App.css';
 
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
-function repairMathDelimiters(input) {
-  let text = String(input ?? '');
-  // DOCX imports can arrive JSON-escaped twice (\\( ... \\)).
-  // Normalize only math delimiters here; never collapse row-break backslashes.
-  text = text.replace(/\\\\{2,}(?=[()[\]\]])/g, '\\');
-  // Đếm cặp delimiters; dữ liệu Word đôi khi thiếu dấu đóng ở cuối đáp án.
-  const count = (pattern) => (text.match(pattern) || []).length;
-  let roundOpen = count(/(?<!\\)\\\(/g);
-  let roundClose = count(/(?<!\\)\\\)/g);
-  while (roundOpen > roundClose) {
-    text += '\\)';
-    roundClose += 1;
-  }
-  let squareOpen = count(/(?<!\\)\\\[/g);
-  let squareClose = count(/(?<!\\)\\\]/g);
-  while (squareOpen > squareClose) {
-    text += '\\]';
-    squareClose += 1;
-  }
-  return text;
-}
-
-function normalizeMathSource(input) {
-  const source = String(input ?? '');
-  // Chỉ chuẩn hóa các biểu thức Taylor có little-o, không đụng công thức khác.
-  if (!/o\s*\(/.test(source)) return source;
-  return source
-    .replace(/(=\s*)0\s*\+\s*/g, '$1')
-    .replace(/(?<![\w])1\s*\(\s*x\s*\)\s*\^\s*\{?2\}?/g, 'x^2')
-    .replace(/(?<![\w])([+-]?\s*\d+)\s*\(\s*x\s*\)/g, '$1x')
-    .replace(/\(\s*x\s*\)\s*\^\s*\{?2\}?/g, 'x^2')
-    .replace(/o\s*\(\s*\(\s*x\s*\)\s*\^\s*\{?2\}?\s*\)/g, 'o(x^2)')
-    .replace(/\+\s*-/g, '-');
-}
-
-function wrapBareParametricSystem(input) {
-  // Older imported banks may contain an OMML matrix flattened to raw TeX without
-  // delimiters or row separators. Recover the common x(t), y(t), t > 1/2 form.
-  return String(input ?? '').replace(
-    /\\left\\\{\s*x\s*=\s*([\s\S]*?),\s*y\s*=\s*([\s\S]*?),{1,}\s*t\s*>\s*(\\d?frac\{1\}\{2\})/g,
-    (_all, xExpr, yExpr, half) => `\\(\\begin{cases}x=${xExpr.trim()}\\\\y=${yExpr.trim()}\\end{cases},\\quad t>${half}\\)`
-  );
-}
-
 function MathContent({ value = '', inline = false }) {
-  const source = repairMathDelimiters(wrapBareParametricSystem(String(value ?? ''))
+  const source = String(value ?? '')
     .replace(/\r\n/g, '\n')
+    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
     .replace(/\\\\\[/g, '\\[')
-    .replace(/\\\\\]/g, '\\]'));
+    .replace(/\\\\\]/g, '\\]');
 
   const parts = [];
   let key = 0;
@@ -63,8 +20,12 @@ function MathContent({ value = '', inline = false }) {
     const scientificPattern = /([−-]?\d+(?:[,.]\d+)?)\s*[×x]\s*10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))|(^|[^\w\\])10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))/g;
     let cursor = 0;
     let scientificMatch;
+
     while ((scientificMatch = scientificPattern.exec(plainText)) !== null) {
-      if (scientificMatch.index > cursor) parts.push({ type: 'text', value: plainText.slice(cursor, scientificMatch.index), key: key++ });
+      if (scientificMatch.index > cursor) {
+        parts.push({ type: 'text', value: plainText.slice(cursor, scientificMatch.index), key: key++ });
+      }
+
       let coefficient;
       let exponent;
       let prefix = '';
@@ -75,67 +36,70 @@ function MathContent({ value = '', inline = false }) {
         prefix = scientificMatch[4] ?? '';
         exponent = (scientificMatch[5] ?? scientificMatch[6]).replace(/[\s−]/g, (char) => char === '−' ? '-' : '');
       }
+
       if (prefix) parts.push({ type: 'text', value: prefix, key: key++ });
-      parts.push({ type: 'inline', value: coefficient ? `${coefficient}\\times 10^{${exponent}}` : `10^{${exponent}}`, key: key++ });
+      const latex = coefficient
+        ? `${coefficient}\\times 10^{${exponent}}`
+        : `10^{${exponent}}`;
+      parts.push({ type: 'inline', value: latex, key: key++ });
       cursor = scientificPattern.lastIndex;
     }
-    if (cursor < plainText.length) parts.push({ type: 'text', value: plainText.slice(cursor), key: key++ });
+
+    if (cursor < plainText.length) {
+      parts.push({ type: 'text', value: plainText.slice(cursor), key: key++ });
+    }
   };
 
   const tokenRegex = /\\{1,2}\[([\s\S]*?)\\{1,2}\]|\\{1,2}\(([\s\S]*?)\\{1,2}\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
   let lastIndex = 0;
   let match;
-  while ((match = tokenRegex.exec(source)) !== null) {
-    if (match.index > lastIndex) pushPlainText(source.slice(lastIndex, match.index));
-    const isBlock = match[1] !== undefined || match[3] !== undefined;
-    let latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
-      .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
-      .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Collapse double-escaped command names; preserve \ row breaks.
-      .replace(/\\\\(begin|end|left|right|frac|dfrac|tfrac|sqrt|root|lim|int|sum|prod|sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|pi|infty|cdot|times|leq|geq|neq|pm|mp|partial|mathrm|text|overline|underline|vec|hat|bar|quad|qquad)/g, '\\$1')
-      .trim();
 
-    // Repair a common flattened one-sided system from Word: `...\y=...`.
-    // KaTeX needs a true row separator before the second equation.
-    if (/\\begin\s*\{cases\}/.test(latex)) {
-      // Restore a missing row separator before y= in flattened Word equations.
-      latex = latex.replace(/(?<!\\)\\(?=y\s*=)/g, '\\\\');
-      latex = latex.replace(/,(\s*)y\s*=/g, ',\\\\y=');
-      // Some legacy uploads lost \end{cases}; close it before a trailing condition
-      // such as `, \quad t>1/2`, so the condition remains outside the system.
-      if (!/\\end\s*\{cases\}/.test(latex)) {
-        const condition = /,\s*\\(?:quad|qquad)\s*t\s*[<>]/.exec(latex);
-        if (condition) {
-          latex = latex.slice(0, condition.index) + '\\end{cases}' + latex.slice(condition.index);
-        } else {
-          latex += '\\end{cases}';
-        }
-      }
+  while ((match = tokenRegex.exec(source)) !== null) {
+    if (match.index > lastIndex) {
+      pushPlainText(source.slice(lastIndex, match.index));
     }
 
-    latex = normalizeMathSource(latex)
-      // Make fractions comfortably legible; wrapper below provides vertical room.
-      .replace(/\\frac(?=\s*\{|\s*\w)/g, '\\dfrac')
-      // Put integral/limit bounds above and below, with a small gap from the operator.
-      .replace(/\\(int|iint|iiint|oint|lim)(?!\\limits)/g, '\\$1\\limits')
-      .replace(/\\(int|iint|iiint|oint|lim)\\limits_\{([^}]*)\}/g, '\\$1\\limits_{\\;$2}')
-      .replace(/(\\(?:int|iint|iiint|oint|lim)\\limits?(?:_\{[^}]*\})?)\^\{([^}]*)\}/g, '$1^{\\;$2}');
+    const isBlock = match[1] !== undefined || match[3] !== undefined;
+    const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
+      .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
+      .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
+      // Chỉ bỏ escape lặp trước tên lệnh LaTeX; tuyệt đối giữ \\ làm dấu xuống dòng trong cases/aligned.
+      .replace(/\\\\(?=(?:begin|end|left|right|ln|dfrac|frac|tfrac|sqrt|text|quad|qquad|cdot|times|pi|infty|lim|int|sum|prod|sin|cos|tan|log|ln|mathrm|mathbf|overline|underline|mathbb|mathcal|partial|geq|leq|neq|approx|rightarrow|to|alpha|beta|gamma|Delta|Omega)\b/g, '\\')
+      .trim();
 
-    const needsDisplayLimits = /\\(?:int|iint|iiint|oint|lim)\b/.test(latex);
-    const renderedLatex = inline && needsDisplayLimits && !/\\displaystyle\b/.test(latex)
+    const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
+    const renderedLatex = inline && hasTallMath && !/\\displaystyle\b/.test(latex)
       ? `\\displaystyle ${latex}`
       : latex;
-    parts.push({ type: !inline && isBlock ? 'block' : 'inline', value: renderedLatex, key: key++ });
+
+    parts.push({
+      type: !inline && isBlock ? 'block' : 'inline',
+      value: renderedLatex,
+      key: key++,
+    });
     lastIndex = tokenRegex.lastIndex;
   }
-  if (lastIndex < source.length) pushPlainText(source.slice(lastIndex));
-  if (parts.length === 0) pushPlainText(source);
+
+  if (lastIndex < source.length) {
+    pushPlainText(source.slice(lastIndex));
+  }
+  if (parts.length === 0) {
+    pushPlainText(source);
+  }
 
   return (
     <>
       {parts.map((part) => {
-        if (part.type === 'block') return <div className="math-block" key={part.key}><BlockMath math={part.value} errorColor="#d32f2f" /></div>;
-        if (part.type === 'inline') return <span className="math-inline" key={part.key}><InlineMath math={part.value} errorColor="#d32f2f" /></span>;
+        if (part.type === 'block') {
+          return (
+            <div className="math-block" key={part.key}>
+              <BlockMath math={part.value} errorColor="#d32f2f" />
+            </div>
+          );
+        }
+        if (part.type === 'inline') {
+          return <InlineMath key={part.key} math={part.value} errorColor="#d32f2f" />;
+        }
         return <span key={part.key}>{part.value}</span>;
       })}
     </>
@@ -224,11 +188,6 @@ export default function App() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminPriceInput, setAdminPriceInput] = useState('1000');
   const [adminPriceSaving, setAdminPriceSaving] = useState(false);
-  const [adminBankSubject, setAdminBankSubject] = useState('toancc1_iuh');
-  const [adminBankTerm, setAdminBankTerm] = useState('midterm');
-  const [adminBankFile, setAdminBankFile] = useState(null);
-  const [adminBankPreview, setAdminBankPreview] = useState(null);
-  const [adminBankBusy, setAdminBankBusy] = useState(false);
 
   const [universities, setUniversities] = useState([]);
   const [selectedUni, setSelectedUni] = useState(null);
@@ -744,11 +703,7 @@ export default function App() {
     const firstUnansweredIndex = currentExam.questions.findIndex(q => !answersToSubmit[q.id]);
 
     if (firstUnansweredIndex !== -1 && !allowIncomplete) {
-      const unansweredNumbers = currentExam.questions
-        .map((question, index) => (!answersToSubmit[question.id] ? index + 1 : null))
-        .filter((number) => number !== null);
-      const questionList = unansweredNumbers.map((number) => `Câu ${number}`).join(', ');
-      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn ${unansweredNumbers.length} câu chưa trả lời: ${questionList}. Hệ thống đã đưa bạn đến câu chưa làm đầu tiên.`);
+      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn câu chưa trả lời.`);
       document.getElementById(`question-card-${firstUnansweredIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -876,7 +831,6 @@ export default function App() {
 
   const handleSelectOption = (qId, optKey) => {
     if (isSubmitted) return;
-    setIncompleteSubmitNotice('');
     setUserAnswers(prev => {
       const next = { ...prev, [qId]: optKey };
       answersRef.current = next;
@@ -935,13 +889,7 @@ export default function App() {
       if (tab === 'users') setAdminUsers((await adminRequest(`users?q=${encodeURIComponent(adminUserQuery)}`)).users || []);
       if (tab === 'transactions') setAdminTransactions((await adminRequest('transactions')).transactions || []);
       if (tab === 'audit') setAdminAudit((await adminRequest('audit')).logs || []);
-      if (tab === 'catalog' || tab === 'uploadBank') {
-        const subjects = (await adminRequest('catalog')).subjects || [];
-        setAdminCatalog(subjects);
-        if (subjects.length && !subjects.some(subject => subject.id === adminBankSubject)) {
-          setAdminBankSubject(subjects[0].id);
-        }
-      }
+      if (tab === 'catalog') setAdminCatalog((await adminRequest('catalog')).subjects || []);
       if (tab === 'examSettings') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
       if (tab === 'roles') setAdminRoles((await adminRequest('roles')).roles || []);
       if (tab === 'pricing') {
@@ -964,59 +912,6 @@ export default function App() {
   const changeAdminTab = (tab) => {
     setAdminTab(tab);
     void loadAdminTab(tab);
-  };
-
-  const previewAdminQuestionBank = async () => {
-    if (!adminBankFile) { setError('Hãy chọn file Word .docx trước.'); return; }
-    setAdminBankBusy(true);
-    setError('');
-    setSuccessMessage('');
-    setAdminBankPreview(null);
-    try {
-      const token = localStorage.getItem('hct_session_token');
-      const data = await fetchJson(
-        `${API_BASE}/admin/question-banks/${encodeURIComponent(adminBankSubject)}/preview?term=${encodeURIComponent(adminBankTerm)}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token || ''}`,
-            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          },
-          body: adminBankFile
-        }
-      );
-      setAdminBankPreview(data);
-      setSuccessMessage('Đã đọc file Word. Ngân hàng hiện tại chưa bị thay đổi; hãy kiểm tra thống kê trước khi xuất bản.');
-    } catch (err) {
-      setError(err.message || 'Không đọc được file Word.');
-    } finally {
-      setAdminBankBusy(false);
-    }
-  };
-
-  const publishAdminQuestionBank = async () => {
-    if (!adminBankPreview?.previewId) return;
-    const summary = adminBankPreview.summary || {};
-    const confirmed = window.confirm(
-      `Xác nhận thay ngân hàng ${adminBankSubject} (${adminBankTerm}) bằng ${summary.questionCount || 0} câu?\\n` +
-      `Mới: ${summary.added || 0} · Sửa: ${summary.changed || 0} · Giữ nguyên: ${summary.unchanged || 0} · Bị bỏ: ${summary.removed || 0}\\n` +
-      'Các câu đã thay đổi hoặc bị bỏ sẽ được xóa lịch sử chống lặp tương ứng. Cấu hình đề thi được giữ nguyên.'
-    );
-    if (!confirmed) return;
-    setAdminBankBusy(true);
-    setError('');
-    try {
-      const data = await adminRequest(`question-banks/previews/${encodeURIComponent(adminBankPreview.previewId)}/publish`, { method: 'POST' });
-      setAdminBankPreview(null);
-      setAdminBankFile(null);
-      setSuccessMessage(data.message || 'Đã cập nhật ngân hàng câu hỏi.');
-      void loadAdminTab('uploadBank');
-      void loadAdminTab('examSettings');
-    } catch (err) {
-      setError(err.message || 'Không thể xuất bản ngân hàng câu hỏi.');
-    } finally {
-      setAdminBankBusy(false);
-    }
   };
 
   const adminWalletAction = async (username, direction) => {
@@ -1207,7 +1102,7 @@ export default function App() {
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'18px 0'}}>
             {[
-              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['uploadBank','📤 Upload ngân hàng'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
+              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
             ].map(([id,label])=><button key={id} type="button" onClick={()=>changeAdminTab(id==='wallet'?'transactions':id)} style={{border:adminTab===(id==='wallet'?'transactions':id)?'2px solid #9333ea':'1px solid #ddd6fe',background:adminTab===(id==='wallet'?'transactions':id)?'#f3e8ff':'#fff',color:'#6b21a8',borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:'pointer'}}>{label}</button>)}
           </div>
           {adminLoading && <p style={{color:'#7e22ce'}}>Đang tải dữ liệu...</p>}
@@ -1245,60 +1140,6 @@ export default function App() {
             </div>
           </div>}
           {adminTab==='catalog' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Trường','Môn học','Số câu hỏi','Hiển thị'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminCatalog.map(c=><tr key={c.id}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.universityName}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.name}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.questionCount}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}><button className="btn-secondary" type="button" onClick={()=>adminToggleSubject(c)}>{c.enabled?'Đang mở · Ẩn môn':'Đang ẩn · Mở môn'}</button></td></tr>)}</tbody></table></div>}
-          {adminTab==='uploadBank' && <div style={{display:'grid',gap:14,maxWidth:900}}>
-            <div style={{padding:14,background:'#faf5ff',border:'1px solid #e9d5ff',borderRadius:12,color:'#6b21a8'}}>
-              <strong>📤 Cập nhật ngân hàng từ file Word</strong>
-              <p style={{margin:'6px 0 0',fontSize:13,color:'#7c6b91'}}>
-                Tải DOCX có tiêu đề Dạng n:, câu hỏi, đủ A–D và dòng Đáp án: X. Hệ thống đọc cả công thức Equation của Word, kiểm tra trước và chỉ thay ngân hàng sau khi mày xác nhận.
-              </p>
-            </div>
-            <label style={{display:'grid',gap:6,color:'#5b21b6',fontWeight:700}}>
-              Môn học
-              <select value={adminBankSubject} onChange={e=>{setAdminBankSubject(e.target.value);setAdminBankPreview(null);}} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:9}}>
-                {adminCatalog.map(subject=><option key={subject.id} value={subject.id}>{subject.name} · {subject.questionCount} câu hiện có</option>)}
-              </select>
-            </label>
-            <label style={{display:'grid',gap:6,color:'#5b21b6',fontWeight:700}}>
-              Kỳ thi
-              <select value={adminBankTerm} onChange={e=>{setAdminBankTerm(e.target.value);setAdminBankPreview(null);}} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:9}}>
-                <option value="midterm">Giữa kỳ</option>
-                <option value="final">Cuối kỳ</option>
-              </select>
-            </label>
-            <label style={{display:'grid',gap:6,color:'#5b21b6',fontWeight:700}}>
-              File đề thi (.docx)
-              <input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                onChange={e=>{setAdminBankFile(e.target.files?.[0]||null);setAdminBankPreview(null);}}
-                style={{padding:12,border:'1px dashed #c4b5fd',borderRadius:9,background:'#fff'}}/>
-            </label>
-            {adminBankFile && <small style={{color:'#6b21a8'}}>Đã chọn: {adminBankFile.name} · {(adminBankFile.size/1024/1024).toFixed(2)} MB</small>}
-            <button className="btn-primary" type="button" disabled={adminBankBusy||!adminBankFile} onClick={previewAdminQuestionBank}>
-              {adminBankBusy?'Đang kiểm tra file...':'🔍 Kiểm tra và xem trước'}
-            </button>
-            {adminBankPreview?.summary && <div style={{padding:15,border:'1px solid #86efac',background:'#f0fdf4',borderRadius:12}}>
-              <strong style={{color:'#166534'}}>Kiểm tra cấu trúc thành công</strong>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:8,marginTop:10}}>
-                {[
-                  ['Tổng câu',adminBankPreview.summary.questionCount],
-                  ['Câu mới',adminBankPreview.summary.added],
-                  ['Câu đã sửa',adminBankPreview.summary.changed],
-                  ['Không đổi',adminBankPreview.summary.unchanged],
-                  ['Bị bỏ',adminBankPreview.summary.removed]
-                ].map(([label,value])=><div key={label} style={{padding:10,background:'#fff',borderRadius:8}}><small>{label}</small><div style={{fontSize:20,fontWeight:800}}>{value}</div></div>)}
-              </div>
-              <div style={{marginTop:12,fontSize:13}}><strong>Số câu theo dạng:</strong> {Object.entries(adminBankPreview.summary.typeCounts||{}).sort((a,b)=>Number(a[0])-Number(b[0])).map(([type,count])=>`Dạng ${type}: ${count}`).join(' · ')}</div>
-              {(adminBankPreview.summary.changed>0 || adminBankPreview.summary.removed>0) && <div style={{marginTop:12,padding:10,background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:8,color:'#9a3412'}}>
-                <strong>⚠️ Có câu khác với ngân hàng hiện tại.</strong>
-                <p style={{margin:'5px 0'}}>Câu đã sửa: {(adminBankPreview.differences?.changed||[]).slice(0,40).join(', ')||'Không có'}{(adminBankPreview.differences?.changed||[]).length>40?` … và ${(adminBankPreview.differences.changed.length-40)} câu khác`:''}</p>
-                <p style={{margin:'5px 0'}}>Câu bị bỏ: {(adminBankPreview.differences?.removed||[]).slice(0,40).join(', ')||'Không có'}{(adminBankPreview.differences?.removed||[]).length>40?` … và ${(adminBankPreview.differences.removed.length-40)} câu khác`:''}</p>
-                <small>File Word sẽ thay toàn bộ ngân hàng của kỳ thi đang chọn. Hãy chắc chắn Word là bản mới nhất trước khi xác nhận; hệ thống không tự trộn hai bản.</small>
-              </div>}
-              <p style={{fontSize:13,color:'#166534'}}>Chưa có dữ liệu nào được xuất bản. Cấu hình số câu và thời gian làm bài sẽ được giữ nguyên.</p>
-              <button className="btn-primary" type="button" disabled={adminBankBusy} onClick={publishAdminQuestionBank}>
-                {adminBankBusy?'Đang cập nhật...':'✅ Xác nhận cập nhật ngân hàng'}
-              </button>
-            </div>}
-          </div>}
           {adminTab==='audit' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Thời gian','Người thao tác','Hành động','Đối tượng','Chi tiết'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminAudit.map(a=><tr key={a.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(a.created_at).toLocaleString('vi-VN')}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.actor}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.action}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.target}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{JSON.stringify(a.details)}</td></tr>)}</tbody></table></div>}
           {adminTab==='roles' && <div>
             <form onSubmit={adminGrantRole} style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}><input value={adminRoleUsername} onChange={e=>setAdminRoleUsername(e.target.value)} placeholder="Username cần cấp quyền" required style={{padding:11,border:'1px solid #ddd6fe',borderRadius:8}}/><select value={adminRoleType} onChange={e=>setAdminRoleType(e.target.value)} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:8}}><option value="support">Hỗ trợ</option><option value="admin">Quản trị viên</option></select><button className="btn-primary" type="submit">Cấp/cập nhật quyền</button></form>
@@ -1567,15 +1408,6 @@ export default function App() {
               <div className={`timer-badge ${timeLeft < 60 ? 'danger' : ''}`}>⏱️ {formatTime(timeLeft)}</div>
             </div>
 
-            {incompleteSubmitNotice && (
-              <div className="incomplete-submit-notice" role="alert" aria-live="assertive">
-                <div>{incompleteSubmitNotice}</div>
-                <button type="button" onClick={() => {
-                  const firstUnanswered = examData.questions.findIndex((question) => !userAnswers[question.id]);
-                  if (firstUnanswered >= 0) document.getElementById(`question-card-${firstUnanswered}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }}>Đến câu chưa làm đầu tiên</button>
-              </div>
-            )}
             <div className="questions-container">
               {examData.questions.map((q, idx) => {
                 const detail = isSubmitted ? result?.details?.find(item => String(item.questionId) === String(q.id)) : null;
