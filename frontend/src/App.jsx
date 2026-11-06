@@ -64,7 +64,7 @@ function MathContent({ value = '', inline = false }) {
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
       // Chỉ bỏ escape lặp trước tên lệnh LaTeX; tuyệt đối giữ \\ làm dấu xuống dòng trong cases/aligned.
-      .replace(/\\\\(?=(?:begin|end|left|right|ln|dfrac|frac|tfrac|sqrt|text|quad|qquad|cdot|times|pi|infty|lim|int|sum|prod|sin|cos|tan|log|ln|mathrm|mathbf|overline|underline|mathbb|mathcal|partial|geq|leq|neq|approx|rightarrow|to|alpha|beta|gamma|Delta|Omega)\b/g, '\\')
+      .replace(/\\\\(?=(?:begin|end|left|right|ln|dfrac|frac|tfrac|sqrt|text|quad|qquad|cdot|times|pi|infty|lim|int|sum|prod|sin|cos|tan|log|ln|mathrm|mathbf|overline|underline|mathbb|mathcal|partial|geq|leq|neq|approx|rightarrow|to|alpha|beta|gamma|Delta|Omega)\b)/g, '\\')
       .trim();
 
     const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
@@ -700,11 +700,16 @@ export default function App() {
     if (submitLock.current || !currentExam) return;
 
     const answersToSubmit = answersOverride ?? answersRef.current;
-    const firstUnansweredIndex = currentExam.questions.findIndex(q => !answersToSubmit[q.id]);
+    const unansweredIndexes = currentExam.questions
+      .map((question, index) => answersToSubmit[question.id] ? -1 : index)
+      .filter(index => index !== -1);
 
-    if (firstUnansweredIndex !== -1 && !allowIncomplete) {
-      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn câu chưa trả lời.`);
-      document.getElementById(`question-card-${firstUnansweredIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (unansweredIndexes.length > 0 && !allowIncomplete) {
+      const unansweredNumbers = unansweredIndexes.map(index => index + 1);
+      setIncompleteSubmitNotice(
+        `Bạn chưa hoàn thành bài thi! Còn ${unansweredIndexes.length} câu chưa trả lời: ${unansweredNumbers.join(', ')}.`
+      );
+      document.getElementById(`question-card-${unansweredIndexes[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -1408,13 +1413,23 @@ export default function App() {
               <div className={`timer-badge ${timeLeft < 60 ? 'danger' : ''}`}>⏱️ {formatTime(timeLeft)}</div>
             </div>
 
+            {!isSubmitted && incompleteSubmitNotice && (
+              <div role="alert" className="incomplete-submit-notice" style={{
+                margin: '0 0 14px', padding: '12px 16px', borderRadius: '12px',
+                border: '1px solid #f3b4c4', background: '#fff1f5', color: '#9f1239',
+                fontWeight: 700, lineHeight: 1.6
+              }}>
+                {incompleteSubmitNotice}
+              </div>
+            )}
+
             <div className="questions-container">
               {examData.questions.map((q, idx) => {
                 const detail = isSubmitted ? result?.details?.find(item => String(item.questionId) === String(q.id)) : null;
                 return (
                   <article id={`question-card-${idx}`} style={{ scrollMarginTop: '110px' }} className={`question-card ${detail ? (detail.isCorrect ? 'correct-card' : 'wrong-card') : ''}`} key={q.id ?? idx}>
                     <div className="question-header"><span className="q-index">Câu {idx + 1}</span></div>
-                    <div className="question-text"><MathContent value={q.content} inline={true} /></div>
+                    <div className="question-text" style={{ textAlign: 'left', margin: '8px 0 18px', padding: '0 10px' }}><MathContent value={q.content} inline={true} /></div>
                     <div className="options-grid">
                       {Object.entries(q.options || {}).map(([key, val]) => {
                         const isSelected = userAnswers[q.id] === key;
