@@ -7,6 +7,9 @@ const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
 function repairMathDelimiters(input) {
   let text = String(input ?? '');
+  // DOCX imports can arrive JSON-escaped twice (\\( ... \\)).
+  // Normalize only math delimiters here; never collapse row-break backslashes.
+  text = text.replace(/\\\\{2,}(?=[()[\]\]])/g, '\\');
   // Đếm cặp delimiters; dữ liệu Word đôi khi thiếu dấu đóng ở cuối đáp án.
   const count = (pattern) => (text.match(pattern) || []).length;
   let roundOpen = count(/(?<!\\)\\\(/g);
@@ -89,8 +92,26 @@ function MathContent({ value = '', inline = false }) {
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
       // Collapse double-escaped command names; preserve \ row breaks.
-      .replace(/\\\\(begin|end|left|right|frac|dfrac|tfrac|sqrt|root|lim|int|sum|prod|sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|pi|infty|cdot|times|leq|geq|neq|pm|mp|partial|mathrm|text|overline|underline|vec|hat|bar|quad|qquad)(?=[\s{])/g, '\\$1')
+      .replace(/\\\\(begin|end|left|right|frac|dfrac|tfrac|sqrt|root|lim|int|sum|prod|sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|pi|infty|cdot|times|leq|geq|neq|pm|mp|partial|mathrm|text|overline|underline|vec|hat|bar|quad|qquad)/g, '\\$1')
       .trim();
+
+    // Repair a common flattened one-sided system from Word: `...\y=...`.
+    // KaTeX needs a true row separator before the second equation.
+    if (/\\begin\s*\{cases\}/.test(latex)) {
+      // Restore a missing row separator before y= in flattened Word equations.
+      latex = latex.replace(/(?<!\\)\\(?=y\s*=)/g, '\\\\');
+      latex = latex.replace(/,(\s*)y\s*=/g, ',\\\\y=');
+      // Some legacy uploads lost \end{cases}; close it before a trailing condition
+      // such as `, \quad t>1/2`, so the condition remains outside the system.
+      if (!/\\end\s*\{cases\}/.test(latex)) {
+        const condition = /,\s*\\(?:quad|qquad)\s*t\s*[<>]/.exec(latex);
+        if (condition) {
+          latex = latex.slice(0, condition.index) + '\\end{cases}' + latex.slice(condition.index);
+        } else {
+          latex += '\\end{cases}';
+        }
+      }
+    }
 
     latex = normalizeMathSource(latex)
       // Make fractions comfortably legible; wrapper below provides vertical room.
