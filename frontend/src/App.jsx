@@ -6,13 +6,24 @@ import './App.css';
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
 function MathContent({ value = '', inline = false }) {
-  const source = String(value ?? '')
+  let source = String(value ?? '')
     .replace(/\r\n/g, '\n')
-    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
+    // Chuẩn hóa dấu phân cách LaTeX bị escape hai lần từ dữ liệu nhập.
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
     .replace(/\\\\\[/g, '\\[')
     .replace(/\\\\\]/g, '\\]');
+
+  // Một số đáp án cũ bị thiếu dấu đóng \) hoặc \]. Nếu chỉ thiếu đúng một
+  // dấu đóng, tự bổ sung để KaTeX vẫn render thay vì hiện nguyên mã LaTeX.
+  const countToken = (text, token) => text.split(token).length - 1;
+  const inlineOpen = countToken(source, '\\(');
+  const inlineClose = countToken(source, '\\)');
+  if (inlineOpen > inlineClose && inlineOpen - inlineClose === 1) source += '\\)';
+  const blockOpen = countToken(source, '\\[');
+  const blockClose = countToken(source, '\\]');
+  if (blockOpen > blockClose && blockOpen - blockClose === 1) source += '\\]';
+
 
   const parts = [];
   let key = 0;
@@ -66,9 +77,9 @@ function MathContent({ value = '', inline = false }) {
       // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
       .replace(/\\\\(?=[a-zA-Z])/g, '\\')
       // Sửa lỗi import có ký tự \y thừa ngay trước y= trong hệ phương trình.
-      .replace(/\\y(?=\s*=)/g, 'y')
+      .replace(/\\+\s*y(?=\s*=)/g, 'y')
       // Chuẩn hóa giới hạn để chỉ số luôn nằm dưới lim, không phụ thuộc cách gõ.
-      .replace(/\\lim\s*_\s*\{/g, '\\lim\\limits_{')
+      .replace(/\\lim\s*(?:\\limits)?\s*_\s*\{/g, '\\lim\\limits_{')
       // Rút gọn các số hạng 0/1 thừa thường gặp trong khai triển Taylor.
       .replace(/=\s*0\s*\+\s*/g, '=')
       .replace(/\+\s*0(?=\s*(?:\+|$))/g, '')
