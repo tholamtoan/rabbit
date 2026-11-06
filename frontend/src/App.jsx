@@ -63,8 +63,7 @@ function MathContent({ value = '', inline = false }) {
     const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
-      .replace(/\\\\(?=[a-zA-Z])/g, '\\')
+      // Không gộp hai dấu gạch chéo liên tiếp: trong cases/aligned, \\ là lệnh xuống dòng.
       .trim();
 
     const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
