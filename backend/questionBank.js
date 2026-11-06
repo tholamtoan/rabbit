@@ -3036,7 +3036,7 @@ module.exports = {
         "A": "\\(f(x)=e^2+2e^2(x-1)+7e^2(x-1)^2+o((x-1)^2)\\)",
         "B": "\\(f(x)=e^2+4e^2(x-1)+10e^2(x-1)^2+o((x-1)^2)\\)",
         "C": "\\(f(x)=e^2+3e^2(x-1)+5e^2(x-1)^2+o((x-1)^2)\\)",
-        "D": "\\(f(x)=e^2+4e^2(x-1)+7e^2(x-1)^2+o((x-1)^2)"
+        "D": "\\(f(x)=e^2+4e^2(x-1)+7e^2(x-1)^2+o((x-1)^2)\\)"
       },
       "correct": "B",
       "explanation": "",
@@ -3053,7 +3053,7 @@ module.exports = {
         "A": "\\(f(x)=\\frac32x^2+o(x^2)\\)",
         "B": "\\(f(x)=x^2+o(x^2)\\)",
         "C": "\\(f(x)=\\frac12x^2+o(x^2)\\)",
-        "D": "\\(f(x)=\\frac23x^2+o(x^2)"
+        "D": "\\(f(x)=\\frac23x^2+o(x^2)\\)"
       },
       "correct": "B",
       "explanation": "",
@@ -5736,9 +5736,9 @@ module.exports = {
       "term": "midterm",
       "content": "Tích phân \\(\\int_0^{\\pi/2}\\frac{\\cos x}{\\sqrt{\\sin x}}\\,dx\\) bằng:",
       "options": {
-        "A": "\\(\\lim_{a\\to0^+}(2-2\\sqrt{\\cos a})=0",
-        "B": "\\(\\lim_{a\\to0^+}(2+2\\sqrt{\\cos a})=1",
-        "C": "\\(\\lim_{a\\to0^+}(2+2\\sqrt{\\sin a})=4",
+        "A": "\\(\\lim_{a\\to0^+}(2-2\\sqrt{\\cos a})=0\\)",
+        "B": "\\(\\lim_{a\\to0^+}(2+2\\sqrt{\\cos a})=1\\)",
+        "C": "\\(\\lim_{a\\to0^+}(2+2\\sqrt{\\sin a})=4\\)",
         "D": "\\(\\lim_{a\\to0^+}(2-2\\sqrt{\\sin a})=2\\)"
       },
       "correct": "D",
@@ -5754,9 +5754,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_1^2\\frac{dx}{\\sqrt[3]{x-1}}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^+}\\frac32[1-(a-1)^{2/3}]=\\frac32\\)",
-        "B": "\\(\\lim_{a\\to1^+}\\frac23[1-(a-1)^{2/3}]=0",
-        "C": "\\(\\lim_{a\\to1^+}-\\frac32[1-(a-1)^{2/3}]=1",
-        "D": "\\(\\lim_{a\\to1^+}\\frac32[1-(a-1)^{1/3}]=2"
+        "B": "\\(\\lim_{a\\to1^+}\\frac23[1-(a-1)^{2/3}]=0\\)",
+        "C": "\\(\\lim_{a\\to1^+}-\\frac32[1-(a-1)^{2/3}]=1\\)",
+        "D": "\\(\\lim_{a\\to1^+}\\frac32[1-(a-1)^{1/3}]=2\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5770,9 +5770,9 @@ module.exports = {
       "term": "midterm",
       "content": "Tích phân \\(\\int_1^2\\frac{dx}{(x-1)^3}\\) bằng:",
       "options": {
-        "A": "\\(\\lim_{a\\to1^+}[-2(1-(a-1)^2)]=0",
-        "B": "\\(\\lim_{a\\to1^+}2(1-(a-1)^2)=2",
-        "C": "\\(\\lim_{a\\to1^+}\\frac12(1-(a-1)^{-2})=-\\infty",
+        "A": "\\(\\lim_{a\\to1^+}[-2(1-(a-1)^2)]=0\\)",
+        "B": "\\(\\lim_{a\\to1^+}2(1-(a-1)^2)=2\\)",
+        "C": "\\(\\lim_{a\\to1^+}\\frac12(1-(a-1)^{-2})=-\\infty\\)",
         "D": "\\(\\lim_{a\\to1^+}-\\frac12(1-(a-1)^{-2})=+\\infty\\)"
       },
       "correct": "D",
@@ -5788,9 +5788,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^{\\pi/2}\\frac{\\sin x}{\\sqrt{\\cos x}}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to\\pi/2^-}(2-2\\sqrt{\\cos a})=2\\)",
-        "B": "\\(\\lim_{a\\to\\pi/2^-}(1+\\sqrt{\\cos a})=0",
-        "C": "\\(\\lim_{a\\to\\pi/2^-}(1-\\sqrt{\\cos a})=1",
-        "D": "\\(\\lim_{a\\to\\pi/2^-}(2+2\\sqrt{\\cos a})=4"
+        "B": "\\(\\lim_{a\\to\\pi/2^-}(1+\\sqrt{\\cos a})=0\\)",
+        "C": "\\(\\lim_{a\\to\\pi/2^-}(1-\\sqrt{\\cos a})=1\\)",
+        "D": "\\(\\lim_{a\\to\\pi/2^-}(2+2\\sqrt{\\cos a})=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5805,9 +5805,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1x^{-1/2}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2(1-\\sqrt a)=2\\)",
-        "B": "\\(\\lim_{a\\to0^+}2(1-\\sqrt a)=1",
-        "C": "\\(\\lim_{a\\to0^+}2(1+\\sqrt a)=0",
-        "D": "\\(\\lim_{a\\to0^+}2(1-\\sqrt a)=4"
+        "B": "\\(\\lim_{a\\to0^+}2(1-\\sqrt a)=1\\)",
+        "C": "\\(\\lim_{a\\to0^+}2(1+\\sqrt a)=0\\)",
+        "D": "\\(\\lim_{a\\to0^+}2(1-\\sqrt a)=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5822,9 +5822,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1x^{-2/3}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}3(1-a^{1/3})=3\\)",
-        "B": "\\(\\lim_{a\\to0^+}3(1-a^{1/3})=1",
-        "C": "\\(\\lim_{a\\to0^+}3(a-1^{1/3})=2",
-        "D": "\\(\\lim_{a\\to0^+}3(1-a^{1/3})=4"
+        "B": "\\(\\lim_{a\\to0^+}3(1-a^{1/3})=1\\)",
+        "C": "\\(\\lim_{a\\to0^+}3(a-1^{1/3})=2\\)",
+        "D": "\\(\\lim_{a\\to0^+}3(1-a^{1/3})=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5839,9 +5839,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1x^{-3/2}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=0",
-        "C": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=-\\infty",
-        "D": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=2"
+        "B": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to0^+}2(a^{-1/2}-1)=2\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5856,9 +5856,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1x^{-3/4}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}4(1-a^{1/4})=4\\)",
-        "B": "\\(\\lim_{a\\to0^+}4(1-a^{1/4})=1",
-        "C": "\\(\\lim_{a\\to0^+}4(a-1^{1/4})=0",
-        "D": "\\(\\lim_{a\\to0^+}4(1-a^{1/4})=3"
+        "B": "\\(\\lim_{a\\to0^+}4(1-a^{1/4})=1\\)",
+        "C": "\\(\\lim_{a\\to0^+}4(a-1^{1/4})=0\\)",
+        "D": "\\(\\lim_{a\\to0^+}4(1-a^{1/4})=3\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5873,9 +5873,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1(1-x)^{-1/2}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}2(1-\\sqrt{1-a})=2\\)",
-        "B": "\\(\\lim_{a\\to1^-}2(1-\\sqrt{1-a})=1",
-        "C": "\\(\\lim_{a\\to1^-}2(1+\\sqrt{a-1})=0",
-        "D": "\\(\\lim_{a\\to1^-}2(1-\\sqrt{1-a})=4"
+        "B": "\\(\\lim_{a\\to1^-}2(1-\\sqrt{1-a})=1\\)",
+        "C": "\\(\\lim_{a\\to1^-}2(1+\\sqrt{a-1})=0\\)",
+        "D": "\\(\\lim_{a\\to1^-}2(1-\\sqrt{1-a})=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5890,9 +5890,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1(1-x)^{-2/3}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}3(1-(1-a)^{1/3})=3\\)",
-        "B": "\\(\\lim_{a\\to1^-}3(1-(1-a)^{1/3})=1",
-        "C": "\\(\\lim_{a\\to1^-}3(1-(a-1)^{1/3})=0",
-        "D": "\\(\\lim_{a\\to1^-}3(1-(1-a)^{1/3})=4"
+        "B": "\\(\\lim_{a\\to1^-}3(1-(1-a)^{1/3})=1\\)",
+        "C": "\\(\\lim_{a\\to1^-}3(1-(a-1)^{1/3})=0\\)",
+        "D": "\\(\\lim_{a\\to1^-}3(1-(1-a)^{1/3})=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5907,9 +5907,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1(1-x)^{-2}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}((1-a)^{-1}-1)=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to1^-}((1-a)^{-1}-1)=0",
-        "C": "\\(\\lim_{a\\to1^-}((a-1)^{-1}-1)=-\\infty",
-        "D": "\\(\\lim_{a\\to1^-}((1-a)^{-1}-1)=1"
+        "B": "\\(\\lim_{a\\to1^-}((1-a)^{-1}-1)=0\\)",
+        "C": "\\(\\lim_{a\\to1^-}((a-1)^{-1}-1)=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to1^-}((1-a)^{-1}-1)=1\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5924,9 +5924,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\ln x\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=-1\\)",
-        "B": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=0",
-        "C": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=1",
-        "D": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=-2"
+        "B": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=1\\)",
+        "D": "\\(\\lim_{a\\to0^+}(a\\ln a-a)=-2\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5941,9 +5941,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\ln(1-x)\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}((1-a)\\ln(1-a)-(1-a))=-1\\)",
-        "B": "\\(\\lim_{a\\to1^-}((1-a)\\ln(1-a)-(1-a))=0",
-        "C": "\\(\\lim_{a\\to1^-}((a-1)\\ln(a-1)-(a-1))=1",
-        "D": "\\(\\lim_{a\\to1^-}((1-a)\\ln(1-a)-(1-a))=-2"
+        "B": "\\(\\lim_{a\\to1^-}((1-a)\\ln(1-a)-(1-a))=0\\)",
+        "C": "\\(\\lim_{a\\to1^-}((a-1)\\ln(a-1)-(a-1))=1\\)",
+        "D": "\\(\\lim_{a\\to1^-}((1-a)\\ln(1-a)-(1-a))=-2\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5975,9 +5975,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^{\\pi/2}\\frac{\\sin x}{(\\cos x)^{2/3}}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=3\\)",
-        "B": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=1",
-        "C": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=2",
-        "D": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=4"
+        "B": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=1\\)",
+        "C": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=2\\)",
+        "D": "\\(\\lim_{a\\to\\pi/2^-}3(1-(\\cos a)^{1/3})=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -5992,9 +5992,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^{\\pi/2}\\frac{\\cos x}{(\\sin x)^{3/2}}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=0",
-        "C": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=-\\infty",
-        "D": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=1"
+        "B": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to0^+}2((\\sin a)^{-1/2}-1)=1\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6009,9 +6009,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{e^x}{\\sqrt{e^x-1}}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=2\\sqrt{e-1}\\)",
-        "B": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=0",
-        "C": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=\\sqrt{e-1}",
-        "D": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=4\\sqrt{e-1}"
+        "B": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=\\sqrt{e-1}\\)",
+        "D": "\\(\\lim_{a\\to0^+}2(\\sqrt{e-1}-\\sqrt{e^a-1})=4\\sqrt{e-1}\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6026,9 +6026,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{e^x}{e^x-1}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=0",
-        "C": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=-\\infty",
-        "D": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=1"
+        "B": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to0^+}(\\ln(e-1)-\\ln(e^a-1))=1\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6043,9 +6043,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{\\sqrt{1-x^2}}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}\\arcsin a=\\frac{\\pi}{2}\\)",
-        "B": "\\(\\lim_{a\\to1^-}\\arcsin a=0",
-        "C": "\\(\\lim_{a\\to1^-}\\arcsin a=-\\frac{\\pi}{2}",
-        "D": "\\(\\lim_{a\\to1^-}\\arcsin a=\\pi"
+        "B": "\\(\\lim_{a\\to1^-}\\arcsin a=0\\)",
+        "C": "\\(\\lim_{a\\to1^-}\\arcsin a=-\\frac{\\pi}{2}\\)",
+        "D": "\\(\\lim_{a\\to1^-}\\arcsin a=\\pi\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6060,9 +6060,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{(1-x)^{4/3}}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}3((1-a)^{-1/3}-1)=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to1^-}3((1-a)^{-1/3}-1)=0",
-        "C": "\\(\\lim_{a\\to1^-}3((a-1)^{-1/3}-1)=-\\infty",
-        "D": "\\(\\lim_{a\\to1^-}3((1-a)^{-1/3}-1)=2"
+        "B": "\\(\\lim_{a\\to1^-}3((1-a)^{-1/3}-1)=0\\)",
+        "C": "\\(\\lim_{a\\to1^-}3((a-1)^{-1/3}-1)=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to1^-}3((1-a)^{-1/3}-1)=2\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6077,9 +6077,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{\\sqrt{x}(1+x)}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=\\frac{\\pi}{2}\\)",
-        "B": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=0",
-        "C": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=\\pi",
-        "D": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=1"
+        "B": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=\\pi\\)",
+        "D": "\\(\\lim_{a\\to0^+}2(\\arctan1-\\arctan\\sqrt a)=1\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6094,9 +6094,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{\\sqrt{x}(1+\\sqrt{x})}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=2\\ln2\\)",
-        "B": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=0",
-        "C": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=\\ln2",
-        "D": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=4\\ln2"
+        "B": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=\\ln2\\)",
+        "D": "\\(\\lim_{a\\to0^+}2\\ln\\frac{2}{1+\\sqrt a}=4\\ln2\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6111,9 +6111,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{\\sqrt{x}(2+\\sqrt{x})}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=2\\ln\\frac32\\)",
-        "B": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=0",
-        "C": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=\\ln\\frac32",
-        "D": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=\\ln3"
+        "B": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=\\ln\\frac32\\)",
+        "D": "\\(\\lim_{a\\to0^+}2\\ln\\frac{3}{2+\\sqrt a}=\\ln3\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6128,9 +6128,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{\\sqrt[3]{1-x}}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}\\frac32(1-(1-a)^{2/3})=\\frac32\\)",
-        "B": "\\(\\lim_{a\\to1^-}\\frac32(1-(1-a)^{2/3})=1",
-        "C": "\\(\\lim_{a\\to1^-}\\frac32(1-(a-1)^{2/3})=0",
-        "D": "\\(\\lim_{a\\to1^-}\\frac32(1-(1-a)^{2/3})=3"
+        "B": "\\(\\lim_{a\\to1^-}\\frac32(1-(1-a)^{2/3})=1\\)",
+        "C": "\\(\\lim_{a\\to1^-}\\frac32(1-(a-1)^{2/3})=0\\)",
+        "D": "\\(\\lim_{a\\to1^-}\\frac32(1-(1-a)^{2/3})=3\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6145,9 +6145,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{(1-x)^{3/2}}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^-}2((1-a)^{-1/2}-1)=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to1^-}2((1-a)^{-1/2}-1)=0",
-        "C": "\\(\\lim_{a\\to1^-}2((a-1)^{-1/2}-1)=-\\infty",
-        "D": "\\(\\lim_{a\\to1^-}2((1-a)^{-1/2}-1)=1"
+        "B": "\\(\\lim_{a\\to1^-}2((1-a)^{-1/2}-1)=0\\)",
+        "C": "\\(\\lim_{a\\to1^-}2((a-1)^{-1/2}-1)=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to1^-}2((1-a)^{-1/2}-1)=1\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6179,9 +6179,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^{\\pi/2}\\frac{\\sin x}{\\sqrt[3]{\\cos x}}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=\\frac32\\)",
-        "B": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=1",
-        "C": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=0",
-        "D": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=4"
+        "B": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=1\\)",
+        "C": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=0\\)",
+        "D": "\\(\\lim_{a\\to\\pi/2^-}\\frac32(1-(\\cos a)^{2/3})=4\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6196,9 +6196,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^1\\frac{dx}{\\sqrt{x}(1-x)^{1/2}}\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=\\pi\\)",
-        "B": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=0",
-        "C": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=\\frac\\pi2",
-        "D": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=2\\pi"
+        "B": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=0\\)",
+        "C": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=\\frac\\pi2\\)",
+        "D": "\\(\\lim_{a\\to0^+}(\\pi-2\\arcsin\\sqrt a)=2\\pi\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6247,9 +6247,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_0^{\\pi/2}\\frac{\\sin x}{\\cos^2 x}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to\\pi/2^-}(\\frac1{\\cos a}-1)=+\\infty\\)",
-        "B": "\\(\\lim_{a\\to\\pi/2^-}(1-\\frac1{\\cos a})=0",
-        "C": "\\(\\lim_{a\\to\\pi/2^-}(\\frac1{\\sin a}-1)=-\\infty",
-        "D": "\\(\\lim_{a\\to\\pi/2^-}(\\frac1{\\cos a}+1)=1"
+        "B": "\\(\\lim_{a\\to\\pi/2^-}(1-\\frac1{\\cos a})=0\\)",
+        "C": "\\(\\lim_{a\\to\\pi/2^-}(\\frac1{\\sin a}-1)=-\\infty\\)",
+        "D": "\\(\\lim_{a\\to\\pi/2^-}(\\frac1{\\cos a}+1)=1\\)"
       },
       "correct": "A",
       "explanation": "",
@@ -6264,9 +6264,9 @@ module.exports = {
       "content": "Tích phân \\(\\int_1^2\\frac{x-2}{\\sqrt{x-1}}\\,dx\\) bằng:",
       "options": {
         "A": "\\(\\lim_{a\\to1^+}[-\\frac43+\\frac23(a-1)^{3/2}+2\\sqrt{a-1}]=-\\frac43\\)",
-        "B": "\\(\\lim_{a\\to1^+}[\\frac43-\\frac23(a-1)^{3/2}-2\\sqrt{a-1}]=0",
-        "C": "\\(\\lim_{a\\to1^+}[-\\frac23+\\frac23(a-1)^{3/2}]=-\\frac23",
-        "D": "\\(\\lim_{a\\to1^+}[-\\frac43-\\frac23(a-1)^{3/2}+2\\sqrt{a-1}]=-\\infty"
+        "B": "\\(\\lim_{a\\to1^+}[\\frac43-\\frac23(a-1)^{3/2}-2\\sqrt{a-1}]=0\\)",
+        "C": "\\(\\lim_{a\\to1^+}[-\\frac23+\\frac23(a-1)^{3/2}]=-\\frac23\\)",
+        "D": "\\(\\lim_{a\\to1^+}[-\\frac43-\\frac23(a-1)^{3/2}+2\\sqrt{a-1}]=-\\infty\\)"
       },
       "correct": "A",
       "explanation": "",

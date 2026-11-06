@@ -8,114 +8,78 @@ const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 function MathContent({ value = '', inline = false }) {
   const source = String(value ?? '')
     .replace(/\r\n/g, '\n')
-    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
     .replace(/\\\\\[/g, '\\[')
     .replace(/\\\\\]/g, '\\]');
 
+  // Tách văn bản và từng vùng toán học theo delimiter, không dùng regex
+  // dễ nuốt nhầm dấu ngoặc hoặc bỏ sót công thức thiếu delimiter.
   const parts = [];
+  let cursor = 0;
   let key = 0;
-  const pushPlainText = (plainText) => {
-    const scientificPattern = /([−-]?\d+(?:[,.]\d+)?)\s*[×x]\s*10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))|(^|[^\w\\])10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))/g;
-    let cursor = 0;
-    let scientificMatch;
-
-    while ((scientificMatch = scientificPattern.exec(plainText)) !== null) {
-      if (scientificMatch.index > cursor) {
-        parts.push({ type: 'text', value: plainText.slice(cursor, scientificMatch.index), key: key++ });
-      }
-
-      let coefficient;
-      let exponent;
-      let prefix = '';
-      if (scientificMatch[1] !== undefined) {
-        coefficient = scientificMatch[1].replace('−', '-').replace(',', '{,}');
-        exponent = (scientificMatch[2] ?? scientificMatch[3]).replace(/[\s−]/g, (char) => char === '−' ? '-' : '');
-      } else {
-        prefix = scientificMatch[4] ?? '';
-        exponent = (scientificMatch[5] ?? scientificMatch[6]).replace(/[\s−]/g, (char) => char === '−' ? '-' : '');
-      }
-
-      if (prefix) parts.push({ type: 'text', value: prefix, key: key++ });
-      const latex = coefficient
-        ? `${coefficient}\\times 10^{${exponent}}`
-        : `10^{${exponent}}`;
-      parts.push({ type: 'inline', value: latex, key: key++ });
-      cursor = scientificPattern.lastIndex;
-    }
-
-    if (cursor < plainText.length) {
-      parts.push({ type: 'text', value: plainText.slice(cursor), key: key++ });
-    }
+  parts._textStart = 0;
+  const pushText = (text) => {
+    if (text) parts.push({ type: 'text', value: text, key: key++ });
   };
 
-  const tokenRegex = /\\{1,2}\[([\s\S]*?)\\{1,2}\]|\\{1,2}\(([\s\S]*?)\\{1,2}\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
-  let lastIndex = 0;
-  let match;
+  while (cursor < source.length) {
+    let opener = null;
+    let closer = null;
+    let block = false;
+    let openerLength = 0;
 
-  while ((match = tokenRegex.exec(source)) !== null) {
-    if (match.index > lastIndex) {
-      pushPlainText(source.slice(lastIndex, match.index));
+    if (source.startsWith('$$', cursor)) {
+      opener = '$$'; closer = '$$'; block = true; openerLength = 2;
+    } else if (source.startsWith('\\[', cursor)) {
+      opener = '\\['; closer = '\\]'; block = true; openerLength = 2;
+    } else if (source.startsWith('\\(', cursor)) {
+      opener = '\\('; closer = '\\)'; openerLength = 2;
+    } else if (source[cursor] === '$' && source[cursor + 1] !== '$') {
+      opener = '$'; closer = '$'; openerLength = 1;
     }
 
-    const isBlock = match[1] !== undefined || match[3] !== undefined;
-    const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
-      .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
-      .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
-      .replace(/\\\\(begin|end|left|right|frac|dfrac|tfrac|sqrt|root|lim|int|sum|prod|sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|pi|infty|cdot|times|leq|geq|neq|pm|mp|partial|mathrm|text|overline|underline|vec|hat|bar|quad|qquad)(?=[\s{])/g, '\\$1')
-      .trim();
+    if (!opener) {
+      cursor += 1;
+      continue;
+    }
 
-    // Chỉ dùng displaystyle cho tích phân/giới hạn để cận nằm trên-dưới.
-    // Không ép phân số/căn thức sang displaystyle vì làm công thức quá cao trong dòng.
-    const needsDisplayLimits = /\\(?:int|iint|iiint|oint|lim)\b/.test(latex);
-    const renderedLatex = inline && needsDisplayLimits && !/\\displaystyle\b/.test(latex)
-      ? `\\displaystyle ${latex}`
-      : latex;
+    // Đưa phần văn bản trước delimiter vào danh sách.
+    const openerAt = cursor;
+    const textStart = parts._textStart ?? 0;
+    pushText(source.slice(textStart, openerAt));
 
-    // Chuẩn hóa các lỗi gõ thường gặp trong đáp án Taylor được nhập từ Word.
-    const cleanTaylorLatex = (input) => input
-      .replace(/(=\\s*)0\\s*\\+/g, '$1')
-      .replace(/\\+\\s*-/g, '-')
-      .replace(/(?<![\\w])1\\s*\\(x\\)/g, 'x')
-      .replace(/(\\d+)\\s*\\(x\\)/g, '$1x')
-      .replace(/\\(x\\)\\s*\\^\\s*\\{?2\\}?/g, 'x^2')
-      .replace(/1x\\s*\\^\\s*\\{?2\\}?/g, 'x^2')
-      .replace(/o\\s*\\(\\s*\\(x\\)\\s*\\^\\s*\\{?2\\}?\\s*\\)/g, 'o(x^2)');
-    const finalLatex = cleanTaylorLatex(renderedLatex);
+    const bodyStart = openerAt + openerLength;
+    const closeAt = source.indexOf(closer, bodyStart);
+    if (closeAt === -1) {
+      // Fallback an toàn: vẫn render phần còn lại như toán học thay vì
+      // in nguyên chuỗi LaTeX ra giao diện.
+      const latex = source.slice(bodyStart).trim();
+      if (latex) parts.push({ type: inline || !block ? 'inline' : 'block', value: latex, key: key++ });
+      cursor = source.length;
+      parts._textStart = cursor;
+      break;
+    }
 
-    parts.push({
-      type: !inline && isBlock ? 'block' : 'inline',
-      value: finalLatex,
-      key: key++,
-    });
-    lastIndex = tokenRegex.lastIndex;
+    const latex = source.slice(bodyStart, closeAt).trim();
+    if (latex) parts.push({ type: inline || !block ? 'inline' : 'block', value: latex, key: key++ });
+    cursor = closeAt + closer.length;
+    parts._textStart = cursor;
   }
 
-  if (lastIndex < source.length) {
-    pushPlainText(source.slice(lastIndex));
-  }
-  if (parts.length === 0) {
-    pushPlainText(source);
-  }
+  const consumed = parts._textStart ?? 0;
+  if (consumed < source.length) pushText(source.slice(consumed));
 
+  // Hỗ trợ văn bản không có delimiter nhưng chứa biểu thức toán học dạng $...$.
+  // Không tự sửa nội dung LaTeX vì có thể làm thay đổi ý nghĩa toán học.
   return (
     <>
       {parts.map((part) => {
         if (part.type === 'block') {
-          return (
-            <div className="math-block" key={part.key}>
-              <BlockMath math={part.value} errorColor="#d32f2f" />
-            </div>
-          );
+          return <div className="math-block" key={part.key}><BlockMath math={part.value} errorColor="#d32f2f" /></div>;
         }
         if (part.type === 'inline') {
-          return (
-            <span className="math-inline" key={part.key}>
-              <InlineMath math={part.value} errorColor="#d32f2f" />
-            </span>
-          );
+          return <span className="math-inline" key={part.key}><InlineMath math={part.value} errorColor="#d32f2f" /></span>;
         }
         return <span key={part.key}>{part.value}</span>;
       })}
