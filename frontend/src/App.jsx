@@ -1345,7 +1345,7 @@ export default function App() {
                 <button className="university-card" key={uni.id} type="button" onClick={() => handleSelectUni(uni)}>
                   <span className="uni-icon">🏫</span>
                   <span className="uni-name">{uni.name}</span>
-                  <span className="uni-arrow">→</span>
+                  <span className="uni-arrow" aria-hidden="true"><span className="uni-arrow-chevron" /></span>
                 </button>
               ))}
             </div>
