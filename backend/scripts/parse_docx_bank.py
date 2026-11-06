@@ -33,7 +33,7 @@ def omml(el):
     t = local(el)
     if t == "t":
         return math_token(el.text or "")
-    if t in ("oMath", "oMathPara", "e", "num", "den", "sub", "sup", "deg", "fName", "lim", "mr", "mc", "m", "r"):
+    if t in ("oMath", "oMathPara", "e", "num", "den", "sub", "sup", "deg", "fName", "lim", "mr", "mc", "r"):
         return inner(el)
     if t == "f":
         return r"\frac{" + omml(child(el, "num")) + "}{" + omml(child(el, "den")) + "}"
@@ -56,7 +56,7 @@ def omml(el):
         if not beg and not end: beg, end = "(", ")"
         left = {"(": r"\left(", "[": r"\left[", "{": r"\left\{", "|": r"\left|"}
         right = {")": r"\right)", "]": r"\right]", "}": r"\right\}", "|": r"\right|"}
-        return left.get(beg, beg) + inner(el, ("dPr",)) + right.get(end, end)
+        return left.get(beg, beg) + inner(el, ("dPr",)) + (right.get(end, end) if end else (r"\\right." if beg else ""))
     if t == "nary":
         npr = child(el, "naryPr")
         symbol = "∫"
@@ -75,11 +75,12 @@ def omml(el):
     if t == "bar": return r"\overline{" + omml(child(el, "e")) + "}"
     if t == "acc": return r"\widehat{" + omml(child(el, "e")) + "}"
     if t == "groupChr": return r"\underbrace{" + omml(child(el, "e")) + "}"
-    if t == "matrix":
+    if t in ("matrix", "m"):
         rows = []
         for mr in el:
             if local(mr) == "mr":
-                rows.append(" & ".join(omml(mc) for mc in mr if local(mc) == "e"))
+                row = " & ".join(omml(mc) for mc in mr if local(mc) == "e")
+                rows.append(re.sub(r"[,，]\\s*$", "", row))
         return r"\begin{matrix}" + r" \\ ".join(rows) + r"\end{matrix}"
     if t == "eqArr":
         return r" \\ ".join(omml(x) for x in el if local(x) == "e")
