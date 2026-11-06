@@ -6,22 +6,13 @@ import './App.css';
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
 function MathContent({ value = '', inline = false }) {
-  let source = String(value ?? '')
+  const source = String(value ?? '')
     .replace(/\r\n/g, '\n')
-    // Dữ liệu nhập từ Word đôi khi bị escape dấu phân cách LaTeX hai lần.
+    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
     .replace(/\\\\\[/g, '\\[')
     .replace(/\\\\\]/g, '\\]');
-
-  // Khôi phục dấu đóng bị thiếu ở các phương án chỉ chứa một công thức.
-  const inlineOpen = (source.match(/\\\(/g) || []).length;
-  const inlineClose = (source.match(/\\\)/g) || []).length;
-  if (inlineOpen > inlineClose && inlineOpen - inlineClose === 1) source += '\\)';
-  const blockOpen = (source.match(/\\\[/g) || []).length;
-  const blockClose = (source.match(/\\\]/g) || []).length;
-  if (blockOpen > blockClose && blockOpen - blockClose === 1) source += '\\]';
-
 
   const parts = [];
   let key = 0;
@@ -72,28 +63,31 @@ function MathContent({ value = '', inline = false }) {
     const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên dấu xuống dòng.
-      .replace(/\\\\(?=[a-zA-Z])/g, '\\')
-      // Rút gọn cách nhập Taylor thường gặp: 0+3(x), 1(x)^2, +-...
-      .replace(/(=)\s*0\s*\+\s*/g, '$1')
-      .replace(/\+\s*-\s*/g, '-')
-      .replace(/\b1\s*\(x\)\s*\^\s*\{?2\}?/g, 'x^2')
-      .replace(/\b(\d+)\s*\(x\)/g, (all, coefficient) => coefficient === '1' ? 'x' : `${coefficient}x`)
-      .replace(/\(x\)\s*\^\s*\{?2\}?/g, 'x^2')
-      .replace(/\b1x\b/g, 'x')
+      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
+      .replace(/\\\\(begin|end|left|right|frac|dfrac|tfrac|sqrt|root|lim|int|sum|prod|sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|pi|infty|cdot|times|leq|geq|neq|pm|mp|partial|mathrm|text|overline|underline|vec|hat|bar|quad|qquad)(?=[\s{])/g, '\\$1')
       .trim();
 
-    const hasCases = /\\begin\{cases\}/.test(latex);
-    const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
-    const renderedLatex = inline && hasTallMath && !/\\displaystyle\b/.test(latex)
+    // Chỉ dùng displaystyle cho tích phân/giới hạn để cận nằm trên-dưới.
+    // Không ép phân số/căn thức sang displaystyle vì làm công thức quá cao trong dòng.
+    const needsDisplayLimits = /\\(?:int|iint|iiint|oint|lim)\b/.test(latex);
+    const renderedLatex = inline && needsDisplayLimits && !/\\displaystyle\b/.test(latex)
       ? `\\displaystyle ${latex}`
       : latex;
 
+    // Chuẩn hóa các lỗi gõ thường gặp trong đáp án Taylor được nhập từ Word.
+    const cleanTaylorLatex = (input) => input
+      .replace(/(=\\s*)0\\s*\\+/g, '$1')
+      .replace(/\\+\\s*-/g, '-')
+      .replace(/(?<![\\w])1\\s*\\(x\\)/g, 'x')
+      .replace(/(\\d+)\\s*\\(x\\)/g, '$1x')
+      .replace(/\\(x\\)\\s*\\^\\s*\\{?2\\}?/g, 'x^2')
+      .replace(/1x\\s*\\^\\s*\\{?2\\}?/g, 'x^2')
+      .replace(/o\\s*\\(\\s*\\(x\\)\\s*\\^\\s*\\{?2\\}?\\s*\\)/g, 'o(x^2)');
+    const finalLatex = cleanTaylorLatex(renderedLatex);
+
     parts.push({
-      // Hệ phương trình tham số cần hiển thị dạng khối để dấu ngoặc nhọn
-      // ôm trọn hai dòng; điều kiện t đặt sau hệ như trong đề gốc.
-      type: hasCases || (!inline && isBlock) ? 'block' : 'inline',
-      value: renderedLatex,
+      type: !inline && isBlock ? 'block' : 'inline',
+      value: finalLatex,
       key: key++,
     });
     lastIndex = tokenRegex.lastIndex;
@@ -117,7 +111,11 @@ function MathContent({ value = '', inline = false }) {
           );
         }
         if (part.type === 'inline') {
-          return <InlineMath key={part.key} math={part.value} errorColor="#d32f2f" />;
+          return (
+            <span className="math-inline" key={part.key}>
+              <InlineMath math={part.value} errorColor="#d32f2f" />
+            </span>
+          );
         }
         return <span key={part.key}>{part.value}</span>;
       })}

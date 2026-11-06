@@ -600,57 +600,73 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
 }
 
 
-/* ===== Hoàn thiện đồng bộ giao diện làm bài ===== */
-.exam-layout { padding-top: 12px; }
-.exam-sticky-bar {
-  margin-bottom: 30px !important;
-  min-height: 76px;
-  padding: 16px 22px !important;
+/* ===== FIX TOÀN DIỆN KATEX: PHÂN SỐ, TÍCH PHÂN, GIỚI HẠN ===== */
+/* KaTeX tự tính kích thước các vlist/mfrac. Không để reset box-sizing của app can thiệp. */
+.katex,
+.katex *,
+.katex *::before,
+.katex *::after {
+  box-sizing: content-box !important;
 }
-.questions-container { gap: 24px !important; }
-.question-card:first-child { margin-top: 4px; }
-.question-text {
-  text-align: left !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  line-height: 1.8;
+
+/* Khôi phục line-height chuẩn của KaTeX; tuyệt đối không ép line-height
+   lên .mfrac, .vlist, .frac-line, .sizing, .sqrt hoặc các node nội bộ. */
+.katex {
+  line-height: 1.2 !important;
+  white-space: nowrap;
 }
-.question-text .math-block { text-align: left; }
-.question-text .katex-display { text-align: left; margin: .45em 0; }
-.question-text .katex { font-size: 1.04em; }
-.option-text-content { text-align: left !important; }
-.option-text-content .katex-display { text-align: left; }
-.exam-footer-action {
-  margin: 38px 0 34px !important;
-  padding: 26px 20px 30px !important;
-  min-height: 118px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,.88);
-  border: 1px solid #e8d8f4;
-  border-radius: 20px;
-  box-shadow: 0 8px 22px rgba(113,68,147,.09);
+.katex .katex-html {
+  overflow: visible !important;
 }
-.btn-submit {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  min-width: 240px;
-  min-height: 60px;
-  padding: 16px 42px !important;
-  font-size: 1.2rem !important;
-  line-height: 1.35;
-  font-weight: 800 !important;
-  border-radius: 16px !important;
-  box-shadow: 0 7px 18px rgba(47,133,90,.22) !important;
+
+/* Mỗi công thức nội dòng có hộp riêng để tử/mẫu, cận tích phân và chỉ số lim
+   không bị đường baseline của văn bản cắt hoặc đè lên nhau. */
+.math-inline {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  line-height: normal !important;
+  padding: 0.22em 0 0.28em !important;
+  margin: 0 0.035em !important;
+  overflow: visible !important;
+  white-space: nowrap;
 }
+.math-inline .katex {
+  display: inline-block;
+  vertical-align: middle !important;
+}
+
+/* Cho dòng câu hỏi/đáp án tự cao theo công thức, không ép chiều cao cố định. */
+.question-text,
+.option-text-content {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+  line-height: 1.75 !important;
+  overflow: visible !important;
+}
+.option-item {
+  height: auto !important;
+  min-height: 68px;
+  align-items: center !important;
+  overflow: visible !important;
+}
+.question-card,
+.questions-container,
+.options-grid {
+  overflow: visible !important;
+}
+
+/* Dạng hệ phương trình: giữ nguyên hai dấu gạch chéo xuống dòng của cases. */
+.math-inline .katex-display {
+  margin: 0.25em 0 !important;
+}
+
 @media (max-width: 700px) {
-  .exam-layout { padding-top: 8px; }
-  .exam-sticky-bar { margin-bottom: 22px !important; }
-  .questions-container { gap: 18px !important; }
-  .exam-footer-action { margin: 28px 0 24px !important; padding: 20px 12px 24px !important; }
-  .btn-submit { width: min(100%, 320px); min-width: 0; min-height: 56px; font-size: 1.08rem !important; }
+  .question-text,
+  .option-text-content {
+    line-height: 1.8 !important;
+  }
+  .option-item {
+    min-height: 64px;
+  }
 }
