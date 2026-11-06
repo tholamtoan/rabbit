@@ -194,6 +194,11 @@ export default function App() {
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminPriceInput, setAdminPriceInput] = useState('1000');
   const [adminPriceSaving, setAdminPriceSaving] = useState(false);
+  const [adminBankSubject, setAdminBankSubject] = useState('toancc1_iuh');
+  const [adminBankTerm, setAdminBankTerm] = useState('midterm');
+  const [adminBankFile, setAdminBankFile] = useState(null);
+  const [adminBankPreview, setAdminBankPreview] = useState(null);
+  const [adminBankBusy, setAdminBankBusy] = useState(false);
 
   const [universities, setUniversities] = useState([]);
   const [selectedUni, setSelectedUni] = useState(null);
@@ -895,7 +900,13 @@ export default function App() {
       if (tab === 'users') setAdminUsers((await adminRequest(`users?q=${encodeURIComponent(adminUserQuery)}`)).users || []);
       if (tab === 'transactions') setAdminTransactions((await adminRequest('transactions')).transactions || []);
       if (tab === 'audit') setAdminAudit((await adminRequest('audit')).logs || []);
-      if (tab === 'catalog') setAdminCatalog((await adminRequest('catalog')).subjects || []);
+      if (tab === 'catalog' || tab === 'uploadBank') {
+        const subjects = (await adminRequest('catalog')).subjects || [];
+        setAdminCatalog(subjects);
+        if (subjects.length && !subjects.some(subject => subject.id === adminBankSubject)) {
+          setAdminBankSubject(subjects[0].id);
+        }
+      }
       if (tab === 'examSettings') setAdminExamSettings((await adminRequest('exam-settings')).subjects || []);
       if (tab === 'roles') setAdminRoles((await adminRequest('roles')).roles || []);
       if (tab === 'pricing') {
@@ -918,6 +929,59 @@ export default function App() {
   const changeAdminTab = (tab) => {
     setAdminTab(tab);
     void loadAdminTab(tab);
+  };
+
+  const previewAdminQuestionBank = async () => {
+    if (!adminBankFile) { setError('Hãy chọn file Word .docx trước.'); return; }
+    setAdminBankBusy(true);
+    setError('');
+    setSuccessMessage('');
+    setAdminBankPreview(null);
+    try {
+      const token = localStorage.getItem('hct_session_token');
+      const data = await fetchJson(
+        `${API_BASE}/admin/question-banks/${encodeURIComponent(adminBankSubject)}/preview?term=${encodeURIComponent(adminBankTerm)}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token || ''}`,
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+          },
+          body: adminBankFile
+        }
+      );
+      setAdminBankPreview(data);
+      setSuccessMessage('Đã đọc file Word. Ngân hàng hiện tại chưa bị thay đổi; hãy kiểm tra thống kê trước khi xuất bản.');
+    } catch (err) {
+      setError(err.message || 'Không đọc được file Word.');
+    } finally {
+      setAdminBankBusy(false);
+    }
+  };
+
+  const publishAdminQuestionBank = async () => {
+    if (!adminBankPreview?.previewId) return;
+    const summary = adminBankPreview.summary || {};
+    const confirmed = window.confirm(
+      `Xác nhận thay ngân hàng ${adminBankSubject} (${adminBankTerm}) bằng ${summary.questionCount || 0} câu?\\n` +
+      `Mới: ${summary.added || 0} · Sửa: ${summary.changed || 0} · Giữ nguyên: ${summary.unchanged || 0} · Bị bỏ: ${summary.removed || 0}\\n` +
+      'Các câu đã thay đổi hoặc bị bỏ sẽ được xóa lịch sử chống lặp tương ứng. Cấu hình đề thi được giữ nguyên.'
+    );
+    if (!confirmed) return;
+    setAdminBankBusy(true);
+    setError('');
+    try {
+      const data = await adminRequest(`question-banks/previews/${encodeURIComponent(adminBankPreview.previewId)}/publish`, { method: 'POST' });
+      setAdminBankPreview(null);
+      setAdminBankFile(null);
+      setSuccessMessage(data.message || 'Đã cập nhật ngân hàng câu hỏi.');
+      void loadAdminTab('uploadBank');
+      void loadAdminTab('examSettings');
+    } catch (err) {
+      setError(err.message || 'Không thể xuất bản ngân hàng câu hỏi.');
+    } finally {
+      setAdminBankBusy(false);
+    }
   };
 
   const adminWalletAction = async (username, direction) => {
@@ -1108,7 +1172,7 @@ export default function App() {
           </div>
           <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'18px 0'}}>
             {[
-              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
+              ['overview','📊 Tổng quan'],['users','👥 Tài khoản'],['wallet','💳 Ví & giao dịch'],['pricing','🏷️ Giá đề thi'],['examSettings','⏱️ Cấu hình đề'],['catalog','📚 Môn học'],['uploadBank','📤 Upload ngân hàng'],['audit','🧾 Nhật ký'],['roles','🛡️ Phân quyền']
             ].map(([id,label])=><button key={id} type="button" onClick={()=>changeAdminTab(id==='wallet'?'transactions':id)} style={{border:adminTab===(id==='wallet'?'transactions':id)?'2px solid #9333ea':'1px solid #ddd6fe',background:adminTab===(id==='wallet'?'transactions':id)?'#f3e8ff':'#fff',color:'#6b21a8',borderRadius:10,padding:'9px 13px',fontWeight:700,cursor:'pointer'}}>{label}</button>)}
           </div>
           {adminLoading && <p style={{color:'#7e22ce'}}>Đang tải dữ liệu...</p>}
@@ -1146,6 +1210,60 @@ export default function App() {
             </div>
           </div>}
           {adminTab==='catalog' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Trường','Môn học','Số câu hỏi','Hiển thị'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminCatalog.map(c=><tr key={c.id}><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.universityName}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.name}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}>{c.questionCount}</td><td style={{padding:10,borderBottom:'1px solid #eee'}}><button className="btn-secondary" type="button" onClick={()=>adminToggleSubject(c)}>{c.enabled?'Đang mở · Ẩn môn':'Đang ẩn · Mở môn'}</button></td></tr>)}</tbody></table></div>}
+          {adminTab==='uploadBank' && <div style={{display:'grid',gap:14,maxWidth:900}}>
+            <div style={{padding:14,background:'#faf5ff',border:'1px solid #e9d5ff',borderRadius:12,color:'#6b21a8'}}>
+              <strong>📤 Cập nhật ngân hàng từ file Word</strong>
+              <p style={{margin:'6px 0 0',fontSize:13,color:'#7c6b91'}}>
+                Tải DOCX có tiêu đề Dạng n:, câu hỏi, đủ A–D và dòng Đáp án: X. Hệ thống đọc cả công thức Equation của Word, kiểm tra trước và chỉ thay ngân hàng sau khi mày xác nhận.
+              </p>
+            </div>
+            <label style={{display:'grid',gap:6,color:'#5b21b6',fontWeight:700}}>
+              Môn học
+              <select value={adminBankSubject} onChange={e=>{setAdminBankSubject(e.target.value);setAdminBankPreview(null);}} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:9}}>
+                {adminCatalog.map(subject=><option key={subject.id} value={subject.id}>{subject.name} · {subject.questionCount} câu hiện có</option>)}
+              </select>
+            </label>
+            <label style={{display:'grid',gap:6,color:'#5b21b6',fontWeight:700}}>
+              Kỳ thi
+              <select value={adminBankTerm} onChange={e=>{setAdminBankTerm(e.target.value);setAdminBankPreview(null);}} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:9}}>
+                <option value="midterm">Giữa kỳ</option>
+                <option value="final">Cuối kỳ</option>
+              </select>
+            </label>
+            <label style={{display:'grid',gap:6,color:'#5b21b6',fontWeight:700}}>
+              File đề thi (.docx)
+              <input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={e=>{setAdminBankFile(e.target.files?.[0]||null);setAdminBankPreview(null);}}
+                style={{padding:12,border:'1px dashed #c4b5fd',borderRadius:9,background:'#fff'}}/>
+            </label>
+            {adminBankFile && <small style={{color:'#6b21a8'}}>Đã chọn: {adminBankFile.name} · {(adminBankFile.size/1024/1024).toFixed(2)} MB</small>}
+            <button className="btn-primary" type="button" disabled={adminBankBusy||!adminBankFile} onClick={previewAdminQuestionBank}>
+              {adminBankBusy?'Đang kiểm tra file...':'🔍 Kiểm tra và xem trước'}
+            </button>
+            {adminBankPreview?.summary && <div style={{padding:15,border:'1px solid #86efac',background:'#f0fdf4',borderRadius:12}}>
+              <strong style={{color:'#166534'}}>Kiểm tra cấu trúc thành công</strong>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:8,marginTop:10}}>
+                {[
+                  ['Tổng câu',adminBankPreview.summary.questionCount],
+                  ['Câu mới',adminBankPreview.summary.added],
+                  ['Câu đã sửa',adminBankPreview.summary.changed],
+                  ['Không đổi',adminBankPreview.summary.unchanged],
+                  ['Bị bỏ',adminBankPreview.summary.removed]
+                ].map(([label,value])=><div key={label} style={{padding:10,background:'#fff',borderRadius:8}}><small>{label}</small><div style={{fontSize:20,fontWeight:800}}>{value}</div></div>)}
+              </div>
+              <div style={{marginTop:12,fontSize:13}}><strong>Số câu theo dạng:</strong> {Object.entries(adminBankPreview.summary.typeCounts||{}).sort((a,b)=>Number(a[0])-Number(b[0])).map(([type,count])=>`Dạng ${type}: ${count}`).join(' · ')}</div>
+              {(adminBankPreview.summary.changed>0 || adminBankPreview.summary.removed>0) && <div style={{marginTop:12,padding:10,background:'#fff7ed',border:'1px solid #fed7aa',borderRadius:8,color:'#9a3412'}}>
+                <strong>⚠️ Có câu khác với ngân hàng hiện tại.</strong>
+                <p style={{margin:'5px 0'}}>Câu đã sửa: {(adminBankPreview.differences?.changed||[]).slice(0,40).join(', ')||'Không có'}{(adminBankPreview.differences?.changed||[]).length>40?` … và ${(adminBankPreview.differences.changed.length-40)} câu khác`:''}</p>
+                <p style={{margin:'5px 0'}}>Câu bị bỏ: {(adminBankPreview.differences?.removed||[]).slice(0,40).join(', ')||'Không có'}{(adminBankPreview.differences?.removed||[]).length>40?` … và ${(adminBankPreview.differences.removed.length-40)} câu khác`:''}</p>
+                <small>File Word sẽ thay toàn bộ ngân hàng của kỳ thi đang chọn. Hãy chắc chắn Word là bản mới nhất trước khi xác nhận; hệ thống không tự trộn hai bản.</small>
+              </div>}
+              <p style={{fontSize:13,color:'#166534'}}>Chưa có dữ liệu nào được xuất bản. Cấu hình số câu và thời gian làm bài sẽ được giữ nguyên.</p>
+              <button className="btn-primary" type="button" disabled={adminBankBusy} onClick={publishAdminQuestionBank}>
+                {adminBankBusy?'Đang cập nhật...':'✅ Xác nhận cập nhật ngân hàng'}
+              </button>
+            </div>}
+          </div>}
           {adminTab==='audit' && <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',minWidth:650}}><thead><tr>{['Thời gian','Người thao tác','Hành động','Đối tượng','Chi tiết'].map(x=><th key={x} style={{textAlign:'left',padding:10,background:'#faf5ff'}}>{x}</th>)}</tr></thead><tbody>{adminAudit.map(a=><tr key={a.id}><td style={{padding:9,borderBottom:'1px solid #eee'}}>{new Date(a.created_at).toLocaleString('vi-VN')}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.actor}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.action}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{a.target}</td><td style={{padding:9,borderBottom:'1px solid #eee'}}>{JSON.stringify(a.details)}</td></tr>)}</tbody></table></div>}
           {adminTab==='roles' && <div>
             <form onSubmit={adminGrantRole} style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}><input value={adminRoleUsername} onChange={e=>setAdminRoleUsername(e.target.value)} placeholder="Username cần cấp quyền" required style={{padding:11,border:'1px solid #ddd6fe',borderRadius:8}}/><select value={adminRoleType} onChange={e=>setAdminRoleType(e.target.value)} style={{padding:11,border:'1px solid #ddd6fe',borderRadius:8}}><option value="support">Hỗ trợ</option><option value="admin">Quản trị viên</option></select><button className="btn-primary" type="submit">Cấp/cập nhật quyền</button></form>

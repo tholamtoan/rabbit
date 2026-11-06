@@ -1,5 +1,13 @@
 
 const express = require('express');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const { execFile } = require('node:child_process');
+const { promisify } = require('node:util');
+const runFile = promisify(execFile);
+const { getTermBank, getSubjectBank } = require('../services/questionBankService');
 
 module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questionBank }) {
   const router = express.Router();
@@ -28,6 +36,173 @@ module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questi
   };
 
   router.use('/api/admin', requireAuth, requireAdmin);
+
+  // DOCX upload is parsed by the bundled Python script, including Word OMML equations.
+  const docxRaw = express.raw({
+    type: [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/octet-stream'
+    ],
+    limit: '20mb'
+  });
+  const runDocxParser = async (buffer, term) => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hct-question-bank-'));
+    const inputPath = path.join(tempDir, 'upload.docx');
+    const outputPath = path.join(tempDir, 'parsed.json');
+    try {
+      await fs.writeFile(inputPath, buffer);
+      const parserPath = path.join(__dirname, '..', 'scripts', 'parse_docx_bank.py');
+      const commands = process.env.PYTHON
+        ? [process.env.PYTHON]
+        : (process.platform === 'win32' ? ['py', 'python'] : ['python3', 'python']);
+      let lastError;
+      for (const command of commands) {
+        try {
+          await runFile(command, [parserPath, inputPath, term, outputPath], { timeout: 90000, maxBuffer: 2 * 1024 * 1024 });
+          const parsed = JSON.parse(await fs.readFile(outputPath, 'utf8'));
+          return parsed.questions;
+        } catch (error) {
+          lastError = error;
+          if (error.code !== 'ENOENT') break;
+        }
+      }
+      throw new Error(lastError?.stderr?.trim() || lastError?.message || 'Không chạy được bộ đọc DOCX. Hãy cài Python và python-docx trên máy chủ.');
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+    }
+  };
+  const questionFingerprint = question => JSON.stringify({
+    content: question.content ?? question.text ?? question.question ?? '',
+    options: question.options || {},
+    correct: question.correct || ''
+  });
+
+  router.post('/api/admin/question-banks/:subjectId/preview', requireManager, docxRaw, async (req, res) => {
+    const subjectId = String(req.params.subjectId || '');
+    const term = String(req.query.term || 'midterm');
+    const knownSubject = Object.values(catalog).some(university =>
+      (university.subjects || []).some(subject => subject.id === subjectId)
+    );
+    if (!knownSubject) return res.status(404).json({ message: 'Không tìm thấy môn học.' });
+    if (!['midterm', 'final'].includes(term)) return res.status(400).json({ message: 'Kỳ thi không hợp lệ.' });
+    if (!Buffer.isBuffer(req.body) || req.body.length < 100 || req.body.length > 20 * 1024 * 1024) {
+      return res.status(400).json({ message: 'Hãy chọn file Word .docx hợp lệ (tối đa 20 MB).' });
+    }
+
+    try {
+      const questions = await runDocxParser(req.body, term);
+      const seen = new Set();
+      for (const question of questions) {
+        question.id = String(question.id || '');
+        question.term = term;
+        question.text = question.content;
+        question.question = question.content;
+        question.title = question.content;
+        if (!question.id || seen.has(question.id)) throw new Error(`Mã câu hỏi bị trùng hoặc trống: ${question.id || '(trống)'}`);
+        seen.add(question.id);
+        if (!Number.isInteger(Number(question.type)) || Number(question.type) < 1 || Number(question.type) > 100) {
+          throw new Error(`Dạng câu hỏi không hợp lệ tại ${question.id}.`);
+        }
+        if (!question.content?.trim() || !['A','B','C','D'].every(key => question.options?.[key]?.trim()) || !'ABCD'.includes(question.correct)) {
+          throw new Error(`Câu ${question.id} thiếu nội dung, phương án hoặc đáp án đúng.`);
+        }
+      }
+      const oldQuestions = await getTermBank(pool, questionBank, subjectId, term);
+      const oldById = new Map(oldQuestions.map(question => [String(question.id), question]));
+      const newById = new Map(questions.map(question => [String(question.id), question]));
+      let added = 0, changed = 0, unchanged = 0, removed = 0;
+      const differences = { added: [], changed: [], removed: [] };
+      for (const question of questions) {
+        const old = oldById.get(String(question.id));
+        if (!old) { added++; differences.added.push(String(question.id)); }
+        else if (questionFingerprint(old) === questionFingerprint(question)) unchanged++;
+        else { changed++; differences.changed.push(String(question.id)); }
+      }
+      for (const old of oldQuestions) {
+        if (!newById.has(String(old.id))) { removed++; differences.removed.push(String(old.id)); }
+      }
+
+      const summary = {
+        questionCount: questions.length,
+        typeCounts: questions.reduce((counts, question) => {
+          const key = String(question.type);
+          counts[key] = (counts[key] || 0) + 1;
+          return counts;
+        }, {}),
+        added, changed, unchanged, removed
+      };
+      const previewId = crypto.randomUUID();
+      await pool.query(
+        `INSERT INTO question_bank_import_previews(preview_id,username,subject_id,exam_term,questions,summary,expires_at)
+         VALUES($1,$2,$3,$4,$5::jsonb,$6::jsonb,NOW()+INTERVAL '30 minutes')`,
+        [previewId, req.user.username, subjectId, term, JSON.stringify(questions), JSON.stringify(summary)]
+      );
+      await pool.query('DELETE FROM question_bank_import_previews WHERE expires_at < NOW()');
+      return res.json({ success: true, previewId, summary, differences, expiresInMinutes: 30 });
+    } catch (error) {
+      console.error('DOCX preview error:', error.message);
+      return res.status(400).json({ message: error.message || 'Không đọc được file Word. Ngân hàng hiện tại chưa bị thay đổi.' });
+    }
+  });
+
+  router.post('/api/admin/question-banks/previews/:previewId/publish', requireManager, async (req, res) => {
+    const previewId = String(req.params.previewId || '');
+    if (!/^[0-9a-f-]{36}$/i.test(previewId)) return res.status(400).json({ message: 'Mã bản xem trước không hợp lệ.' });
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const previewResult = await client.query(
+        `SELECT preview_id,subject_id,exam_term,questions,summary
+         FROM question_bank_import_previews
+         WHERE preview_id=$1 AND username=$2 AND expires_at>NOW()
+         FOR UPDATE`,
+        [previewId, req.user.username]
+      );
+      if (!previewResult.rowCount) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'Bản xem trước đã hết hạn hoặc không tồn tại. Hãy tải file và kiểm tra lại.' });
+      }
+      const preview = previewResult.rows[0];
+      const oldQuestions = await getTermBank(client, questionBank, preview.subject_id, preview.exam_term);
+      const newQuestions = preview.questions || [];
+      const newById = new Map(newQuestions.map(question => [String(question.id), question]));
+      const changedIds = oldQuestions
+        .filter(old => !newById.has(String(old.id)) || questionFingerprint(old) !== questionFingerprint(newById.get(String(old.id))))
+        .map(old => String(old.id));
+
+      if (changedIds.length) {
+        await client.query(
+          `DELETE FROM exam_question_history
+           WHERE subject_id=$1 AND exam_term=$2 AND question_id=ANY($3::text[])`,
+          [preview.subject_id, preview.exam_term, changedIds]
+        );
+      }
+      await client.query(
+        `INSERT INTO question_banks(subject_id,exam_term,questions,version,updated_by,updated_at)
+         VALUES($1,$2,$3::jsonb,1,$4,NOW())
+         ON CONFLICT(subject_id,exam_term) DO UPDATE SET
+           questions=EXCLUDED.questions, version=question_banks.version+1,
+           updated_by=EXCLUDED.updated_by, updated_at=NOW()`,
+        [preview.subject_id, preview.exam_term, JSON.stringify(newQuestions), req.user.username]
+      );
+      await audit(client, req.user.username, 'publish_question_bank', preview.subject_id, {
+        term: preview.exam_term, ...preview.summary, clearedHistoryForChangedOrRemoved: changedIds.length
+      });
+      await client.query('DELETE FROM question_bank_import_previews WHERE preview_id=$1', [previewId]);
+      await client.query('COMMIT');
+      return res.json({
+        success: true,
+        message: `Đã cập nhật ${newQuestions.length} câu hỏi. Cấu hình số câu và thời gian thi được giữ nguyên.`,
+        summary: preview.summary
+      });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('Publish question bank error:', error.message);
+      return res.status(500).json({ message: 'Không cập nhật được ngân hàng câu hỏi. Dữ liệu cũ vẫn được giữ nguyên.' });
+    } finally {
+      client.release();
+    }
+  });
 
   router.get('/api/admin/dashboard', async (req,res) => {
     try {
@@ -101,6 +276,27 @@ module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questi
     finally { client.release(); }
   });
 
+  router.get('/api/admin/deposits', async (req,res) => {
+    const status = ['pending','paid','expired','manual_review'].includes(req.query.status) ? req.query.status : null;
+    const limit = Math.min(200, Math.max(1, Number(req.query.limit) || 100));
+    try {
+      const result = await pool.query(
+        `SELECT d.id,d.username,d.credit_amount,d.transfer_amount,d.order_code,d.status,
+                d.expires_at,d.paid_at,d.sepay_transaction_id,d.created_at,
+                s.content AS bank_content,s.reference_code AS bank_reference,s.created_at AS bank_received_at
+         FROM deposit_orders d
+         LEFT JOIN sepay_transactions s ON s.matched_order_id=d.id
+         WHERE ($1::text IS NULL OR d.status=$1)
+         ORDER BY d.created_at DESC LIMIT $2`,
+        [status, limit]
+      );
+      res.json({ deposits: result.rows });
+    } catch (e) {
+      console.error('Admin deposits:', e.message);
+      res.status(500).json({ message: 'Không tải được danh sách đơn nạp.' });
+    }
+  });
+
   router.get('/api/admin/transactions', async (req,res) => {
     const username=String(req.query.username||'').trim().slice(0,80);
     try {
@@ -139,8 +335,12 @@ module.exports = function createAdminRoutes({ pool, requireAuth, catalog, questi
       const enabled=await pool.query('SELECT subject_id,enabled FROM subject_settings');
       const map=new Map(enabled.rows.map(x=>[x.subject_id,x.enabled]));
       const subjects=[];
-      for(const [uniId,uni] of Object.entries(catalog)) for(const subject of (uni.subjects||[]))
-        subjects.push({universityId:uniId,universityName:uni.name,id:subject.id,name:subject.name,questionCount:(questionBank[subject.id]||[]).length,enabled:map.has(subject.id)?map.get(subject.id):true});
+      for (const [uniId, uni] of Object.entries(catalog)) {
+        for (const subject of (uni.subjects || [])) {
+          const bank = await getSubjectBank(pool, questionBank, subject.id);
+          subjects.push({ universityId: uniId, universityName: uni.name, id: subject.id, name: subject.name, questionCount: bank.length, enabled: map.has(subject.id) ? map.get(subject.id) : true });
+        }
+      }
       res.json({subjects});
     } catch(e) {res.status(500).json({message:'Không tải được danh mục đề thi.'});}
   });

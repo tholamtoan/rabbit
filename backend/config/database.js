@@ -132,6 +132,37 @@ async function initializeDatabase() {
       total_questions INTEGER NOT NULL, expires_at TIMESTAMPTZ NOT NULL, submitted_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS question_banks (
+      subject_id TEXT NOT NULL,
+      exam_term TEXT NOT NULL CHECK (exam_term IN ('midterm','final')),
+      questions JSONB NOT NULL CHECK (jsonb_typeof(questions) = 'array'),
+      version INTEGER NOT NULL DEFAULT 1,
+      updated_by TEXT,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (subject_id, exam_term)
+    );
+    CREATE TABLE IF NOT EXISTS question_bank_import_previews (
+      preview_id UUID PRIMARY KEY,
+      username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+      subject_id TEXT NOT NULL,
+      exam_term TEXT NOT NULL CHECK (exam_term IN ('midterm','final')),
+      questions JSONB NOT NULL CHECK (jsonb_typeof(questions) = 'array'),
+      summary JSONB NOT NULL DEFAULT '{}'::jsonb,
+      expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '30 minutes',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS question_bank_preview_expiry_idx
+      ON question_bank_import_previews(expires_at);
+    CREATE TABLE IF NOT EXISTS exam_question_history (
+      username TEXT NOT NULL,
+      subject_id TEXT NOT NULL,
+      exam_term TEXT NOT NULL,
+      question_id TEXT NOT NULL,
+      used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      attempt_id UUID
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS exam_question_history_unique
+      ON exam_question_history(username, subject_id, exam_term, question_id);
     CREATE INDEX IF NOT EXISTS exam_attempts_user_created_idx ON exam_attempts(username, created_at DESC);
     CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_uidx ON users (LOWER(username));
     CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_uidx ON users (LOWER(email));

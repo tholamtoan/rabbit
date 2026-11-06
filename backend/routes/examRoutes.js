@@ -1,4 +1,5 @@
 const express = require('express');
+const { getSubjectBank } = require('../services/questionBankService');
 
 module.exports = function createExamRoutes({ pool, questionBank, pricing, catalog, shuffleArray, requireAuth }) {
   const router = express.Router();
@@ -16,7 +17,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
       const subjects = [];
       for (const [universityId, university] of Object.entries(catalog)) {
         for (const subject of (university.subjects || [])) {
-          const bankSize = (questionBank[subject.id] || []).length;
+          const bankSize = (await getSubjectBank(pool, questionBank, subject.id)).length;
           const row = settings.get(subject.id);
           subjects.push({
             id: subject.id, name: subject.name, universityId, universityName: university.name,
@@ -37,7 +38,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     const subjectId = String(req.params.subjectId || '');
     const questionCount = Number(req.body?.questionCount);
     const durationMinutes = Number(req.body?.durationMinutes);
-    const bankSize = (questionBank[subjectId] || []).length;
+    const bankSize = (await getSubjectBank(pool, questionBank, subjectId)).length;
     if (!bankSize) return res.status(404).json({ message: 'Không tìm thấy môn học hoặc kho câu hỏi trống.' });
     if (!Number.isSafeInteger(questionCount) || questionCount < 1 || questionCount > bankSize) {
       return res.status(400).json({ message: `Số câu phải từ 1 đến ${bankSize}.` });
@@ -142,7 +143,13 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     const subjectId = req.params.subjectId;
     const examTerm = ['midterm', 'final'].includes(String(req.query.term || 'midterm')) ? String(req.query.term || 'midterm') : null;
     if (!examTerm) return res.status(400).json({ message: 'Kỳ thi không hợp lệ.' });
-    const subjectBank = questionBank[subjectId] || [];
+    let subjectBank;
+    try {
+      subjectBank = await getSubjectBank(pool, questionBank, subjectId);
+    } catch (error) {
+      console.error('Không tải được ngân hàng câu hỏi:', error.message);
+      return res.status(500).json({ message: 'Không tải được ngân hàng câu hỏi.' });
+    }
     const bank = subjectBank.filter(question => (question.term || 'midterm') === examTerm);
     if (!bank.length) return res.status(404).json({ message: `Thư mục ${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} chưa có câu hỏi.` });
 
@@ -185,50 +192,58 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
       }
 
       const usedResult = await client.query(
-        'SELECT question_id FROM exam_question_history WHERE username=$1 AND subject_id=$2 AND exam_term=$3',
+        `SELECT question_id, used_at FROM exam_question_history
+         WHERE username=$1 AND subject_id=$2 AND exam_term=$3
+         ORDER BY used_at ASC`,
         [req.user.username, subjectId, examTerm]
       );
-      const usedIds = new Set(usedResult.rows.map(row => String(row.question_id)));
-      let availableBank = bank.filter((q, index) => !usedIds.has(String(q.id ?? index + 1)));
-      // Only recycle the account's history after its unused pool cannot fill a complete exam.
-      if (availableBank.length < examConfig.questionCount) {
-        await client.query('DELETE FROM exam_question_history WHERE username=$1 AND subject_id=$2 AND exam_term=$3', [req.user.username, subjectId, examTerm]);
-        availableBank = bank;
-      }
-
+      const usedAt = new Map(usedResult.rows.map(row => [String(row.question_id), row.used_at]));
+      const unusedBank = bank.filter((q, index) => !usedAt.has(String(q.id ?? index + 1)));
       let selectedQuestions;
+
       if (examConfig.questionCount === 20) {
         const quotas = { 1: 2, 2: 1, 3: 1, 4: 1, 5: 1, 6: 2, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 2, 13: 2, 14: 1, 15: 1, 16: 1 };
-        const grouped = new Map();
-        for (const q of availableBank) {
-          const type = Number(q.type);
-          if (!grouped.has(type)) grouped.set(type, []);
-          grouped.get(type).push(q);
-        }
-        const insufficient = Object.entries(quotas).filter(([type, count]) => (grouped.get(Number(type)) || []).length < count);
-        if (insufficient.length) {
-          // The unused subset may lack a required type; recycle history and retry with the full bank.
-          if (availableBank !== bank) {
-            await client.query('DELETE FROM exam_question_history WHERE username=$1 AND subject_id=$2 AND exam_term=$3', [req.user.username, subjectId, examTerm]);
-            availableBank = bank;
-            grouped.clear();
-            for (const q of availableBank) {
-              const type = Number(q.type);
-              if (!grouped.has(type)) grouped.set(type, []);
-              grouped.get(type).push(q);
-            }
+        const allByType = new Map();
+        const unusedByType = new Map();
+        for (const question of bank) {
+          const type = Number(question.type);
+          if (!allByType.has(type)) allByType.set(type, []);
+          allByType.get(type).push(question);
+          const id = String(question.id);
+          if (!usedAt.has(id)) {
+            if (!unusedByType.has(type)) unusedByType.set(type, []);
+            unusedByType.get(type).push(question);
           }
         }
-        const stillInsufficient = Object.entries(quotas).filter(([type, count]) => (grouped.get(Number(type)) || []).length < count);
-        if (stillInsufficient.length) {
+        const insufficient = Object.entries(quotas).filter(([type, count]) =>
+          (allByType.get(Number(type)) || []).length < count
+        );
+        if (insufficient.length) {
           await client.query('ROLLBACK');
           return res.status(409).json({ message: 'Ngân hàng câu hỏi chưa đủ số lượng theo phân bổ 16 dạng.' });
         }
         selectedQuestions = [];
-        for (const [type, count] of Object.entries(quotas)) selectedQuestions.push(...shuffleArray(grouped.get(Number(type))).slice(0, count));
+        for (const [typeText, count] of Object.entries(quotas)) {
+          const type = Number(typeText);
+          const fresh = shuffleArray(unusedByType.get(type) || []);
+          const recycled = (allByType.get(type) || [])
+            .filter(question => usedAt.has(String(question.id)))
+            .sort((a, b) => new Date(usedAt.get(String(a.id))) - new Date(usedAt.get(String(b.id))));
+          const candidates = fresh.concat(recycled.slice(0, Math.max(0, count - fresh.length)));
+          selectedQuestions.push(...shuffleArray(candidates).slice(0, count));
+        }
         selectedQuestions = shuffleArray(selectedQuestions);
       } else {
-        selectedQuestions = shuffleArray(availableBank).slice(0, examConfig.questionCount);
+        const fresh = shuffleArray(unusedBank);
+        const recycled = bank
+          .filter(question => usedAt.has(String(question.id)))
+          .sort((a, b) => new Date(usedAt.get(String(a.id))) - new Date(usedAt.get(String(b.id))));
+        selectedQuestions = fresh.concat(recycled.slice(0, Math.max(0, examConfig.questionCount - fresh.length)));
+        selectedQuestions = shuffleArray(selectedQuestions).slice(0, examConfig.questionCount);
+      }
+      if (selectedQuestions.length < examConfig.questionCount) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ message: 'Ngân hàng câu hỏi chưa đủ số lượng để tạo đề.' });
       }
 
       const answerKey = {};
@@ -254,6 +269,16 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
         [attemptId, req.user.username, JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length,
           subjectId, examTerm, JSON.stringify(clientQuestions), JSON.stringify(clientQuestions.map(q => q.id))]
       );
+      // Mark questions as seen when they are actually served, even if the user leaves without submitting.
+      for (const question of clientQuestions) {
+        await client.query(
+          `INSERT INTO exam_question_history(username,subject_id,exam_term,question_id,attempt_id)
+           VALUES($1,$2,$3,$4,$5)
+           ON CONFLICT(username,subject_id,exam_term,question_id)
+           DO UPDATE SET used_at=NOW(), attempt_id=EXCLUDED.attempt_id`,
+          [req.user.username, subjectId, examTerm, String(question.id), attemptId]
+        );
+      }
       await client.query('COMMIT');
       return res.json({ attemptId, title, durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
     } catch (error) {
@@ -294,7 +319,8 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
         for (const questionId of questionIds) {
           await client.query(
             `INSERT INTO exam_question_history(username,subject_id,exam_term,question_id,attempt_id)
-             VALUES($1,$2,$3,$4,$5) ON CONFLICT(username,subject_id,exam_term,question_id) DO NOTHING`,
+             VALUES($1,$2,$3,$4,$5) ON CONFLICT(username,subject_id,exam_term,question_id)
+             DO UPDATE SET used_at=NOW(), attempt_id=EXCLUDED.attempt_id`,
             [req.user.username, subjectId, examTerm, String(questionId), attemptId]
           );
         }
@@ -326,8 +352,15 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
   router.post('/api/exam/buy', requireAuth, async (req, res) => {
     const { subjectId } = req.body;
     const examTerm = ['midterm', 'final'].includes(String(req.body?.examTerm || 'midterm')) ? String(req.body?.examTerm || 'midterm') : 'midterm';
-    if (!subjectId || !questionBank[subjectId]) {
-      return res.status(400).json({ success: false, message: 'Thông tin giao dịch không hợp lệ!' });
+    if (!subjectId) return res.status(400).json({ success: false, message: 'Thông tin giao dịch không hợp lệ!' });
+    try {
+      const bank = await getSubjectBank(pool, questionBank, subjectId);
+      if (!bank.some(question => (question.term || 'midterm') === examTerm)) {
+        return res.status(400).json({ success: false, message: 'Môn học chưa có ngân hàng câu hỏi cho kỳ thi này.' });
+      }
+    } catch (error) {
+      console.error('Không tải được ngân hàng khi mua đề:', error.message);
+      return res.status(500).json({ success: false, message: 'Không kiểm tra được ngân hàng đề thi.' });
     }
     const client = await pool.connect();
     try {
