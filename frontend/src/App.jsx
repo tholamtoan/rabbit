@@ -462,44 +462,6 @@ export default function App() {
     finally { setDepositBusy(false); }
   };
 
-  const cancelDepositOrder = async () => {
-    if (!depositOrder?.order_code || depositOrder.status !== 'pending') return true;
-    setDepositBusy(true);
-    try {
-      const token = localStorage.getItem('hct_session_token');
-      await fetchJson(`${API_BASE}/deposits/orders/${encodeURIComponent(depositOrder.order_code)}/cancel`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token || ''}` }
-      });
-      setDepositOrder(current => current?.order_code === depositOrder.order_code ? { ...current, status: 'cancelled' } : current);
-      return true;
-    } catch (error) {
-      // If the order was paid at the same moment, do not pretend it was cancelled.
-      if (/đã thanh toán|không còn ở trạng thái/i.test(error.message || '')) {
-        setDepositMessage(error.message);
-        return false;
-      }
-      setDepositMessage(error.message || 'Không hủy được đơn nạp.');
-      return false;
-    } finally { setDepositBusy(false); }
-  };
-
-  const closeDepositModal = async () => {
-    const canClose = await cancelDepositOrder();
-    if (canClose) {
-      setShowDepositPanel(false);
-      setDepositOrder(null);
-      setDepositMessage('');
-    }
-  };
-
-  const changeDepositAmount = async () => {
-    const canChange = await cancelDepositOrder();
-    if (canChange) {
-      setDepositOrder(null);
-      setDepositMessage('Đơn nạp cũ đã được hủy. Bạn có thể nhập số tiền mới.');
-    }
-  };
-
   const getDepositQrUrl = (order) => `https://qr.sepay.vn/img?bank=BIDV&acc=96247THOLAMTOAN&amount=${order.transfer_amount}&des=${encodeURIComponent(order.order_code)}`;
 
   const copyDepositCode = async () => {
@@ -566,7 +528,7 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!depositOrder?.order_code || depositOrder.status === 'paid' || depositOrder.status === 'manual_review' || depositOrder.status === 'cancelled') return;
+    if (!depositOrder?.order_code || depositOrder.status === 'paid' || depositOrder.status === 'manual_review') return;
     let cancelled = false;
     const checkOrder = async () => {
       try {
@@ -1071,11 +1033,11 @@ export default function App() {
       </header>
 
       {showDepositPanel && step !== 'auth' && (
-        <div className="deposit-modal-backdrop" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) closeDepositModal(); }}>
+        <div className="deposit-modal-backdrop" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) setShowDepositPanel(false); }}>
           <section className="deposit-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title" onClick={(event) => event.stopPropagation()}>
             <div className="deposit-modal-heading">
               <div><h2 id="deposit-modal-title">💳 Nạp tiền vào ví</h2><p>Ví của tài khoản {userId}</p></div>
-              <button className="deposit-modal-close" type="button" onClick={closeDepositModal} disabled={depositBusy} aria-label="Đóng">×</button>
+              <button className="deposit-modal-close" type="button" onClick={() => setShowDepositPanel(false)} aria-label="Đóng">×</button>
             </div>
             <div style={{ background: '#f5f3ff', border: '2px solid #c084fc', padding: '16px', borderRadius: '12px', marginBottom: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -1116,11 +1078,9 @@ export default function App() {
                       <p style={{margin:0}}>Mã đơn / nội dung QR: <strong style={{color:'#6b21a8'}}>{depositOrder.order_code}</strong></p>
                       <div style={{display:'flex',gap:8,flexWrap:'wrap',margin:'5px 0'}}>
                         <button className="btn-secondary" type="button" onClick={copyDepositCode}>📋 Sao chép mã đơn</button>
-                        {(depositOrder.status === 'pending' || isExpired || depositOrder.status === 'cancelled') && <button className="btn-secondary" type="button" disabled={depositBusy} onClick={changeDepositAmount}>✏️ Đổi số tiền nạp</button>}
                       </div>
                       {isPaid ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#dcfce7',color:'#166534',fontWeight:800,fontSize:17}}>✅ THANH TOÁN THÀNH CÔNG — Ví đã được cộng {Number(depositOrder.credit_amount).toLocaleString('vi-VN')}đ.</div>
                         : needsReview ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#fef3c7',color:'#92400e',fontWeight:700}}>⚠️ Đã nhận giao dịch. Đơn đang chờ quản trị viên đối soát; vui lòng không chuyển thêm.</div>
-                        : depositOrder.status === 'cancelled' ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#f1f5f9',color:'#475569',fontWeight:700}}>Đơn nạp đã được hủy. Bạn có thể tạo đơn mới với số tiền khác.</div>
                         : isExpired ? <div role="status" style={{marginTop:8,padding:'12px 14px',borderRadius:10,background:'#fee2e2',color:'#991b1b',fontWeight:700}}>⌛ Đơn đã hết hạn. Nếu đã chuyển tiền, vui lòng liên hệ quản trị viên để đối soát.</div>
                         : <><p style={{margin:0,color:'#92400e',fontWeight:700}}>⏳ Còn hiệu lực: {`${mm}:${ss}`}</p><p style={{margin:'5px 0 0',fontWeight:600}}>Quét QR rồi kiểm tra người nhận, số tiền và nội dung trước khi xác nhận chuyển khoản.</p><p style={{margin:'4px 0 0',fontSize:12,color:'#64748b'}}>Hệ thống tự kiểm tra thanh toán mỗi vài giây. Bạn không cần tải lại trang.</p></>}
                     </div>
@@ -1385,7 +1345,7 @@ export default function App() {
                 <button className="university-card" key={uni.id} type="button" onClick={() => handleSelectUni(uni)}>
                   <span className="uni-icon">🏫</span>
                   <span className="uni-name">{uni.name}</span>
-                  <span className="uni-arrow">→</span>
+                  <span className="uni-arrow" aria-hidden="true"><span className="uni-arrow-chevron" /></span>
                 </button>
               ))}
             </div>
@@ -1395,7 +1355,7 @@ export default function App() {
         {step === 'select-subject' && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-uni')}>← Chọn trường khác</button>
+              <button className="back-link" type="button" onClick={() => setStep('select-uni')}>Chọn trường khác</button>
               <h2>{selectedUni?.name}</h2>
             </div>
 
@@ -1419,7 +1379,7 @@ export default function App() {
         {step === 'select-term' && termSubject && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-subject')}>← Quay lại danh sách môn</button>
+              <button className="back-link" type="button" onClick={() => setStep('select-subject')}><span className="back-link-arrow" aria-hidden="true">←</span><span className="back-link-label">Quay lại danh sách môn</span></button>
               <h2>{termSubject.name}</h2>
             </div>
             <p className="term-folder-intro">Chọn thư mục đề thi bạn muốn làm.</p>
