@@ -35,6 +35,17 @@ def omml(el):
         return math_token(el.text or "")
     if t in ("oMath", "oMathPara", "e", "num", "den", "sub", "sup", "deg", "fName", "lim", "mr", "mc", "r"):
         return inner(el)
+    # OMML matrices use <m:m><m:mr><m:e>...</m:e>...</m:mr></m:m>.
+    # Treating <m:m> as a generic container concatenates cells and loses row breaks,
+    # which makes parametric systems render as raw/broken LaTeX in the browser.
+    if t == "m":
+        rows = []
+        for row in el:
+            if local(row) == "mr":
+                cells = [omml(cell) for cell in row if local(cell) == "e"]
+                if cells:
+                    rows.append(" & ".join(cells))
+        return r"\begin{matrix}" + r" \\ ".join(rows) + r"\end{matrix}"
     if t == "f":
         return r"\frac{" + omml(child(el, "num")) + "}{" + omml(child(el, "den")) + "}"
     if t == "sSup":
@@ -54,9 +65,12 @@ def omml(el):
                 if local(a) == "begChr": beg = a.get(f"{{{M}}}val", "")
                 if local(a) == "endChr": end = a.get(f"{{{M}}}val", "")
         if not beg and not end: beg, end = "(", ")"
+        # Word often stores a one-sided opening brace for a system of equations.
+        # TeX requires an invisible right delimiter to balance \left.
+        if beg == "{" and not end: end = "."
         left = {"(": r"\left(", "[": r"\left[", "{": r"\left\{", "|": r"\left|"}
-        right = {")": r"\right)", "]": r"\right]", "}": r"\right\}", "|": r"\right|"}
-        return left.get(beg, beg) + inner(el, ("dPr",)) + (right.get(end, end) if end else (r"\\right." if beg else ""))
+        right = {")": r"\right)", "]": r"\right]", "}": r"\right\}", "|": r"\right|", ".": r"\right."}
+        return left.get(beg, beg) + inner(el, ("dPr",)) + right.get(end, end)
     if t == "nary":
         npr = child(el, "naryPr")
         symbol = "∫"
@@ -75,12 +89,11 @@ def omml(el):
     if t == "bar": return r"\overline{" + omml(child(el, "e")) + "}"
     if t == "acc": return r"\widehat{" + omml(child(el, "e")) + "}"
     if t == "groupChr": return r"\underbrace{" + omml(child(el, "e")) + "}"
-    if t in ("matrix", "m"):
+    if t == "matrix":
         rows = []
         for mr in el:
             if local(mr) == "mr":
-                row = " & ".join(omml(mc) for mc in mr if local(mc) == "e")
-                rows.append(re.sub(r"[,，]\\s*$", "", row))
+                rows.append(" & ".join(omml(mc) for mc in mr if local(mc) == "e"))
         return r"\begin{matrix}" + r" \\ ".join(rows) + r"\end{matrix}"
     if t == "eqArr":
         return r" \\ ".join(omml(x) for x in el if local(x) == "e")

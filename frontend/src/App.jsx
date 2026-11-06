@@ -37,8 +37,17 @@ function normalizeMathSource(input) {
     .replace(/\+\s*-/g, '-');
 }
 
+function wrapBareParametricSystem(input) {
+  // Older imported banks may contain an OMML matrix flattened to raw TeX without
+  // delimiters or row separators. Recover the common x(t), y(t), t > 1/2 form.
+  return String(input ?? '').replace(
+    /\\left\\\{\s*x\s*=\s*([\s\S]*?),\s*y\s*=\s*([\s\S]*?),{1,}\s*t\s*>\s*(\\d?frac\{1\}\{2\})/g,
+    (_all, xExpr, yExpr, half) => `\\(\\begin{cases}x=${xExpr.trim()}\\\\y=${yExpr.trim()}\\end{cases},\\quad t>${half}\\)`
+  );
+}
+
 function MathContent({ value = '', inline = false }) {
-  const source = repairMathDelimiters(String(value ?? '')
+  const source = repairMathDelimiters(wrapBareParametricSystem(String(value ?? ''))
     .replace(/\r\n/g, '\n')
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
@@ -714,7 +723,11 @@ export default function App() {
     const firstUnansweredIndex = currentExam.questions.findIndex(q => !answersToSubmit[q.id]);
 
     if (firstUnansweredIndex !== -1 && !allowIncomplete) {
-      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn câu chưa trả lời.`);
+      const unansweredNumbers = currentExam.questions
+        .map((question, index) => (!answersToSubmit[question.id] ? index + 1 : null))
+        .filter((number) => number !== null);
+      const questionList = unansweredNumbers.map((number) => `Câu ${number}`).join(', ');
+      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn ${unansweredNumbers.length} câu chưa trả lời: ${questionList}. Hệ thống đã đưa bạn đến câu chưa làm đầu tiên.`);
       document.getElementById(`question-card-${firstUnansweredIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -842,6 +855,7 @@ export default function App() {
 
   const handleSelectOption = (qId, optKey) => {
     if (isSubmitted) return;
+    setIncompleteSubmitNotice('');
     setUserAnswers(prev => {
       const next = { ...prev, [qId]: optKey };
       answersRef.current = next;
@@ -1532,6 +1546,15 @@ export default function App() {
               <div className={`timer-badge ${timeLeft < 60 ? 'danger' : ''}`}>⏱️ {formatTime(timeLeft)}</div>
             </div>
 
+            {incompleteSubmitNotice && (
+              <div className="incomplete-submit-notice" role="alert" aria-live="assertive">
+                <div>{incompleteSubmitNotice}</div>
+                <button type="button" onClick={() => {
+                  const firstUnanswered = examData.questions.findIndex((question) => !userAnswers[question.id]);
+                  if (firstUnanswered >= 0) document.getElementById(`question-card-${firstUnanswered}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}>Đến câu chưa làm đầu tiên</button>
+              </div>
+            )}
             <div className="questions-container">
               {examData.questions.map((q, idx) => {
                 const detail = isSubmitted ? result?.details?.find(item => String(item.questionId) === String(q.id)) : null;
