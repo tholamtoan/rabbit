@@ -1355,7 +1355,7 @@ export default function App() {
         {step === 'select-subject' && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-uni')}>← Chọn trường khác</button>
+              <button className="back-link" type="button" onClick={() => setStep('select-uni')}>Chọn trường khác</button>
               <h2>{selectedUni?.name}</h2>
             </div>
 
