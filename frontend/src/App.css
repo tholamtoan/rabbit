@@ -670,3 +670,60 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
     min-height: 64px;
   }
 }
+
+
+/* Sửa cận tích phân/lim và khoảng trống cho phân số KaTeX */
+.math-inline {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  line-height: 1.35 !important;
+  padding: .28em .02em .32em !important;
+  margin: 0 .04em !important;
+  overflow: visible !important;
+  white-space: nowrap;
+}
+.math-inline .katex,
+.math-block .katex {
+  line-height: 1.2 !important;
+}
+.math-inline .katex-html,
+.math-block .katex-html {
+  overflow: visible !important;
+}
+.math-inline .mfrac,
+.math-inline .vlist,
+.math-inline .vlist-t,
+.math-inline .vlist-r,
+.math-inline .frac-line {
+  overflow: visible !important;
+}
+/* Cận tích phân và lim được ép bằng lệnh LaTeX \\limits trong renderer. */
+.math-inline .katex .op-limits,
+.math-inline .katex .mop {
+  vertical-align: middle;
+}
+
+/* Tách rõ phần đầu bài và phần nộp bài cuối cùng. */
+.exam-sticky-bar { margin-bottom: 34px !important; }
+.questions-container { gap: 24px !important; }
+.questions-container > .question-card:first-child { margin-top: 4px !important; }
+.exam-footer-action {
+  margin-top: 42px !important;
+  margin-bottom: 38px !important;
+  padding: 24px 18px !important;
+  border: 1px solid #e8d8f4;
+  border-radius: 18px;
+  background: rgba(255,255,255,.86);
+  box-shadow: 0 8px 22px rgba(113,68,147,.09);
+}
+.exam-footer-action .btn-submit {
+  min-width: 220px;
+  min-height: 56px;
+  padding: 14px 32px !important;
+  font-size: 1.12rem !important;
+}
+@media (max-width: 700px) {
+  .exam-sticky-bar { margin-bottom: 26px !important; }
+  .questions-container { gap: 18px !important; }
+  .exam-footer-action { margin-top: 30px !important; padding: 18px 12px !important; }
+}

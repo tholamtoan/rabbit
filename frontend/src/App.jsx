@@ -5,6 +5,27 @@ import './App.css';
 
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
+function normalizeMathExpression(input) {
+  return String(input ?? '')
+    // Chuẩn hóa ký hiệu Taylor sinh ra từ Word: o((x)^2) -> o(x^2).
+    .replace(/o\s*\(\s*\(\s*x\s*\)\s*\^\s*\{?2\}?\s*\)/g, 'o(x^2)')
+    .replace(/o\s*\(\s*x\s*\^\s*\{?2\}?\s*\)/g, 'o(x^2)')
+    // Bỏ số 0 cộng thừa ở đầu khai triển, không đụng đến số 0 ở vị trí khác.
+    .replace(/(=\s*)0\s*\+\s*/g, '$1')
+    .replace(/=\s*\+\s*/g, '=')
+    // Viết tích hệ số với x đúng dạng 3x, không phải 3(x).
+    .replace(/(?<![\\\w])1\s*\(\s*x\s*\)\s*\^\s*\{?2\}?/g, 'x^2')
+    .replace(/(?<![\\\w])(\d+)\s*\(\s*x\s*\)/g, '$1x')
+    .replace(/\(\s*x\s*\)\s*\^\s*\{?2\}?/g, 'x^2')
+    .replace(/\+\s*-/g, '-');
+}
+
+function formatMathOperators(input) {
+  return String(input ?? '')
+    // Ép cận tích phân và chỉ số giới hạn nằm trên/dưới như dạng sách giáo khoa.
+    .replace(/\\(int|iint|iiint|oint|lim)(?!\\limits)/g, '\\$1\\limits');
+}
+
 function MathContent({ value = '', inline = false }) {
   const source = String(value ?? '')
     .replace(/\r\n/g, '\n')
@@ -54,14 +75,14 @@ function MathContent({ value = '', inline = false }) {
     if (closeAt === -1) {
       // Fallback an toàn: vẫn render phần còn lại như toán học thay vì
       // in nguyên chuỗi LaTeX ra giao diện.
-      const latex = source.slice(bodyStart).trim();
+      const latex = formatMathOperators(normalizeMathExpression(source.slice(bodyStart).trim()));
       if (latex) parts.push({ type: inline || !block ? 'inline' : 'block', value: latex, key: key++ });
       cursor = source.length;
       parts._textStart = cursor;
       break;
     }
 
-    const latex = source.slice(bodyStart, closeAt).trim();
+    const latex = formatMathOperators(normalizeMathExpression(source.slice(bodyStart, closeAt).trim()));
     if (latex) parts.push({ type: inline || !block ? 'inline' : 'block', value: latex, key: key++ });
     cursor = closeAt + closer.length;
     parts._textStart = cursor;
