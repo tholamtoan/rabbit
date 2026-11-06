@@ -1355,7 +1355,7 @@ export default function App() {
         {step === 'select-subject' && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-uni')}>Chọn trường khác</button>
+              <button className="back-link" type="button" onClick={() => setStep('select-uni')}><span className="back-link-circle" aria-hidden="true">←</span><span className="back-link-label">Chọn trường khác</span></button>
               <h2>{selectedUni?.name}</h2>
             </div>
 
@@ -1379,7 +1379,7 @@ export default function App() {
         {step === 'select-term' && termSubject && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-subject')}><span className="back-link-arrow" aria-hidden="true">←</span><span className="back-link-label">Quay lại danh sách môn</span></button>
+              <button className="back-link" type="button" onClick={() => setStep('select-subject')}><span className="back-link-circle" aria-hidden="true">←</span><span className="back-link-label">Quay lại danh sách môn</span></button>
               <h2>{termSubject.name}</h2>
             </div>
             <p className="term-folder-intro">Chọn thư mục đề thi bạn muốn làm.</p>
