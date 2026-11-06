@@ -164,7 +164,7 @@ export default function App() {
 
   const [userId, setUserId] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
-  const [depositAmount, setDepositAmount] = useState('100000');
+  const [depositAmount, setDepositAmount] = useState('2000');
   const [depositOrder, setDepositOrder] = useState(null);
   const [depositBusy, setDepositBusy] = useState(false);
   const [depositMessage, setDepositMessage] = useState('');
@@ -995,7 +995,7 @@ export default function App() {
 
       {showDepositPanel && step !== 'auth' && (
         <div className="deposit-modal-backdrop" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) setShowDepositPanel(false); }}>
-          <section className="deposit-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title">
+          <section className="deposit-modal fade-in" role="dialog" aria-modal="true" aria-labelledby="deposit-modal-title" onClick={(event) => event.stopPropagation()}>
             <div className="deposit-modal-heading">
               <div><h2 id="deposit-modal-title">💳 Nạp tiền vào ví</h2><p>Ví của tài khoản {userId}</p></div>
               <button className="deposit-modal-close" type="button" onClick={() => setShowDepositPanel(false)} aria-label="Đóng">×</button>
@@ -1011,24 +1011,14 @@ export default function App() {
 
               <div style={{ background: '#ffffff', padding: '14px 16px', borderRadius: '8px', border: '1px dashed #a855f7' }}>
                 <p style={{ margin: '0 0 10px', fontWeight: 'bold' }}>📲 Nạp tiền tự động qua BIDV – QR tự điền mã đơn:</p>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <input aria-label="Số tiền muốn nạp" type="number" min="1" step="1" value={depositAmount} onChange={e=>setDepositAmount(e.target.value)} placeholder="Số tiền muốn nạp" style={{ padding: 10, border: '1px solid #c4b5fd', borderRadius: 8, width: 180 }}/>
-                  <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
-                </div>
-                {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
-                {depositOrder && (
-                  <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      className="btn-secondary"
-                      type="button"
-                      onClick={() => {
-                        setDepositOrder(null);
-                        setDepositMessage('Đã quay lại phần nhập số tiền. Lưu ý: đơn cũ vẫn còn hiệu lực đến khi hết hạn; không chuyển khoản theo QR cũ nếu mày tạo đơn mới.');
-                      }}
-                    >
-                      ← Quay lại sửa số tiền
-                    </button>
-                  </div>
+                {!depositOrder && (
+                  <>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input aria-label="Số tiền muốn nạp" type="number" min="1" step="1" value={depositAmount} onClick={(event) => event.stopPropagation()} onPointerDown={(event) => event.stopPropagation()} onChange={e=>setDepositAmount(e.target.value)} placeholder="Số tiền muốn nạp" style={{ padding: 10, border: '1px solid #c4b5fd', borderRadius: 8, width: 180 }}/>
+                      <button className="btn-primary" type="button" disabled={depositBusy} onClick={createDepositOrder}>{depositBusy ? 'Đang tạo đơn...' : 'Tạo mã nạp tiền'}</button>
+                    </div>
+                    {depositMessage && <p role="status" style={{ margin: '10px 0 0', color: '#6b21a8', fontSize: 13 }}>{depositMessage}</p>}
+                  </>
                 )}
                 {depositOrder && (() => {
                   const remaining = Math.max(0, Math.ceil((new Date(depositOrder.expires_at).getTime() - depositNow) / 1000));
