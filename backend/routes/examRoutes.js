@@ -106,6 +106,32 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     }
   });
   const crypto = require('node:crypto');
+  // Persist active exam questions and per-account submitted-question history.
+  let examHistorySchemaPromise;
+  const ensureExamHistorySchema = () => {
+    if (!examHistorySchemaPromise) {
+      examHistorySchemaPromise = (async () => {
+        await pool.query(`ALTER TABLE exam_attempts
+          ADD COLUMN IF NOT EXISTS subject_id TEXT,
+          ADD COLUMN IF NOT EXISTS exam_term TEXT,
+          ADD COLUMN IF NOT EXISTS questions JSONB,
+          ADD COLUMN IF NOT EXISTS question_ids JSONB`);
+        await pool.query(`CREATE TABLE IF NOT EXISTS exam_question_history (
+          username TEXT NOT NULL,
+          subject_id TEXT NOT NULL,
+          exam_term TEXT NOT NULL,
+          question_id TEXT NOT NULL,
+          used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          attempt_id UUID,
+          PRIMARY KEY (username, subject_id, exam_term, question_id)
+        )`);
+      })().catch(error => {
+        examHistorySchemaPromise = null;
+        throw error;
+      });
+    }
+    return examHistorySchemaPromise;
+  };
   router.get('/api/exam/random/:subjectId', requireAuth, async (req, res) => {
     const subjectId = req.params.subjectId;
     const examTerm = ['midterm', 'final'].includes(String(req.query.term || 'midterm')) ? String(req.query.term || 'midterm') : null;
@@ -113,11 +139,13 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     const subjectBank = questionBank[subjectId] || [];
     const bank = subjectBank.filter(question => (question.term || 'midterm') === examTerm);
     if (!bank.length) return res.status(404).json({ message: `Thư mục ${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} chưa có câu hỏi.` });
+
     let examConfig = { questionCount: Math.min(20, bank.length), durationMinutes: 15 };
     try {
+      await ensureExamHistorySchema();
       const savedConfig = await pool.query(
         'SELECT question_count, duration_minutes FROM exam_subject_settings WHERE subject_id = $1',
-        [req.params.subjectId]
+        [subjectId]
       );
       if (savedConfig.rows[0]) {
         examConfig = {
@@ -126,38 +154,107 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
         };
       }
     } catch (error) {
-      console.error('Không đọc được cấu hình đề môn học:', error.message);
-      return res.status(500).json({ message: 'Không tải được cấu hình đề thi.' });
+      console.error('Không chuẩn bị được lịch sử đề thi:', error.message);
+      return res.status(500).json({ message: 'Không tải được cấu hình/lịch sử đề thi.' });
     }
-    const selectedQuestions = shuffleArray(bank).slice(0, examConfig.questionCount);
-    const answerKey = {};
-    const explanationKey = {};
-    const clientQuestions = selectedQuestions.map((q, index) => {
-      const qId = String(q.id || index + 1);
-      const shuffledOptions = shuffleArray(Object.entries(q.options || {}));
-      const displayedOptions = {};
-      let displayedCorrect = null;
-      shuffledOptions.forEach(([oldLabel, optionContent], optionIndex) => {
-        const newLabel = String.fromCharCode(65 + optionIndex);
-        displayedOptions[newLabel] = optionContent;
-        if (oldLabel === q.correct) displayedCorrect = newLabel;
-      });
-      answerKey[qId] = displayedCorrect;
-      explanationKey[qId] = q.explanation || '';
-      return { id: qId, content: q.content ?? q.text ?? q.question ?? '', options: displayedOptions };
-    });
-    const attemptId = crypto.randomUUID();
+
+    const title = `${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} - ${catalog[Object.keys(catalog).find(key => (catalog[key].subjects || []).some(subject => subject.id === subjectId))]?.subjects?.find(subject => subject.id === subjectId)?.name || 'Đề thi'}`;
+    const client = await pool.connect();
     try {
-      await pool.query(
-        `INSERT INTO exam_attempts (id, username, answer_key, explanations, total_questions, expires_at)
-         VALUES ($1, $2, $3::jsonb, $4::jsonb, $5, NOW() + INTERVAL '2 hours')`,
-        [attemptId, req.user.username, JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length]
+      await client.query('BEGIN');
+      // Serialize simultaneous requests from the same account for this subject/term.
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`${req.user.username}:${subjectId}:${examTerm}`]);
+
+      // If an exam is still in progress, always return that exact question set.
+      const active = await client.query(
+        `SELECT id, questions FROM exam_attempts
+         WHERE username = $1 AND subject_id = $2 AND exam_term = $3
+           AND expires_at > NOW() AND submitted_at IS NULL AND questions IS NOT NULL
+         ORDER BY expires_at DESC LIMIT 1 FOR UPDATE`,
+        [req.user.username, subjectId, examTerm]
       );
-      return res.json({ attemptId, title: `${examTerm === 'midterm' ? 'Giữa kỳ' : 'Cuối kỳ'} - ${catalog[Object.keys(catalog).find(key => (catalog[key].subjects || []).some(subject => subject.id === subjectId))]?.subjects?.find(subject => subject.id === subjectId)?.name || 'Đề thi'}`, durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
+      if (active.rowCount) {
+        await client.query('COMMIT');
+        return res.json({ attemptId: active.rows[0].id, title, durationMinutes: examConfig.durationMinutes, questions: active.rows[0].questions });
+      }
+
+      const usedResult = await client.query(
+        'SELECT question_id FROM exam_question_history WHERE username=$1 AND subject_id=$2 AND exam_term=$3',
+        [req.user.username, subjectId, examTerm]
+      );
+      const usedIds = new Set(usedResult.rows.map(row => String(row.question_id)));
+      let availableBank = bank.filter((q, index) => !usedIds.has(String(q.id ?? index + 1)));
+      // Only recycle the account's history after its unused pool cannot fill a complete exam.
+      if (availableBank.length < examConfig.questionCount) {
+        await client.query('DELETE FROM exam_question_history WHERE username=$1 AND subject_id=$2 AND exam_term=$3', [req.user.username, subjectId, examTerm]);
+        availableBank = bank;
+      }
+
+      let selectedQuestions;
+      if (examConfig.questionCount === 20) {
+        const quotas = { 1: 2, 2: 1, 3: 1, 4: 1, 5: 1, 6: 2, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 2, 13: 2, 14: 1, 15: 1, 16: 1 };
+        const grouped = new Map();
+        for (const q of availableBank) {
+          const type = Number(q.type);
+          if (!grouped.has(type)) grouped.set(type, []);
+          grouped.get(type).push(q);
+        }
+        const insufficient = Object.entries(quotas).filter(([type, count]) => (grouped.get(Number(type)) || []).length < count);
+        if (insufficient.length) {
+          // The unused subset may lack a required type; recycle history and retry with the full bank.
+          if (availableBank !== bank) {
+            await client.query('DELETE FROM exam_question_history WHERE username=$1 AND subject_id=$2 AND exam_term=$3', [req.user.username, subjectId, examTerm]);
+            availableBank = bank;
+            grouped.clear();
+            for (const q of availableBank) {
+              const type = Number(q.type);
+              if (!grouped.has(type)) grouped.set(type, []);
+              grouped.get(type).push(q);
+            }
+          }
+        }
+        const stillInsufficient = Object.entries(quotas).filter(([type, count]) => (grouped.get(Number(type)) || []).length < count);
+        if (stillInsufficient.length) {
+          await client.query('ROLLBACK');
+          return res.status(409).json({ message: 'Ngân hàng câu hỏi chưa đủ số lượng theo phân bổ 16 dạng.' });
+        }
+        selectedQuestions = [];
+        for (const [type, count] of Object.entries(quotas)) selectedQuestions.push(...shuffleArray(grouped.get(Number(type))).slice(0, count));
+        selectedQuestions = shuffleArray(selectedQuestions);
+      } else {
+        selectedQuestions = shuffleArray(availableBank).slice(0, examConfig.questionCount);
+      }
+
+      const answerKey = {};
+      const explanationKey = {};
+      const clientQuestions = selectedQuestions.map((q, index) => {
+        const qId = String(q.id || index + 1);
+        const shuffledOptions = shuffleArray(Object.entries(q.options || {}));
+        const displayedOptions = {};
+        let displayedCorrect = null;
+        shuffledOptions.forEach(([oldLabel, optionContent], optionIndex) => {
+          const newLabel = String.fromCharCode(65 + optionIndex);
+          displayedOptions[newLabel] = optionContent;
+          if (oldLabel === q.correct) displayedCorrect = newLabel;
+        });
+        answerKey[qId] = displayedCorrect;
+        explanationKey[qId] = q.explanation || '';
+        return { id: qId, content: q.content ?? q.text ?? q.question ?? '', options: displayedOptions };
+      });
+      const attemptId = crypto.randomUUID();
+      await client.query(
+        `INSERT INTO exam_attempts (id, username, answer_key, explanations, total_questions, expires_at, subject_id, exam_term, questions, question_ids)
+         VALUES ($1, $2, $3::jsonb, $4::jsonb, $5, NOW() + INTERVAL '2 hours', $6, $7, $8::jsonb, $9::jsonb)`,
+        [attemptId, req.user.username, JSON.stringify(answerKey), JSON.stringify(explanationKey), clientQuestions.length,
+          subjectId, examTerm, JSON.stringify(clientQuestions), JSON.stringify(clientQuestions.map(q => q.id))]
+      );
+      await client.query('COMMIT');
+      return res.json({ attemptId, title, durationMinutes: examConfig.durationMinutes, questions: clientQuestions });
     } catch (error) {
-      console.error('Không lưu được đề thi:', error.message);
-      return res.status(500).json({ message: 'Không thể tạo đề thi lúc này!' });
-    }
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('Không tạo/khôi phục được đề thi:', error.message);
+      return res.status(500).json({ message: 'Không thể tạo hoặc khôi phục đề thi lúc này!' });
+    } finally { client.release(); }
   });
 
   router.post('/api/exam/submit-random', requireAuth, async (req, res) => {
@@ -169,7 +266,7 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
     try {
       await client.query('BEGIN');
       const found = await client.query(
-        `SELECT answer_key, explanations, total_questions FROM exam_attempts
+        `SELECT answer_key, explanations, total_questions, subject_id, exam_term, question_ids FROM exam_attempts
          WHERE id = $1 AND username = $2 AND expires_at > NOW() AND submitted_at IS NULL FOR UPDATE`,
         [attemptId, req.user.username]
       );
@@ -185,6 +282,16 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
         const isCorrect = submitted === correctAnswer;
         if (isCorrect) score += 1;
         details.push({ questionId: qId, userAnswer: submitted || 'Chưa chọn', correctAnswer, isCorrect, explanation: explanations?.[qId] || '' });
+      }
+      const { subject_id: subjectId, exam_term: examTerm, question_ids: questionIds } = found.rows[0];
+      if (subjectId && examTerm && Array.isArray(questionIds)) {
+        for (const questionId of questionIds) {
+          await client.query(
+            `INSERT INTO exam_question_history(username,subject_id,exam_term,question_id,attempt_id)
+             VALUES($1,$2,$3,$4,$5) ON CONFLICT(username,subject_id,exam_term,question_id) DO NOTHING`,
+            [req.user.username, subjectId, examTerm, String(questionId), attemptId]
+          );
+        }
       }
       await client.query('UPDATE exam_attempts SET submitted_at = NOW() WHERE id = $1', [attemptId]);
       await client.query('COMMIT');
