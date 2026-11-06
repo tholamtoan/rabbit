@@ -8,20 +8,18 @@ const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 function MathContent({ value = '', inline = false }) {
   let source = String(value ?? '')
     .replace(/\r\n/g, '\n')
-    // Chuẩn hóa dấu phân cách LaTeX bị escape hai lần từ dữ liệu nhập.
+    // Dữ liệu nhập từ Word đôi khi bị escape dấu phân cách LaTeX hai lần.
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
     .replace(/\\\\\[/g, '\\[')
     .replace(/\\\\\]/g, '\\]');
 
-  // Một số đáp án cũ bị thiếu dấu đóng \) hoặc \]. Nếu chỉ thiếu đúng một
-  // dấu đóng, tự bổ sung để KaTeX vẫn render thay vì hiện nguyên mã LaTeX.
-  const countToken = (text, token) => text.split(token).length - 1;
-  const inlineOpen = countToken(source, '\\(');
-  const inlineClose = countToken(source, '\\)');
+  // Khôi phục dấu đóng bị thiếu ở các phương án chỉ chứa một công thức.
+  const inlineOpen = (source.match(/\\\(/g) || []).length;
+  const inlineClose = (source.match(/\\\)/g) || []).length;
   if (inlineOpen > inlineClose && inlineOpen - inlineClose === 1) source += '\\)';
-  const blockOpen = countToken(source, '\\[');
-  const blockClose = countToken(source, '\\]');
+  const blockOpen = (source.match(/\\\[/g) || []).length;
+  const blockClose = (source.match(/\\\]/g) || []).length;
   if (blockOpen > blockClose && blockOpen - blockClose === 1) source += '\\]';
 
 
@@ -74,27 +72,27 @@ function MathContent({ value = '', inline = false }) {
     const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
+      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên dấu xuống dòng.
       .replace(/\\\\(?=[a-zA-Z])/g, '\\')
-      // Sửa lỗi import có ký tự \y thừa ngay trước y= trong hệ phương trình.
-      .replace(/\\+\s*y(?=\s*=)/g, 'y')
-      // Chuẩn hóa giới hạn để chỉ số luôn nằm dưới lim, không phụ thuộc cách gõ.
-      .replace(/\\lim\s*(?:\\limits)?\s*_\s*\{/g, '\\lim\\limits_{')
-      // Rút gọn các số hạng 0/1 thừa thường gặp trong khai triển Taylor.
-      .replace(/=\s*0\s*\+\s*/g, '=')
-      .replace(/\+\s*0(?=\s*(?:\+|$))/g, '')
-      .replace(/\b1\s*\(\s*([a-zA-Z])\s*\)/g, '$1')
-      .replace(/\(\s*([a-zA-Z])\s*\)\s*\^\s*\{?(\d+)\}?/g, '$1^{$2}')
-      .replace(/o\(\s*\(\s*([a-zA-Z])\s*\)\s*\^\s*\{?(\d+)\}?\s*\)/g, 'o($1^{$2})')
+      // Rút gọn cách nhập Taylor thường gặp: 0+3(x), 1(x)^2, +-...
+      .replace(/(=)\s*0\s*\+\s*/g, '$1')
+      .replace(/\+\s*-\s*/g, '-')
+      .replace(/\b1\s*\(x\)\s*\^\s*\{?2\}?/g, 'x^2')
+      .replace(/\b(\d+)\s*\(x\)/g, (all, coefficient) => coefficient === '1' ? 'x' : `${coefficient}x`)
+      .replace(/\(x\)\s*\^\s*\{?2\}?/g, 'x^2')
+      .replace(/\b1x\b/g, 'x')
       .trim();
 
+    const hasCases = /\\begin\{cases\}/.test(latex);
     const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
     const renderedLatex = inline && hasTallMath && !/\\displaystyle\b/.test(latex)
       ? `\\displaystyle ${latex}`
       : latex;
 
     parts.push({
-      type: !inline && isBlock ? 'block' : 'inline',
+      // Hệ phương trình tham số cần hiển thị dạng khối để dấu ngoặc nhọn
+      // ôm trọn hai dòng; điều kiện t đặt sau hệ như trong đề gốc.
+      type: hasCases || (!inline && isBlock) ? 'block' : 'inline',
       value: renderedLatex,
       key: key++,
     });

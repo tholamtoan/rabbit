@@ -600,33 +600,57 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
 }
 
 
-/* ===== Đồng nhất công thức và căn trái nội dung đề thi ===== */
+/* ===== Hoàn thiện đồng bộ giao diện làm bài ===== */
+.exam-layout { padding-top: 12px; }
+.exam-sticky-bar {
+  margin-bottom: 30px !important;
+  min-height: 76px;
+  padding: 16px 22px !important;
+}
+.questions-container { gap: 24px !important; }
+.question-card:first-child { margin-top: 4px; }
 .question-text {
   text-align: left !important;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  padding-left: 8px !important;
-  padding-right: 8px !important;
-  line-height: 1.85;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  line-height: 1.8;
 }
-.question-text .katex-display,
-.question-text .math-content,
-.question-text .katex {
-  text-align: left !important;
+.question-text .math-block { text-align: left; }
+.question-text .katex-display { text-align: left; margin: .45em 0; }
+.question-text .katex { font-size: 1.04em; }
+.option-text-content { text-align: left !important; }
+.option-text-content .katex-display { text-align: left; }
+.exam-footer-action {
+  margin: 38px 0 34px !important;
+  padding: 26px 20px 30px !important;
+  min-height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.88);
+  border: 1px solid #e8d8f4;
+  border-radius: 20px;
+  box-shadow: 0 8px 22px rgba(113,68,147,.09);
 }
-.question-text .katex-display {
-  margin: .45em 0 !important;
+.btn-submit {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 240px;
+  min-height: 60px;
+  padding: 16px 42px !important;
+  font-size: 1.2rem !important;
+  line-height: 1.35;
+  font-weight: 800 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 7px 18px rgba(47,133,90,.22) !important;
 }
-.option-text-content .katex,
-.option-text-content .katex-display {
-  vertical-align: middle;
-}
-.option-text-content .mfrac {
-  margin: 0 .04em;
-}
-.option-text-content .katex .frac-line {
-  border-bottom-width: 1px;
-}
-.math-block .katex-display {
-  margin: .55em 0;
+@media (max-width: 700px) {
+  .exam-layout { padding-top: 8px; }
+  .exam-sticky-bar { margin-bottom: 22px !important; }
+  .questions-container { gap: 18px !important; }
+  .exam-footer-action { margin: 28px 0 24px !important; padding: 20px 12px 24px !important; }
+  .btn-submit { width: min(100%, 320px); min-width: 0; min-height: 56px; font-size: 1.08rem !important; }
 }
