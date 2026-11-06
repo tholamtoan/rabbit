@@ -65,6 +65,16 @@ function MathContent({ value = '', inline = false }) {
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
       // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
       .replace(/\\\\(?=[a-zA-Z])/g, '\\')
+      // Sửa lỗi import có ký tự \y thừa ngay trước y= trong hệ phương trình.
+      .replace(/\\y(?=\s*=)/g, 'y')
+      // Chuẩn hóa giới hạn để chỉ số luôn nằm dưới lim, không phụ thuộc cách gõ.
+      .replace(/\\lim\s*_\s*\{/g, '\\lim\\limits_{')
+      // Rút gọn các số hạng 0/1 thừa thường gặp trong khai triển Taylor.
+      .replace(/=\s*0\s*\+\s*/g, '=')
+      .replace(/\+\s*0(?=\s*(?:\+|$))/g, '')
+      .replace(/\b1\s*\(\s*([a-zA-Z])\s*\)/g, '$1')
+      .replace(/\(\s*([a-zA-Z])\s*\)\s*\^\s*\{?(\d+)\}?/g, '$1^{$2}')
+      .replace(/o\(\s*\(\s*([a-zA-Z])\s*\)\s*\^\s*\{?(\d+)\}?\s*\)/g, 'o($1^{$2})')
       .trim();
 
     const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
@@ -81,22 +91,7 @@ function MathContent({ value = '', inline = false }) {
   }
 
   if (lastIndex < source.length) {
-    const remaining = source.slice(lastIndex);
-    // Một số phương án trong ngân hàng câu hỏi bị thiếu dấu đóng \).
-    // Nếu phần còn lại có dấu mở \( nhưng không có dấu đóng, vẫn render
-    // toàn bộ biểu thức còn lại bằng KaTeX thay vì để lộ mã LaTeX thô.
-    const unmatchedInline = remaining.match(/^(.*?)\\{1,2}\(([\s\S]*)$/);
-    if (unmatchedInline) {
-      if (unmatchedInline[1]) pushPlainText(unmatchedInline[1]);
-      const latex = unmatchedInline[2]
-        .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
-        .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-        .replace(/\\(?=[a-zA-Z])/g, '\\')
-        .trim();
-      parts.push({ type: 'inline', value: `\\displaystyle ${latex}`, key: key++ });
-    } else {
-      pushPlainText(remaining);
-    }
+    pushPlainText(source.slice(lastIndex));
   }
   if (parts.length === 0) {
     pushPlainText(source);

@@ -600,77 +600,33 @@ body::after { content: "🐰"; right: 1.5vw; bottom: 1.5vh; font-size: clamp(38p
 }
 
 
-/* ===== Fix khoảng cách màn hình thi, công thức thiếu dấu đóng và nút nộp ===== */
-.exam-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-.exam-sticky-bar {
-  margin-bottom: 26px !important;
-  min-height: 68px;
-}
-.questions-container {
-  gap: 22px !important;
-  margin-top: 2px;
-}
-.question-card {
-  margin-top: 0;
-  padding-top: 24px !important;
-  padding-bottom: 26px !important;
-}
-.question-card:first-child {
-  margin-top: 2px;
-}
-.question-header {
-  margin-bottom: 16px !important;
-}
+/* ===== Đồng nhất công thức và căn trái nội dung đề thi ===== */
 .question-text {
-  line-height: 1.85 !important;
-  margin-bottom: 20px !important;
+  text-align: left !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  line-height: 1.85;
 }
-.option-item {
-  min-height: 64px;
-  line-height: 1.65;
+.question-text .katex-display,
+.question-text .math-content,
+.question-text .katex {
+  text-align: left !important;
 }
-.option-text-content {
-  overflow-wrap: anywhere;
-  word-break: normal;
+.question-text .katex-display {
+  margin: .45em 0 !important;
 }
 .option-text-content .katex,
-.question-text .katex {
-  white-space: normal;
+.option-text-content .katex-display {
+  vertical-align: middle;
 }
-.exam-footer-action {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin: 34px auto 44px !important;
-  padding: 22px 16px 30px;
-  gap: 14px;
+.option-text-content .mfrac {
+  margin: 0 .04em;
 }
-.btn-submit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 250px;
-  min-height: 58px;
-  padding: 16px 38px !important;
-  font-size: 1.18rem !important;
-  line-height: 1.4 !important;
-  letter-spacing: .1px;
-  border-radius: 16px !important;
-  box-shadow: 0 8px 20px rgba(38,155,117,.22) !important;
+.option-text-content .katex .frac-line {
+  border-bottom-width: 1px;
 }
-.result-summary-card {
-  margin: 8px auto 0;
-}
-@media (max-width: 700px) {
-  .exam-sticky-bar { margin-bottom: 18px !important; }
-  .questions-container { gap: 16px !important; }
-  .question-card { padding-top: 20px !important; padding-bottom: 20px !important; }
-  .exam-footer-action { margin-top: 24px !important; padding: 16px 8px 26px; }
-  .btn-submit { width: min(100%, 320px); min-width: 0; min-height: 54px; font-size: 1.05rem !important; }
+.math-block .katex-display {
+  margin: .55em 0;
 }
