@@ -6,96 +6,81 @@ import './App.css';
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
 function MathContent({ value = '', inline = false }) {
-  const source = String(value ?? '')
-    .replace(/\r\n/g, '\n')
-    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
-    .replace(/\\\\\(/g, '\\(')
-    .replace(/\\\\\)/g, '\\)')
-    .replace(/\\\\\[/g, '\\[')
-    .replace(/\\\\\]/g, '\\]');
+  // Chuẩn hóa delimiter bị escape 2 lần từ dữ liệu JSON/import Word.
+  let source = String(value ?? '').replace(/\r\n/g, '\n');
+  source = source.split('\\\\(').join('\\(')
+    .split('\\\\)').join('\\)')
+    .split('\\\\[').join('\\[')
+    .split('\\\\]').join('\\]');
 
   const parts = [];
   let key = 0;
-  const pushPlainText = (plainText) => {
-    const scientificPattern = /([−-]?\d+(?:[,.]\d+)?)\s*[×x]\s*10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))|(^|[^\w\\])10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))/g;
-    let cursor = 0;
-    let scientificMatch;
-
-    while ((scientificMatch = scientificPattern.exec(plainText)) !== null) {
-      if (scientificMatch.index > cursor) {
-        parts.push({ type: 'text', value: plainText.slice(cursor, scientificMatch.index), key: key++ });
-      }
-
-      let coefficient;
-      let exponent;
-      let prefix = '';
-      if (scientificMatch[1] !== undefined) {
-        coefficient = scientificMatch[1].replace('−', '-').replace(',', '{,}');
-        exponent = (scientificMatch[2] ?? scientificMatch[3]).replace(/[\s−]/g, (char) => char === '−' ? '-' : '');
-      } else {
-        prefix = scientificMatch[4] ?? '';
-        exponent = (scientificMatch[5] ?? scientificMatch[6]).replace(/[\s−]/g, (char) => char === '−' ? '-' : '');
-      }
-
-      if (prefix) parts.push({ type: 'text', value: prefix, key: key++ });
-      const latex = coefficient
-        ? `${coefficient}\\times 10^{${exponent}}`
-        : `10^{${exponent}}`;
-      parts.push({ type: 'inline', value: latex, key: key++ });
-      cursor = scientificPattern.lastIndex;
-    }
-
-    if (cursor < plainText.length) {
-      parts.push({ type: 'text', value: plainText.slice(cursor), key: key++ });
-    }
+  const pushText = (text) => {
+    if (text) parts.push({ type: 'text', value: text, key: key++ });
   };
-
-  const tokenRegex = /\\{1,2}\[([\s\S]*?)\\{1,2}\]|\\{1,2}\(([\s\S]*?)\\{1,2}\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = tokenRegex.exec(source)) !== null) {
-    if (match.index > lastIndex) {
-      pushPlainText(source.slice(lastIndex, match.index));
-    }
-
-    const isBlock = match[1] !== undefined || match[3] !== undefined;
-    const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
+  const pushMath = (latex, block = false) => {
+    let clean = String(latex ?? '').trim()
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Chỉ bỏ escape lặp trước tên lệnh LaTeX; tuyệt đối giữ \\ làm dấu xuống dòng trong cases/aligned.
-      .replace(/\\\\(?=(?:begin|end|left|right|ln|dfrac|frac|tfrac|sqrt|text|quad|qquad|cdot|times|pi|infty|lim|int|sum|prod|sin|cos|tan|log|ln|mathrm|mathbf|overline|underline|mathbb|mathcal|partial|geq|leq|neq|approx|rightarrow|to|alpha|beta|gamma|Delta|Omega)\b)/g, '\\')
-      .trim();
+      .replace(/\\\\(?=[a-zA-Z])/g, '\\');
+    if (!clean) return;
+    const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(clean);
+    if (inline && hasTallMath && !/\\displaystyle\b/.test(clean)) {
+      clean = `\\displaystyle ${clean}`;
+    }
+    parts.push({ type: block && !inline ? 'block' : 'inline', value: clean, key: key++ });
+  };
 
-    const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
-    const renderedLatex = inline && hasTallMath && !/\\displaystyle\b/.test(latex)
-      ? `\\displaystyle ${latex}`
-      : latex;
-
-    parts.push({
-      type: !inline && isBlock ? 'block' : 'inline',
-      value: renderedLatex,
-      key: key++,
-    });
-    lastIndex = tokenRegex.lastIndex;
+  // Tách công thức bằng delimiter, không dùng regex động (tránh lỗi Invalid regular expression).
+  const delimiters = [
+    { open: '\\[', close: '\\]', block: true },
+    { open: '\\(', close: '\\)', block: false },
+    { open: '$$', close: '$$', block: true },
+    { open: '$', close: '$', block: false },
+  ];
+  let cursor = 0;
+  while (cursor < source.length) {
+    let found = null;
+    let foundAt = -1;
+    for (const d of delimiters) {
+      const at = source.indexOf(d.open, cursor);
+      if (at !== -1 && (foundAt === -1 || at < foundAt)) {
+        found = d;
+        foundAt = at;
+      }
+    }
+    if (!found) break;
+    pushText(source.slice(cursor, foundAt));
+    const bodyStart = foundAt + found.open.length;
+    const closeAt = source.indexOf(found.close, bodyStart);
+    if (closeAt === -1) {
+      // Nếu delimiter bị thiếu nhưng phần còn lại rõ ràng là LaTeX thì vẫn render công thức.
+      const remainder = source.slice(bodyStart);
+      if (/\\(?:frac|dfrac|tfrac|sqrt|int|sum|ln|log|sin|cos|tan|begin)\b/.test(remainder)) {
+        pushMath(remainder, found.block);
+        cursor = source.length;
+      } else {
+        pushText(source.slice(foundAt));
+        cursor = source.length;
+      }
+      break;
+    }
+    pushMath(source.slice(bodyStart, closeAt), found.block);
+    cursor = closeAt + found.close.length;
   }
+  if (cursor < source.length) pushText(source.slice(cursor));
 
-  if (lastIndex < source.length) {
-    pushPlainText(source.slice(lastIndex));
-  }
-  if (parts.length === 0) {
-    pushPlainText(source);
+  // Dữ liệu đáp án đôi khi có lệnh LaTeX nhưng bị mất cặp delimiter.
+  if (parts.length === 0 || (parts.length === 1 && parts[0].type === 'text' && /\\(?:frac|dfrac|tfrac|sqrt|int|sum|ln|log|sin|cos|tan)\b/.test(source))) {
+    parts.length = 0;
+    pushMath(source.replace(/^\\\(?/, '').replace(/\\\)?$/, ''), false);
   }
 
   return (
     <>
       {parts.map((part) => {
         if (part.type === 'block') {
-          return (
-            <div className="math-block" key={part.key}>
-              <BlockMath math={part.value} errorColor="#d32f2f" />
-            </div>
-          );
+          return <div className="math-block" key={part.key}><BlockMath math={part.value} errorColor="#d32f2f" /></div>;
         }
         if (part.type === 'inline') {
           return <InlineMath key={part.key} math={part.value} errorColor="#d32f2f" />;
@@ -700,16 +685,11 @@ export default function App() {
     if (submitLock.current || !currentExam) return;
 
     const answersToSubmit = answersOverride ?? answersRef.current;
-    const unansweredIndexes = currentExam.questions
-      .map((question, index) => answersToSubmit[question.id] ? -1 : index)
-      .filter(index => index !== -1);
+    const firstUnansweredIndex = currentExam.questions.findIndex(q => !answersToSubmit[q.id]);
 
-    if (unansweredIndexes.length > 0 && !allowIncomplete) {
-      const unansweredNumbers = unansweredIndexes.map(index => index + 1);
-      setIncompleteSubmitNotice(
-        `Bạn chưa hoàn thành bài thi! Còn ${unansweredIndexes.length} câu chưa trả lời: ${unansweredNumbers.join(', ')}.`
-      );
-      document.getElementById(`question-card-${unansweredIndexes[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (firstUnansweredIndex !== -1 && !allowIncomplete) {
+      setIncompleteSubmitNotice(`Bạn chưa hoàn thành bài thi! Còn câu chưa trả lời.`);
+      document.getElementById(`question-card-${firstUnansweredIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -1413,23 +1393,13 @@ export default function App() {
               <div className={`timer-badge ${timeLeft < 60 ? 'danger' : ''}`}>⏱️ {formatTime(timeLeft)}</div>
             </div>
 
-            {!isSubmitted && incompleteSubmitNotice && (
-              <div role="alert" className="incomplete-submit-notice" style={{
-                margin: '0 0 14px', padding: '12px 16px', borderRadius: '12px',
-                border: '1px solid #f3b4c4', background: '#fff1f5', color: '#9f1239',
-                fontWeight: 700, lineHeight: 1.6
-              }}>
-                {incompleteSubmitNotice}
-              </div>
-            )}
-
             <div className="questions-container">
               {examData.questions.map((q, idx) => {
                 const detail = isSubmitted ? result?.details?.find(item => String(item.questionId) === String(q.id)) : null;
                 return (
                   <article id={`question-card-${idx}`} style={{ scrollMarginTop: '110px' }} className={`question-card ${detail ? (detail.isCorrect ? 'correct-card' : 'wrong-card') : ''}`} key={q.id ?? idx}>
                     <div className="question-header"><span className="q-index">Câu {idx + 1}</span></div>
-                    <div className="question-text" style={{ textAlign: 'left', margin: '8px 0 18px', padding: '0 10px' }}><MathContent value={q.content} inline={true} /></div>
+                    <div className="question-text"><MathContent value={q.content} inline={true} /></div>
                     <div className="options-grid">
                       {Object.entries(q.options || {}).map(([key, val]) => {
                         const isSelected = userAnswers[q.id] === key;
