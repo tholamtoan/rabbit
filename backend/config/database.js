@@ -96,12 +96,15 @@ async function initializeDatabase() {
       transfer_amount BIGINT NOT NULL,
       suffix SMALLINT NOT NULL DEFAULT 0 CHECK (suffix BETWEEN 0 AND 99),
       order_code TEXT UNIQUE,
-      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','expired','manual_review')),
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','expired','manual_review','cancelled')),
       expires_at TIMESTAMPTZ NOT NULL,
       paid_at TIMESTAMPTZ,
       sepay_transaction_id TEXT UNIQUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    -- Allow users to cancel an unpaid deposit order when changing amount or closing the modal.
+    ALTER TABLE deposit_orders DROP CONSTRAINT IF EXISTS deposit_orders_status_check;
+    ALTER TABLE deposit_orders ADD CONSTRAINT deposit_orders_status_check CHECK (status IN ('pending','paid','expired','manual_review','cancelled'));
     -- Remove the old minimum top-up restriction (10,000 VND); any positive integer is accepted.
     ALTER TABLE deposit_orders DROP CONSTRAINT IF EXISTS deposit_orders_credit_amount_check;
     ALTER TABLE deposit_orders ADD CONSTRAINT deposit_orders_credit_amount_check CHECK (credit_amount >= 1);
