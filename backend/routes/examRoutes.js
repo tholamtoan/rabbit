@@ -119,12 +119,18 @@ module.exports = function createExamRoutes({ pool, questionBank, pricing, catalo
         await pool.query(`CREATE TABLE IF NOT EXISTS exam_question_history (
           username TEXT NOT NULL,
           subject_id TEXT NOT NULL,
-          exam_term TEXT NOT NULL,
+          exam_term TEXT,
           question_id TEXT NOT NULL,
           used_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          attempt_id UUID,
-          PRIMARY KEY (username, subject_id, exam_term, question_id)
+          attempt_id UUID
         )`);
+        // Older installations may already have this table without the new term column.
+        await pool.query('ALTER TABLE exam_question_history ADD COLUMN IF NOT EXISTS exam_term TEXT');
+        await pool.query('ALTER TABLE exam_question_history ADD COLUMN IF NOT EXISTS used_at TIMESTAMPTZ NOT NULL DEFAULT NOW()');
+        await pool.query('ALTER TABLE exam_question_history ADD COLUMN IF NOT EXISTS attempt_id UUID');
+        await pool.query("DELETE FROM exam_question_history WHERE exam_term IS NULL");
+        await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS exam_question_history_unique
+          ON exam_question_history(username, subject_id, exam_term, question_id)`);
       })().catch(error => {
         examHistorySchemaPromise = null;
         throw error;
