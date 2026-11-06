@@ -63,7 +63,8 @@ function MathContent({ value = '', inline = false }) {
     const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Không gộp hai dấu gạch chéo liên tiếp: trong cases/aligned, \\ là lệnh xuống dòng.
+      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
+      .replace(/\\\\(?=[a-zA-Z])/g, '\\')
       .trim();
 
     const hasTallMath = /\\(?:d?frac|tfrac|int|sum|prod|lim|sqrt|root)\b/.test(latex);
@@ -80,7 +81,22 @@ function MathContent({ value = '', inline = false }) {
   }
 
   if (lastIndex < source.length) {
-    pushPlainText(source.slice(lastIndex));
+    const remaining = source.slice(lastIndex);
+    // Một số phương án trong ngân hàng câu hỏi bị thiếu dấu đóng \).
+    // Nếu phần còn lại có dấu mở \( nhưng không có dấu đóng, vẫn render
+    // toàn bộ biểu thức còn lại bằng KaTeX thay vì để lộ mã LaTeX thô.
+    const unmatchedInline = remaining.match(/^(.*?)\\{1,2}\(([\s\S]*)$/);
+    if (unmatchedInline) {
+      if (unmatchedInline[1]) pushPlainText(unmatchedInline[1]);
+      const latex = unmatchedInline[2]
+        .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
+        .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
+        .replace(/\\(?=[a-zA-Z])/g, '\\')
+        .trim();
+      parts.push({ type: 'inline', value: `\\displaystyle ${latex}`, key: key++ });
+    } else {
+      pushPlainText(remaining);
+    }
   }
   if (parts.length === 0) {
     pushPlainText(source);
@@ -1354,7 +1370,7 @@ export default function App() {
         {step === 'select-subject' && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-uni')}><span className="back-link-circle" aria-hidden="true">←</span><span className="back-link-label">Chọn trường khác</span></button>
+              <button className="back-link" type="button" onClick={() => setStep('select-uni')}>Chọn trường khác</button>
               <h2>{selectedUni?.name}</h2>
             </div>
 
@@ -1378,7 +1394,7 @@ export default function App() {
         {step === 'select-term' && termSubject && (
           <section className="fade-in">
             <div className="section-header-nav">
-              <button className="back-link" type="button" onClick={() => setStep('select-subject')}><span className="back-link-circle" aria-hidden="true">←</span><span className="back-link-label">Quay lại danh sách môn</span></button>
+              <button className="back-link" type="button" onClick={() => setStep('select-subject')}><span className="back-link-arrow" aria-hidden="true">←</span><span className="back-link-label">Quay lại danh sách môn</span></button>
               <h2>{termSubject.name}</h2>
             </div>
             <p className="term-folder-intro">Chọn thư mục đề thi bạn muốn làm.</p>
