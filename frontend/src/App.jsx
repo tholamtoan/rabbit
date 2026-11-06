@@ -5,14 +5,45 @@ import './App.css';
 
 const API_BASE = 'https://rabbit-backend-68j4.onrender.com/api';
 
+function repairMathDelimiters(input) {
+  let text = String(input ?? '');
+  // Đếm cặp delimiters; dữ liệu Word đôi khi thiếu dấu đóng ở cuối đáp án.
+  const count = (pattern) => (text.match(pattern) || []).length;
+  let roundOpen = count(/(?<!\\)\\\(/g);
+  let roundClose = count(/(?<!\\)\\\)/g);
+  while (roundOpen > roundClose) {
+    text += '\\)';
+    roundClose += 1;
+  }
+  let squareOpen = count(/(?<!\\)\\\[/g);
+  let squareClose = count(/(?<!\\)\\\]/g);
+  while (squareOpen > squareClose) {
+    text += '\\]';
+    squareClose += 1;
+  }
+  return text;
+}
+
+function normalizeMathSource(input) {
+  const source = String(input ?? '');
+  // Chỉ chuẩn hóa các biểu thức Taylor có little-o, không đụng công thức khác.
+  if (!/o\s*\(/.test(source)) return source;
+  return source
+    .replace(/(=\s*)0\s*\+\s*/g, '$1')
+    .replace(/(?<![\w])1\s*\(\s*x\s*\)\s*\^\s*\{?2\}?/g, 'x^2')
+    .replace(/(?<![\w])([+-]?\s*\d+)\s*\(\s*x\s*\)/g, '$1x')
+    .replace(/\(\s*x\s*\)\s*\^\s*\{?2\}?/g, 'x^2')
+    .replace(/o\s*\(\s*\(\s*x\s*\)\s*\^\s*\{?2\}?\s*\)/g, 'o(x^2)')
+    .replace(/\+\s*-/g, '-');
+}
+
 function MathContent({ value = '', inline = false }) {
-  const source = String(value ?? '')
+  const source = repairMathDelimiters(String(value ?? '')
     .replace(/\r\n/g, '\n')
-    // Một số dữ liệu import có dấu phân cách LaTeX bị escape hai lần.
     .replace(/\\\\\(/g, '\\(')
     .replace(/\\\\\)/g, '\\)')
     .replace(/\\\\\[/g, '\\[')
-    .replace(/\\\\\]/g, '\\]');
+    .replace(/\\\\\]/g, '\\]'));
 
   const parts = [];
   let key = 0;
@@ -20,12 +51,8 @@ function MathContent({ value = '', inline = false }) {
     const scientificPattern = /([−-]?\d+(?:[,.]\d+)?)\s*[×x]\s*10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))|(^|[^\w\\])10\s*(?:\^\s*\{?\s*([−-]?\s*\d+)\s*\}?|([−-]\s*\d+))/g;
     let cursor = 0;
     let scientificMatch;
-
     while ((scientificMatch = scientificPattern.exec(plainText)) !== null) {
-      if (scientificMatch.index > cursor) {
-        parts.push({ type: 'text', value: plainText.slice(cursor, scientificMatch.index), key: key++ });
-      }
-
+      if (scientificMatch.index > cursor) parts.push({ type: 'text', value: plainText.slice(cursor, scientificMatch.index), key: key++ });
       let coefficient;
       let exponent;
       let prefix = '';
@@ -36,89 +63,49 @@ function MathContent({ value = '', inline = false }) {
         prefix = scientificMatch[4] ?? '';
         exponent = (scientificMatch[5] ?? scientificMatch[6]).replace(/[\s−]/g, (char) => char === '−' ? '-' : '');
       }
-
       if (prefix) parts.push({ type: 'text', value: prefix, key: key++ });
-      const latex = coefficient
-        ? `${coefficient}\\times 10^{${exponent}}`
-        : `10^{${exponent}}`;
-      parts.push({ type: 'inline', value: latex, key: key++ });
+      parts.push({ type: 'inline', value: coefficient ? `${coefficient}\\times 10^{${exponent}}` : `10^{${exponent}}`, key: key++ });
       cursor = scientificPattern.lastIndex;
     }
-
-    if (cursor < plainText.length) {
-      parts.push({ type: 'text', value: plainText.slice(cursor), key: key++ });
-    }
+    if (cursor < plainText.length) parts.push({ type: 'text', value: plainText.slice(cursor), key: key++ });
   };
 
   const tokenRegex = /\\{1,2}\[([\s\S]*?)\\{1,2}\]|\\{1,2}\(([\s\S]*?)\\{1,2}\)|\$\$([\s\S]*?)\$\$|\$([^$\n]+?)\$/g;
   let lastIndex = 0;
   let match;
-
   while ((match = tokenRegex.exec(source)) !== null) {
-    if (match.index > lastIndex) {
-      pushPlainText(source.slice(lastIndex, match.index));
-    }
-
+    if (match.index > lastIndex) pushPlainText(source.slice(lastIndex, match.index));
     const isBlock = match[1] !== undefined || match[3] !== undefined;
-    const latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
+    let latex = (match[1] ?? match[2] ?? match[3] ?? match[4] ?? '')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
       .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
-      // Chuẩn hóa lệnh LaTeX bị escape lặp, nhưng giữ nguyên \\ xuống dòng trong môi trường căn chỉnh.
+      // Collapse double-escaped command names; preserve \ row breaks.
       .replace(/\\\\(begin|end|left|right|frac|dfrac|tfrac|sqrt|root|lim|int|sum|prod|sin|cos|tan|ln|log|exp|arcsin|arccos|arctan|pi|infty|cdot|times|leq|geq|neq|pm|mp|partial|mathrm|text|overline|underline|vec|hat|bar|quad|qquad)(?=[\s{])/g, '\\$1')
       .trim();
 
-    // Công thức dễ đọc: phân số phóng lớn vừa đủ; cận tích phân/lim đặt trên-dưới.
-    const readableLatex = latex
+    latex = normalizeMathSource(latex)
+      // Make fractions comfortably legible; wrapper below provides vertical room.
       .replace(/\\frac(?=\s*\{|\s*\w)/g, '\\dfrac')
-      .replace(/\\(int|iint|iiint|oint|lim)(?!\\limits)/g, '\\$1\\limits');
-    const needsDisplayLimits = /\\(?:int|iint|iiint|oint|lim)\b/.test(readableLatex);
-    const renderedLatex = inline && needsDisplayLimits && !/\\displaystyle\b/.test(readableLatex)
-      ? `\\displaystyle ${readableLatex}`
-      : readableLatex;
+      // Put integral/limit bounds above and below, with a small gap from the operator.
+      .replace(/\\(int|iint|iiint|oint|lim)(?!\\limits)/g, '\\$1\\limits')
+      .replace(/\\(int|iint|iiint|oint|lim)\\limits_\{([^}]*)\}/g, '\\$1\\limits_{\\;$2}')
+      .replace(/(\\(?:int|iint|iiint|oint|lim)\\limits?(?:_\{[^}]*\})?)\^\{([^}]*)\}/g, '$1^{\\;$2}');
 
-    // Chuẩn hóa các lỗi gõ thường gặp trong đáp án Taylor được nhập từ Word.
-    const cleanTaylorLatex = (input) => input
-      .replace(/(=\\s*)0\\s*\\+/g, '$1')
-      .replace(/\\+\\s*-/g, '-')
-      .replace(/(?<![\\w])1\\s*\\(x\\)/g, 'x')
-      .replace(/(\\d+)\\s*\\(x\\)/g, '$1x')
-      .replace(/\\(x\\)\\s*\\^\\s*\\{?2\\}?/g, 'x^2')
-      .replace(/1x\\s*\\^\\s*\\{?2\\}?/g, 'x^2')
-      .replace(/o\\s*\\(\\s*\\(x\\)\\s*\\^\\s*\\{?2\\}?\\s*\\)/g, 'o(x^2)');
-    const finalLatex = cleanTaylorLatex(renderedLatex);
-
-    parts.push({
-      type: !inline && isBlock ? 'block' : 'inline',
-      value: finalLatex,
-      key: key++,
-    });
+    const needsDisplayLimits = /\\(?:int|iint|iiint|oint|lim)\b/.test(latex);
+    const renderedLatex = inline && needsDisplayLimits && !/\\displaystyle\b/.test(latex)
+      ? `\\displaystyle ${latex}`
+      : latex;
+    parts.push({ type: !inline && isBlock ? 'block' : 'inline', value: renderedLatex, key: key++ });
     lastIndex = tokenRegex.lastIndex;
   }
-
-  if (lastIndex < source.length) {
-    pushPlainText(source.slice(lastIndex));
-  }
-  if (parts.length === 0) {
-    pushPlainText(source);
-  }
+  if (lastIndex < source.length) pushPlainText(source.slice(lastIndex));
+  if (parts.length === 0) pushPlainText(source);
 
   return (
     <>
       {parts.map((part) => {
-        if (part.type === 'block') {
-          return (
-            <div className="math-block" key={part.key}>
-              <BlockMath math={part.value} errorColor="#d32f2f" />
-            </div>
-          );
-        }
-        if (part.type === 'inline') {
-          return (
-            <span className="math-inline" key={part.key}>
-              <InlineMath math={part.value} errorColor="#d32f2f" />
-            </span>
-          );
-        }
+        if (part.type === 'block') return <div className="math-block" key={part.key}><BlockMath math={part.value} errorColor="#d32f2f" /></div>;
+        if (part.type === 'inline') return <span className="math-inline" key={part.key}><InlineMath math={part.value} errorColor="#d32f2f" /></span>;
         return <span key={part.key}>{part.value}</span>;
       })}
     </>
