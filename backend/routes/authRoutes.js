@@ -55,7 +55,7 @@ module.exports = function createAuthRoutes({ pool, sendOtpEmail }) {
       if (field === 'email') {
         const email = cleanEmail(req.body?.value);
         if (!email) return res.status(400).json({ message: 'Vui lòng nhập email!' });
-        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           return res.status(400).json({ message: 'Email không đúng định dạng!' });
         }
         const found = await pool.query('SELECT 1 FROM users WHERE LOWER(email) = $1 LIMIT 1', [email]);

@@ -1,0 +1,7308 @@
+[
+  {
+    "id": "d1-q1",
+    "type": 1,
+    "content": "Cho  Khi x → 0 thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q2",
+    "type": 1,
+    "content": "Cho  Khi x → 0 thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q3",
+    "type": 1,
+    "content": "Cho  Khi  thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q4",
+    "type": 1,
+    "content": "Cho  Khi  thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q5",
+    "type": 1,
+    "content": "Cho . Khi  thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q6",
+    "type": 1,
+    "content": "Cho . Khi  thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q7",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q8",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q9",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q10",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q11",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q12",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q13",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q14",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q15",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q16",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q17",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q18",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q19",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q20",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q21",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q22",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q23",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q24",
+    "type": 1,
+    "content": "Cho hàm số . Khi , hàm số tương đương với:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q25",
+    "type": 1,
+    "content": "Cho hàm số . Khi , hàm số tương đương với:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q26",
+    "type": 1,
+    "content": "Cho hàm số . Khi , hàm số tương đương với:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q27",
+    "type": 1,
+    "content": "Cho hàm số . Tìm hàm tương đương khi .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q28",
+    "type": 1,
+    "content": "Cho hàm số . Khi , hàm số tương đương với:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q29",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q30",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q31",
+    "type": 1,
+    "content": "Cho hàm số . Khi , hàm số tương đương với:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q32",
+    "type": 1,
+    "content": "Tính giới hạn .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q33",
+    "type": 1,
+    "content": "Cho hàm số . Khi , hàm số tương đương với:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q34",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q35",
+    "type": 1,
+    "content": "Cho hàm số . Khi  thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q36",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q37",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q38",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q39",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q40",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q41",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q42",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q43",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q44",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q45",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q46",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q47",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q48",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q49",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q50",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q51",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q52",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q53",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q54",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q55",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q56",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q57",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q58",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q59",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q60",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q61",
+    "type": 1,
+    "content": "Cho hàm số . Khi , thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d1-q62",
+    "type": 1,
+    "content": "Cho hàm số . Khi  thì:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q1",
+    "type": 2,
+    "content": "Cho hàm số . Tính đạo hàm của hàm ngược  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q2",
+    "type": 2,
+    "content": "Cho hàm số . Tính đạo hàm của hàm ngược  tại .",
+    "options": {
+      "A": ".",
+      "B": ".",
+      "C": ".",
+      "D": "."
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q3",
+    "type": 2,
+    "content": "Cho hàm số , có hàm ngược là . Biết  và . Tính đạo hàm của hàm  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q4",
+    "type": 2,
+    "content": "Cho hàm số . Tìm đạo hàm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q5",
+    "type": 2,
+    "content": "Cho hàm số . Tính đạo hàm của hàm ngược  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q6",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q7",
+    "type": 2,
+    "content": "Cho hàm số  trên khoảng . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q8",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q9",
+    "type": 2,
+    "content": "Cho hàm số  trên khoảng . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q10",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q11",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q12",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q13",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q14",
+    "type": 2,
+    "content": "Cho hàm số  trên một khoảng chứa . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q15",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q16",
+    "type": 2,
+    "content": "Cho hàm số  trên một khoảng chứa . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q17",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q18",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q19",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q20",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q21",
+    "type": 2,
+    "content": "Cho hàm số  trên khoảng . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q22",
+    "type": 2,
+    "content": "Cho hàm số  trên khoảng . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q23",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q24",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q25",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q26",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q27",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q28",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d2-q29",
+    "type": 2,
+    "content": "Cho hàm số . Tính .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q1",
+    "type": 3,
+    "content": "Cho hàm số  được xác định bởi:  Tính đạo hàm cấp hai  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q2",
+    "type": 3,
+    "content": "Cho hàm số  được xác định bởi  Tính đạo hàm  tại .",
+    "options": {
+      "A": ".",
+      "B": ".",
+      "C": ".",
+      "D": "."
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q3",
+    "type": 3,
+    "content": "Cho hàm số  được xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q4",
+    "type": 3,
+    "content": "Cho hàm số  được xác định bởi  Tìm  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q5",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q6",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q7",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q8",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q9",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  với điều kiện . Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q10",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q11",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q12",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q13",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q14",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q15",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q16",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q17",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q18",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q19",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q20",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q21",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q22",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q23",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q24",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q25",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q26",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q27",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q28",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d3-q29",
+    "type": 3,
+    "content": "Cho hàm số  xác định bởi  Tính  tại .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q1",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được cho bởi phương trình  với y < 0:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q2",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được cho bởi phương trình",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q3",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được cho bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q4",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được cho bởi phương trình .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q5",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q6",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q7",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q8",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q9",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q10",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q11",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q12",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q13",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q14",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q15",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q16",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q17",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q18",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q19",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q20",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q21",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q22",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q23",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q24",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q25",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d4-q26",
+    "type": 4,
+    "content": "Tìm đạo hàm  của hàm ẩn được xác định bởi phương trình  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q1",
+    "type": 5,
+    "content": "Cho hàm số  Đạo hàm của y = f(x) là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q2",
+    "type": 5,
+    "content": "Cho hàm số  Tính đạo hàm của .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q3",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q4",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q5",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q6",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q7",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q8",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q9",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q10",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q11",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q12",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q13",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q14",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q15",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q16",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q17",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q18",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q19",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q20",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q21",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q22",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q23",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q24",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q25",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q26",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q27",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q28",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q29",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d5-q30",
+    "type": 5,
+    "content": "Cho hàm số . Tính đạo hàm của  tại điểm .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q1",
+    "type": 6,
+    "content": "Cho hàm số  Khai triển Taylor cấp 2 của f(x) tại điểm x = 1 là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q2",
+    "type": 6,
+    "content": "Cho hàm số  Khai triển Taylor tại x = 0 (còn gọi là khai triển Maclaurin) cấp 2 của f(x) là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q3",
+    "type": 6,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": "\\(f(x)=e^2+4e^2(x-1)+7e^2(x-1)^2+o((x-1)^2)"
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q4",
+    "type": 6,
+    "content": "Cho hàm số . Khai triển Taylor tại  (còn gọi là khai triển Maclaurin) cấp 2 của  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": "\\(f(x)=\\frac23x^2+o(x^2)"
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q5",
+    "type": 6,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q6",
+    "type": 6,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q7",
+    "type": 6,
+    "content": "Dùng đa thức Taylor bậc 3 của  tại , tính xấp xỉ :",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d6-q8",
+    "type": 6,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q1",
+    "type": 7,
+    "content": "Dùng đa thức Taylor bậc 4 của  tại điểm , tính xấp xỉ .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q2",
+    "type": 7,
+    "content": "Dùng đa thức Taylor bậc 3 của  tại điểm , tính xấp xỉ .",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q3",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q4",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q5",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q6",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q7",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q8",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q9",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q10",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q11",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q12",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q13",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q14",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q15",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q16",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q17",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q18",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q19",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q20",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q21",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q22",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q23",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q24",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q25",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q26",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q27",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q28",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q29",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q30",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q31",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q32",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q33",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q34",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q35",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q36",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q37",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q38",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q39",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q40",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q41",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q42",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q43",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q44",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q45",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q46",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 2 của  tại điểm  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q47",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 5 của  tại  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d7-q48",
+    "type": 7,
+    "content": "Cho hàm số . Khai triển Taylor cấp 5 của  tại  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q1",
+    "type": 8,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu y(0) = 1 là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q2",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q3",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số bất kỳ):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q4",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q5",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q6",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q7",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q8",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q9",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q10",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q11",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q12",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q13",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q14",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q15",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q16",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q17",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q18",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q19",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q20",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q21",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q22",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q23",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q24",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q25",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q26",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q27",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q28",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q29",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q30",
+    "type": 8,
+    "content": "Nghiệm tổng quát của phương trình vi phân  chia cho , tức , là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d8-q32",
+    "type": 8,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q1",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q2",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q3",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q4",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q5",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , với , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q6",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , với , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q7",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q8",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , với , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q9",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q10",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q11",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , với , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q12",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , với , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q13",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , tại khoảng chứa , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q14",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân , với , thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q15",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q16",
+    "type": 9,
+    "content": "Nghiệm riêng của phương trình vi phân  thỏa điều kiện đầu  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q17",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q18",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q19",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q20",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q21",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , tại khoảng chứa , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q22",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q23",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q24",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q25",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q26",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q27",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân , với , là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q28",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q29",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d9-q30",
+    "type": 9,
+    "content": "Nghiệm tổng quát của phương trình vi phân  là ( là hằng số tùy ý):",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q1",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q2",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q3",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q4",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q5",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q6",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q7",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q8",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q9",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q10",
+    "type": 10,
+    "content": "Tích phân suy rộng  có giá trị là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q11",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q12",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q13",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q14",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q15",
+    "type": 10,
+    "content": "Tích phân suy rộng  có giá trị là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q16",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q17",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q18",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q19",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q20",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q21",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q22",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q23",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q24",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q25",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q26",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q27",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q28",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q29",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q30",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q31",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q32",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q33",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q34",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q35",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q36",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q37",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q38",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q39",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q40",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q41",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q42",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q43",
+    "type": 10,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d10-q44",
+    "type": 10,
+    "content": "Tích phân suy rộng  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q1",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q2",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q3",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q4",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q5",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q6",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q7",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q8",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q9",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q10",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q11",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q12",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q13",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q14",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q15",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q16",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q17",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q18",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q19",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q20",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q21",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q22",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q23",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q24",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q25",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q26",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q27",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q28",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q29",
+    "type": 11,
+    "content": "Xét tính hội tụ của tích phân :",
+    "options": {
+      "A": "(hội tụ)",
+      "B": "(hội tụ) (giá trị khẳng định sai: 0)",
+      "C": "(hội tụ) (giá trị khẳng định sai: 1)",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q30",
+    "type": 11,
+    "content": "Xét tính hội tụ của tích phân :",
+    "options": {
+      "A": "(hội tụ)",
+      "B": "(hội tụ) (giá trị khẳng định sai: 0)",
+      "C": "(hội tụ) (giá trị khẳng định sai: 1)",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q31",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d11-q32",
+    "type": 11,
+    "content": "Tích phân  bằng:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q1",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q2",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q3",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q4",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q5",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q6",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q7",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q8",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q9",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q10",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q11",
+    "type": 12,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q12",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q13",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q14",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q15",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q16",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q17",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q18",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q19",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q20",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q21",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q22",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q23",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q24",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q25",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q26",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q27",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q28",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q29",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q30",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q31",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q32",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q33",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q34",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q35",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q36",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q37",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q38",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q39",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q40",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q41",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q42",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q43",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q44",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q45",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q46",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q47",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q48",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q49",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d12-q50",
+    "type": 12,
+    "content": "Xét tính hội tụ của tích phân . Tích phân này cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q1",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q2",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q3",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q4",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q5",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q6",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q7",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q8",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q9",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q10",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q11",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q12",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q13",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q14",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q15",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q16",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q17",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q18",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q19",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q20",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q21",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q22",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q23",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q24",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q25",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q26",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q27",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q28",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q29",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q30",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q31",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q32",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q33",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q34",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q35",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q36",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q37",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q38",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q39",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q40",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q41",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q42",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q43",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q44",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q45",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q46",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q47",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q48",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q49",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d13-q50",
+    "type": 13,
+    "content": "Tích phân  cùng tính chất hội tụ với tích phân nào sau đây?",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q1",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q2",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q3",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi hai đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q4",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q5",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q6",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q7",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q8",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q9",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q10",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q11",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q12",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q13",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q14",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q15",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q16",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q17",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q18",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q19",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q20",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q21",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q22",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q23",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q24",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q25",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q26",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q27",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q28",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q29",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q30",
+    "type": 14,
+    "content": "Diện tích hình phẳng giới hạn bởi các đường  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d14-q31",
+    "type": 14,
+    "content": "Tính diện tích miền phẳng giới hạn bởi hai đường  và :",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q1",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q2",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q3",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q4",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q5",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q6",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q7",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q8",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q9",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q10",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q11",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q12",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q13",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q14",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q15",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q16",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q17",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q18",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q19",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q20",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q21",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q22",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q23",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q24",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q25",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q26",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q27",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q28",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q29",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q30",
+    "type": 15,
+    "content": "Thể tích của khối tròn xoay khi quay hình phẳng được giới hạn bởi các đường  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d15-q31",
+    "type": 15,
+    "content": "Thể tích khối tròn xoay khi quay hình phẳng giới hạn bởi ,  quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q1",
+    "type": 16,
+    "content": "Diện tích S của mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q2",
+    "type": 16,
+    "content": "Diện tích của mặt tròn xoay khi quay cung , , quanh trục  là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q3",
+    "type": 16,
+    "content": "Diện tích  của mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q4",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q5",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q6",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q7",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q8",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q9",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q10",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q11",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q12",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q13",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q14",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q15",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q16",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q17",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q18",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q19",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q20",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q21",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q22",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "C",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q23",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q24",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "B",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q25",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q26",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q27",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q28",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q29",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q30",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "A",
+    "explanation": ""
+  },
+  {
+    "id": "d16-q31",
+    "type": 16,
+    "content": "Diện tích mặt tròn xoay khi quay cung ,  quanh trục  được tính là:",
+    "options": {
+      "A": "",
+      "B": "",
+      "C": "",
+      "D": ""
+    },
+    "correct": "D",
+    "explanation": ""
+  }
+]

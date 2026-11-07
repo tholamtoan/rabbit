@@ -42,3 +42,11 @@ Deploy backend. Khi backend khởi động, `initializeDatabase()` tự tạo c�
 - Hai người nạp cùng mệnh giá vẫn phân biệt bằng mã đơn khác nhau.
 
 **Quan trọng:** Trên SePay cần bật webhook tiền vào, định dạng JSON, API Key. Cấu hình nội dung chuyển khoản QR phải được ngân hàng giữ nguyên. Trước khi mở cho người dùng, hãy kiểm thử giao dịch thật số tiền nhỏ và xác nhận SePay gửi trường `content`/`description` có chứa mã `HCT...`; nếu SePay/bank bỏ nội dung chuyển khoản thì webhook sẽ không tự đối chiếu được và giao dịch cần admin xử lý thủ công.
+
+
+## Bản vá an toàn nạp tiền
+- Webhook ghi nhận giao dịch theo transaction_id với ON CONFLICT DO NOTHING để chống gửi lặp.
+- Chỉ cộng ví khi mã HCT, số tiền, trạng thái đơn và hạn 20 phút đều khớp.
+- Giao dịch sai mã, sai tiền hoặc đến muộn được lưu để rà soát, không tự cộng.
+- Admin API xem đơn nạp: GET /api/admin/deposits (có thể lọc ?status=manual_review).
+- Cần giữ API Key webhook trên SePay và Render khớp nhau.
